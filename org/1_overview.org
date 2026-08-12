@@ -1,0 +1,232 @@
+#+TITLE:Course overview
+#+AUTHOR:Marcus Birkenkrahe
+#+SUBTITLE:COSC 2230 (CS III) FA26 | Augustana U.
+#+STARTUP: overview hideblocks indent
+#+OPTIONS: toc:nil num:nil ^:nil
+* Objectives
+
+- Get to know your teacher
+- Share why you are here
+- Check out the entry survey results
+- Understand what this course is about
+- Find out where to find stuff
+- Find out when to ask
+- Find out about the formal stuff
+- Understand how you're being graded
+- Find out what you'll do every week
+- Get your next assignments
+- Find out what's next
+
+* Get to know your teacher
+
+- For the professional stuff, I asked Gemini ([[https://share.gemini.google/fRSXa14oNAj9][link]])
+  #+begin_quote
+  I am going to take a course with Marcus Birkenkrahe, Computer Science
+  III. Tell me something about him that might be interesting and useful.
+  #+end_quote
+
+- Private:
+  + PhD in theoretical particle physics ("Big Bang Theory")
+  + Worked at large multi-national companies in IT positions
+  + Came to the US in 2021 from Germany (US citizen since 2026)
+  + Family: 1 wife, 1 daughter, 2 grandchildren, 3 dogs, 2 cats
+  + Favorite OS: Linux
+  + Favorite programming language: C
+  + Favorite programming environment: Emacs
+  + Favorite food: Schnitzel (aka Milanesa, tonkatsu, escalope)
+  + Favorite drink: peppermint tea
+  + Favorite hobbies: shooting / sailing / singing
+
+* Your turn - entry survey results
+
+- Even if you filled in the entry survey:
+
+- Let us hear why you're here
+
+- So that I can hear (and learn) your name.
+
+* Understand what this course is about
+
+- This is what the *course catalog* says:
+  #+begin_quote
+  "This course is a continuation of *Computer Science II* and provides a
+  deeper look into *object oriented programming*, generic *types*, *lambda*
+  functions, *stream( processing, and *concurrent* processing. It also
+  presents several basic *data structures*: stacks, queues, lists,
+  trees, and graphs. *Algorithms* for sorting, searching, and memory
+  management are also introduced."
+  #+end_quote
+
+- *Prerequisite*: COSC 1220 Computer Science II
+  #+begin_quote
+  "A broadening of foundations for computer science with advanced
+  concepts in software engineering and program development. Topics
+  include an introduction to *data structures*, *analysis of algorithms*,
+  and *object-oriented design*."
+  #+end_quote
+
+- What you should already know (concepts/theory):
+  #+begin_quote
+  - Program structure and the compile/run model (~javac/java~)
+  - Primitive types, expressions, casting
+  - Conditionals and loops (~if~, ~while~, ~for~, nesting)
+  - Arrays
+  - Standard I/O (~StdIn/StdOut/StdDraw~)
+  - Simulation / Monte Carlo style programs
+  - Markov chains / transition matrices
+  - Function definition, parameters, return values, ~static~ methods
+  - Modular decomposition (libraries vs. clients)
+  - Recursion (base case, recursive case, call stack)
+  - Encapsulation (fields + methods, constructors)
+  - API design (exposed vs. hidden state)
+  - Instance methods vs. ~static~ methods
+  - Reference types vs. primitives
+  - Aliasing and mutability
+  - Defensive copies
+  - Using existing data types
+  - Creating custom data types
+  - Designing (well-formed) data types
+  - Composing multiple types into a larger program
+  #+end_quote
+
+- What you should already be able to code:
+  #+begin_quote
+  Design, implement and test a simply abstract data type that you can
+  use to model a real time object - for example a stopwatch to compare
+  running times of performance-critical methods.
+  #+end_quote
+
+- What you will add in this class:
+  #+begin_quote
+  You will learn to "pay attention to the cost" of your code. You will
+  build linked structures that can be arbitrarily complex. With
+  these, and with arrays, you can build *data structures* 
+  #+end_quote
+
+- This is what the course is really about:
+  #+begin_quote
+  1. Learn how to tell a machine what to do safely, clearly, and in a
+     way other programmers can trust and build on.
+  2. Learn how to write programs that work, scale and perform.
+  3. Learn to use the computer as a tool for bigger and messier jobs.
+  #+end_quote
+
+* TODO Find out where to find stuff
+
+- Canvas
+- GitHub
+- Chatbots
+- Textbook
+- Google Space
+
+** PRACTICE From Canvas to the textbook
+
+1) Open the Canvas course
+   (https://augie.instructure.com/courses/15635)
+2) Open the first module
+3) Follow my instructions
+
+** Canvas
+
+** GitHub
+
+** Chatbots / Generative AI Assistants
+
+- Gemini with Google Colab is a true agent + notebook solution that you can use to write Java programs online for free (within set limits).
+- Open https://tinyurl.com/colab-scratchpad in a browser and code along with me:
+  + Hello world program (Java)
+  + Fibonacci sequence program (Java)
+  + Visualization (Python)
+- Prnivately (since 05/26), I use Claude Code (agent harness using
+  Claude). If you're strapped for cash, I recommend the free combo:
+  OpenCode (harness) + Ollama (server) + Qwen3-Coder (model).
+- I use generative AI to::
+  + Drill me before lectures (as a tutor)
+  + Generate quizzes from different sources
+  + Give me ideas for new exercises
+  + Check my lecture scripts against the textbook
+- I have published extensively about teaching computer and data
+  science with and without AI (see [[https://birkenkrahe.github.io/][birkenkrahe.github.io]] or
+  [[https://www.researchgate.net/profile/Marcus-Birkenkrahe][researchgate.net]])
+
+** Textbook
+
+** Google Space
+
+* Find out whom to ask when
+
+- Always ask your mates/peers/friends first
+
+- If you don't know anyone, make contact with someone
+
+- Next, ask me before, in, or after class
+
+- Come to my office hours: Tue/Thu 9-10 am and 2-3 pm
+
+- Book 30 minutes slots with me: [[https://tinyurl.com/booking-fall-26][tinyurl.com/booking-fall-26]]
+
+* Find out about the formal stuff
+
+- Read the fine print in the syllabus
+
+- This course is an AI-enabled course
+
+- Feel free to inform me when I make mistakes
+
+* Understand how you're being graded
+
+| What                    | When    | How much |
+|-------------------------+---------+----------|
+| Project (scrum)         | monthly |      25% |
+| Quizzes                 | weekly  |      15% |
+| Programming assignments | weeky   |      40% |
+| Midterm exam            | TBD     |      10% |
+| Final exam (optional)   | TBD     |      10% |
+|-------------------------+---------+----------|
+| Total                   |         |     100% |
+
+- Project (team 2-3) = 3 sprint reviews (3 * 5%) + presentation (10%)
+
+- Quizzes: not timed, home, individual
+
+- Midterm exam: 50 min, individual, based on quizzes
+
+- Final exam: 30 min, optional, individual conversation
+  
+* Find out what you'll do every week
+
+1. Overview (theory)
+2. Example (code along)
+3. Practice (your turn)
+4. Problem (home assignment)
+5. Review (following class)
+
+** Detailed breakdown
+
+In class:
+| Retrieval warm-up | 5 min  |
+| Lecture/demo      | 10 min |
+| Live coding       | 15 min |
+| Applied practice  | 10 min |
+| Debrief           | 5 min  |
+| Summary           | 5 min  |
+|-------------------+--------|
+| Total             | 50 min |
+
+Exams:
+| Popquiz | 10 min  | Surprise |
+| Midterm | 50 min  | TBD      |
+| Final   | 120 min | TBD      |
+
+At home (survival minimum):
+| Quiz       | 60 min | Weekly |
+| Assignment | 60 min | Weekly |
+| Reading    | 60 min | Weekly |
+| Project    | 60 min | Weekly |
+| Review     | 60 min | Weekly |
+
+* TODO Setup: What you'll need and what I use
+
+* TODO Get your next assignments
+
+* TODO Find out what's next
