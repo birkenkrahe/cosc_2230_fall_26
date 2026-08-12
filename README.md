@@ -1,4 +1,4 @@
-![img](./img/boys_by_the_sea.jpg)
+![img](./img/three_monks.jpg)
 
 
 # Computer Science III (with Java)
