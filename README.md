@@ -1,4 +1,4 @@
-![img](./img/breughel_babel_1563.jpg)
+![img](./img/boys_by_the_sea.jpg)
 
 
 # Computer Science III (with Java)
