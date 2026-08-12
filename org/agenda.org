@@ -1,0 +1,9 @@
+#+TITLE: Agenda - Data Structures and Algorithms 
+#+AUTHOR: Marcus Birkenkrahe 
+#+SUBTITLE: COSC 2230 (CS III) Fall 26 | Augustana U.
+#+STARTUP: overview hideblocks indent entitiespretty
+#+OPTIONS: toc:nil num:nil ^:nil
+#+attr_html: :width 400px :float nil:
+[[../img/boys_by_the_sea.jpg]]
+
+Image: Three Boys on the Shore" by Winslow Homer, 1873
