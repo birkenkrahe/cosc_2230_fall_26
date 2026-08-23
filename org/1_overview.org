@@ -100,7 +100,7 @@
   #+begin_quote
   You will learn to "pay attention to the cost" of your code. You will
   build linked structures that can be arbitrarily complex. With
-  these, and with arrays, you can build *data structures* 
+  these, and with arrays, you can build *data structures*
   #+end_quote
 
 - This is what the course is really about:
@@ -111,13 +111,14 @@
   3. Learn to use the computer as a tool for bigger and messier jobs.
   #+end_quote
 
-* TODO Find out where to find stuff
+* Find out where to find stuff
 
 - Canvas
 - GitHub
-- Chatbots
-- Textbook
+- Textbooks
 - Google Space
+- Photos and Papers
+- Chatbots / Generative AI
 
 ** PRACTICE From Canvas to the textbook
 
@@ -128,30 +129,121 @@
 
 ** Canvas
 
+- A learning management system (LMS)
+- This is a special case of a content management system (CMS)
+- We use Canvas for:
+  1) Announcements
+  2) Assignments
+  3) Quizzes
+  4) Grades (as up to date as I can manage)
+  5) Google Meet (link - I record all of my sessions)
+  6) Google Drive (link - session recordings, whiteboard screenshots)
+  7) YuJa (occasional videos)
+  8) Syllabus (course overview, grading, schedule)
+  9) Attendance (transfer from Google Forms)
+  10) Respondus Lockdown Browser (might use it for tests)
+
 ** GitHub
+
+- Do you have a GitHub profile? Have you used Git before?
+
+- GitHub (and other platforms) use the Git version control system
+
+- If not, register for free and complete the [[https://docs.github.com/en/get-started/using-github/hello-world][Hello World project]]
+
+- The course materials are here:
+  https://github.com/birkenkrahe/cosc_2230_fall_26
+
+- All lectures, assignments, tests are in the org/ directory
+
+- These are Emacs Org-mode files (.org) rendered as Markdown (.md)
+
+- There will also be PDFs, data, source files, and images
+
+- I use GitHub to merge files from different devices into one repo
+
+** Textbook and further reading
+
+- We are going to use the textbook "Introduction to Programming in
+  Java - An Interdisciplinary Approach" by Sedgewick/Wayne, 2e, 2016
+
+- The book has a site with excerpts and many other resources:
+  https://introcs.cs.princeton.edu/java/home/
+
+- Readings from the book are aligned with our progress. The book is
+  very densely written, and we're only going to cover chapter 4.
+
+- The course COSC 3210 Algorithms and Advanced Data Structures is the
+  next course in the catalog (it has this course as prerequisite). It
+  is based on the seminal book "Algorithms" by Sedgewick/Wayne.
+  
+Other good books (legally free and online):
+
+- Introduction to programming using Java, version 9 (2022)
+  https://math.hws.edu/javanotes/ 
+
+- Think Data Structures - Algorithms & Information Retrieval in Java,
+  version 1, by Downey (2016)
+  https://greenteapress.com/thinkdast/thinkdast.pdf 
+
+- Open data structures java edition - An open content textbook by
+  Morin (2013), https://opendatastructures.org/
+
+- An Open Guide to Data Structures and Algorithms by Bible/Moser
+  (2023),
+  https://pressbooks.palni.org/anopenguidetodatastructuresandalgorithms/
+  
+** Google Chat Space
+
+- I do a fair amount of "work on the side": reading, coding, playing
+  around
+
+- In order to protect your precious email space, I'll use Google space
+
+- I encourage you to use that space to discuss, share, comment
+
+- This space will stay live across multiple courses: feel free to join
+  or leave it at any time.
+
+- Link: https://tinyurl.com/gspace-2230 (open to all of Augie)
+ 
+** Photos and Papers (GDrive)
+
+- I upload photos and publicy available papers to GDrive:
+  https://tinyurl.com/fa26-photos
+
+- The class photo (to help me learn your names) is also here as an
+  editable Powerpoint slide: *please add your name* to your image.
 
 ** Chatbots / Generative AI Assistants
 
-- Gemini with Google Colab is a true agent + notebook solution that you can use to write Java programs online for free (within set limits).
-- Open https://tinyurl.com/colab-scratchpad in a browser and code along with me:
+- Gemini with Google Colab is a true agent + notebook solution that
+  you can use to write Java programs online for free (within set
+  limits). For heavy use, you'll soon run out of tokens, however.
+
+- Open https://tinyurl.com/colab-scratchpad in a browser and code
+  along with me:
   + Hello world program (Java)
-  + Fibonacci sequence program (Java)
-  + Visualization (Python)
-- Prnivately (since 05/26), I use Claude Code (agent harness using
+  + Hello world program (SQL)
+  + Interesting Visualization (Python)
+  + Hello world program (Lisp)
+- You can see the final file here: https://tinyurl.com/litprog-demo
+
+- Privately (since 05/26), I use Claude Code (agent harness using
   Claude). If you're strapped for cash, I recommend the free combo:
   OpenCode (harness) + Ollama (server) + Qwen3-Coder (model).
-- I use generative AI to::
+
+- I use generative AI to:
   + Drill me before lectures (as a tutor)
   + Generate quizzes from different sources
   + Give me ideas for new exercises
   + Check my lecture scripts against the textbook
+
 - I have published extensively about teaching computer and data
   science with and without AI (see [[https://birkenkrahe.github.io/][birkenkrahe.github.io]] or
   [[https://www.researchgate.net/profile/Marcus-Birkenkrahe][researchgate.net]])
 
-** Textbook
-
-** Google Space
+- *How do you use AI?*
 
 * Find out whom to ask when
 
@@ -163,7 +255,8 @@
 
 - Come to my office hours: Tue/Thu 9-10 am and 2-3 pm
 
-- Book 30 minutes slots with me: [[https://tinyurl.com/booking-fall-26][tinyurl.com/booking-fall-26]]
+- Book meetings with me through *Navigate*: my student hours are Tuesday
+  1pm-3pm and Thursday 9am-12pm in my office FSC 386.
 
 * Find out about the formal stuff
 
@@ -177,7 +270,7 @@
 
 | What                    | When    | How much |
 |-------------------------+---------+----------|
-| Project (scrum)         | monthly |      25% |
+| Project (Scrum)         | monthly |      25% |
 | Quizzes                 | weekly  |      15% |
 | Programming assignments | weeky   |      40% |
 | Midterm exam            | TBD     |      10% |
@@ -192,15 +285,27 @@
 - Midterm exam: 50 min, individual, based on quizzes
 
 - Final exam: 30 min, optional, individual conversation
-  
+
+* Find out about the project
+#+attr_html: :width 400px :float nil:
+
+
+- Scrum = agile method (software engineering)
+
+- 4 sprint reviews (prototype presentation)
+
+- Alignment with IMRaD
+
 * Find out what you'll do every week
 
-1. Overview (theory)
+1. Overview (theory, lecture)
 2. Example (code along)
-3. Practice (your turn)
-4. Problem (home assignment)
-5. Review (following class)
+3. Practice (your turn, in class)
+4. Problem (take home assignment)
+5. Review (in the following class)
 
+All classroom sessions will be recorded via Google Meet   
+   
 ** Detailed breakdown
 
 In class:
@@ -225,8 +330,90 @@ At home (survival minimum):
 | Project    | 60 min | Weekly |
 | Review     | 60 min | Weekly |
 
-* TODO Setup: What you'll need and what I use
+* Setup: What you'll need and what I use
 
-* TODO Get your next assignments
+- The Java compiler I use:
+  #+begin_src bash :results output :exports both
+    javac -version
+  #+end_src
 
-* TODO Find out what's next
+  #+RESULTS:
+  : javac 17.0.20
+
+- How can you get it if you don't have it yet?
+  #+begin_quote
+  On your own machine, install *Amazon Corretto OpenJDK 17*
+  ([[https://aws.amazon.com/corretto/][aws.amazon.com/corretto]]) so your code behaves the same way in and
+  out of class. It's free, and installers exist for Windows, macOS,
+  and Linux. In the course I'll occasionally switch to a newer JDK for
+  one specific demo, but 17 is the baseline for everything you turn
+  in.
+  #+end_quote
+
+- What else do you need?
+  #+begin_quote
+  *An editor or IDE* - your choice, entirely. VS Code, IntelliJ,
+  Notepad++, vim, Emacs, whatever you're comfortable with or want to
+  learn. I won't teach or require any particular one.
+
+  What I *will* require: you compile and run every program by hand on
+  the command line (~javac~, then ~java~), not by clicking an IDE's "Run"
+  button. IDEs hide that step - and understanding what ~javac~ and ~java~
+  each do, separately, is one of the things this course actually
+  teaches. Use an IDE for editing if you like it; just don't let it
+  run your code for you.
+  #+end_quote
+
+- How will you run commands (compile, run, navigate files)?
+  #+begin_quote
+  You need a terminal / shell you're comfortable typing into:
+
+  - *Windows*: install [[https://gitforwindows.org/][Git Bash]] - gives you a Unix-like shell, which
+    matches how I'll demo things in class and how the instructions in
+    this course are written.
+  - *macOS*: the built-in *Terminal* app works out of the box.
+  - *Linux*: whatever shell you already have.
+
+  "It works on my machine" is the most common failure mode - if your
+  setup doesn't match one of the above, come to office hours *before*
+  the first assignment is due, not after.
+  #+end_quote
+
+- What else would be cool?
+  #+begin_quote
+  Nothing here is required - just worth knowing about if you want to
+  go further:
+
+  - *A real debugger* instead of scattering ~println~ everywhere: step
+    through execution line-by-line, inspect variables, set
+    breakpoints. Most IDEs ship one built-in (VS Code's Java
+    extension, IntelliJ), or use ~jdb~ straight from the command line
+    - same JDK you already installed. This doesn't conflict with the
+    hand-compile requirement: you're still running ~javac~ yourself,
+    just attaching a debugger to watch it run instead of only reading
+    ~stdout~.
+  - *Linux*, if you're on Windows and want more than Git Bash gives you:
+    install WSL (Windows Subsystem for Linux) for a real Linux
+    environment side-by-side with Windows, free. (My daily driver, for
+    what it's worth.)
+  #+end_quote
+ 
+* Get your next assignments
+
+  1) Write a =Counter= class
+
+  2) Extend the =Stopwatch= class
+
+  3) Take a look at the textbook
+
+* Find out what's next
+
+CS II Review:
+
+- What is OOP about
+- Reference data types
+- Java vs C++ vs (modern) Python
+- Immutability
+- Testing and extending code
+- Interfaces and implementations
+  
