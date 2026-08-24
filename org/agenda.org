@@ -4,6 +4,21 @@
 #+STARTUP: overview hideblocks indent entitiespretty
 #+OPTIONS: toc:nil num:nil ^:nil
 #+attr_html: :width 400px :float nil:
-[[../img/boys_by_the_sea.jpg]]
+#+caption: Three Monks at Mealtime, by Eduard v. Grützner (1885)
+[[../img/three_monks.jpg]]
 
-Image: Three Boys on the Shore" by Winslow Homer, 1873
+* W1S1: Overview of the course
+
+|   | Topic                                                           |
+|---+-----------------------------------------------------------------|
+|   | Welcome & objectives                                            |
+|   | Get to know your teacher & share why you're here                |
+|   | Understand what this course is about                            |
+|   | Find out where to find stuff: Canvas, GitHub, textbook, AI demo |
+|   | Whom to ask, formalities, and grading                           |
+|   | The project: Scrum sprints, tracks, and topic ideas             |
+|   | Weekly rhythm: in-class, exams, and at-home work                |
+|   | Setup: JDK, IDE/hand-compile requirement, terminal              |
+|   | Assignments & what's next                                       |
+|---+-----------------------------------------------------------------|
+

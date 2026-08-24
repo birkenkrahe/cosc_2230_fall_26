@@ -19,7 +19,8 @@
 
 * Get to know your teacher
 
-- For the professional stuff, I asked Gemini ([[https://share.gemini.google/fRSXa14oNAj9][link]])
+- For the professional stuff, I asked Gemini
+  ([[https://share.gemini.google/fRSXa14oNAj9][https://share.gemini.google/fRSXa14oNAj9]])
   #+begin_quote
   I am going to take a course with Marcus Birkenkrahe, Computer Science
   III. Tell me something about him that might be interesting and useful.
@@ -37,7 +38,9 @@
   + Favorite drink: peppermint tea
   + Favorite hobbies: shooting / sailing / singing
 
-* Your turn - entry survey results
+** PRACTICE Your turn - why are you here?
+#+attr_html: :width 400px :float nil:
+[[../img/survey.jpeg]]
 
 - Even if you filled in the entry survey:
 
@@ -117,24 +120,31 @@
 - GitHub
 - Textbooks
 - Google Space
+- YouTube Playlist
 - Photos and Papers
 - Chatbots / Generative AI
 
 ** PRACTICE From Canvas to the textbook
+#+attr_html: :width 400px :float nil:
+[[../img/codealong.jpeg]]
 
 1) Open the Canvas course
    (https://augie.instructure.com/courses/15635)
-2) Open the first module
+
+2) Open the first module to get to the links
+
 3) Follow my instructions
 
 ** Canvas
+#+attr_html: :width 300px :float nil:
+[[../img/canvas.png]]
 
 - A learning management system (LMS)
 - This is a special case of a content management system (CMS)
 - We use Canvas for:
   1) Announcements
-  2) Assignments
-  3) Quizzes
+  2) Assignments and Quizzes
+  3) Pages for project information and Scrum management
   4) Grades (as up to date as I can manage)
   5) Google Meet (link - I record all of my sessions)
   6) Google Drive (link - session recordings, whiteboard screenshots)
@@ -143,7 +153,14 @@
   9) Attendance (transfer from Google Forms)
   10) Respondus Lockdown Browser (might use it for tests)
 
+- Links in the first module:
+  + Make an appointment with me (Tue 1-3pm, Thu 9am-12pm)
+  + Solve problems at [[https://open.kattis.com][Kattis]] (competitive programming)
+  + [[https://www.datacamp.com/groups/shared_links/3695435940c940e71e07c694723e77879cdb9fcca9c23cdf3afd003026929a22][Register with DataCamp]] (600+ free courses) 
+
 ** GitHub
+#+attr_html: :width 400px :float nil:
+[[../img/github.png]]
 
 - Do you have a GitHub profile? Have you used Git before?
 
@@ -163,12 +180,14 @@
 - I use GitHub to merge files from different devices into one repo
 
 ** Textbook and further reading
+#+attr_html: :width 200px :float nil:
+[[../img/textbook.jpg]]
 
 - We are going to use the textbook "Introduction to Programming in
   Java - An Interdisciplinary Approach" by Sedgewick/Wayne, 2e, 2016
 
 - The book has a site with excerpts and many other resources:
-  https://introcs.cs.princeton.edu/java/home/
+  https://introcs.cs.princeton.edu/java/home/ (with free excerpts)
 
 - Readings from the book are aligned with our progress. The book is
   very densely written, and we're only going to cover chapter 4.
@@ -192,22 +211,32 @@ Other good books (legally free and online):
 - An Open Guide to Data Structures and Algorithms by Bible/Moser
   (2023),
   https://pressbooks.palni.org/anopenguidetodatastructuresandalgorithms/
-  
-** Google Chat Space
 
-- I do a fair amount of "work on the side": reading, coding, playing
-  around
+** PRACTICE How have you used the book last term?
+
+** Google Chat Space and YouTube Playlist
+#+attr_html: :width 300px :float nil:
+[[../img/chat.png]]
+
+- I do a fair amount of "work on the side": reading, coding, etc.
 
 - In order to protect your precious email space, I'll use Google space
 
 - I encourage you to use that space to discuss, share, comment
 
-- This space will stay live across multiple courses: feel free to join
-  or leave it at any time.
+- This space will stay live across multiple courses after the course
+
+- Feel free to join or leave it at any time.
 
 - Link: https://tinyurl.com/gspace-2230 (open to all of Augie)
+
+- Link to the YouTube playlist:
+  https://www.youtube.com/watch?v=l9AzO1FMgM8&list=PLVhIBD_cdaHU
  
 ** Photos and Papers (GDrive)
+#+attr_html: :width 600px :float nil:
+#+caption: I will ask you to put your names into the class photo
+[[../img/classroom.png]]
 
 - I upload photos and publicy available papers to GDrive:
   https://tinyurl.com/fa26-photos
@@ -216,8 +245,10 @@ Other good books (legally free and online):
   editable Powerpoint slide: *please add your name* to your image.
 
 ** Chatbots / Generative AI Assistants
+#+attr_html: :width 300px :float nil: 
+[[../img/cyberprof.jpg]]
 
-- Gemini with Google Colab is a true agent + notebook solution that
+- Gemini with [[https://colab.research.google.com][Google Colab]] is a true agent + notebook solution that
   you can use to write Java programs online for free (within set
   limits). For heavy use, you'll soon run out of tokens, however.
 
@@ -229,9 +260,9 @@ Other good books (legally free and online):
   + Hello world program (Lisp)
 - You can see the final file here: https://tinyurl.com/litprog-demo
 
-- Privately (since 05/26), I use Claude Code (agent harness using
+- Privately (since 05/26), I use [[https://claude.com/product/claude-code][Claude Code]] (agent harness using
   Claude). If you're strapped for cash, I recommend the free combo:
-  OpenCode (harness) + Ollama (server) + Qwen3-Coder (model).
+  [[https://opencode.ai/][OpenCode]] (harness) + [[https://ollama.com/][Ollama]] (server) + [[https://qwen.ai/blog?id=qwen3-coder][Qwen3-Coder]] (model).
 
 - I use generative AI to:
   + Drill me before lectures (as a tutor)
@@ -239,11 +270,13 @@ Other good books (legally free and online):
   + Give me ideas for new exercises
   + Check my lecture scripts against the textbook
 
-- I have published extensively about teaching computer and data
+- I have published about teaching computer and data
   science with and without AI (see [[https://birkenkrahe.github.io/][birkenkrahe.github.io]] or
   [[https://www.researchgate.net/profile/Marcus-Birkenkrahe][researchgate.net]])
 
-- *How do you use AI?*
+** PRACTICE *How do you use AI?*
+#+attr_html: :width 300px :float nil:
+[[../img/using_ai.png]]
 
 * Find out whom to ask when
 
@@ -253,58 +286,101 @@ Other good books (legally free and online):
 
 - Next, ask me before, in, or after class
 
-- Come to my office hours: Tue/Thu 9-10 am and 2-3 pm
+- Come to my student hours: Tue/Thu 9-10 am and 2-3 pm
 
 - Book meetings with me through *Navigate*: my student hours are Tuesday
   1pm-3pm and Thursday 9am-12pm in my office FSC 386.
 
 * Find out about the formal stuff
 
-- Read the fine print in the syllabus
+- Read the fine print in the syllabus (policies/resources)
 
-- This course is an AI-enabled course
+- This course is an AI-enabled course ("permissive")
 
 - Feel free to inform me when I make mistakes
-
 * Understand how you're being graded
 
 | What                    | When    | How much |
 |-------------------------+---------+----------|
-| Project (Scrum)         | monthly |      25% |
-| Quizzes                 | weekly  |      15% |
-| Programming assignments | weeky   |      40% |
-| Midterm exam            | TBD     |      10% |
-| Final exam (optional)   | TBD     |      10% |
-|-------------------------+---------+----------|
-| Total                   |         |     100% |
+| Project (Scrum)         | monthly | 25%      |
+| Quizzes (not timed)     | weekly  | 15%      |
+| Programming assignments | weekly  | 40%      |
+| Midterm exam (50 min)   | TBD     | 10%      |
+| Final exam (optional)   | TBD     | 10%      |
+| Total                   |         | 100%     |
 
-- Project (team 2-3) = 3 sprint reviews (3 * 5%) + presentation (10%)
+- *Programming assignments:* at home, individual, AI allowed unless
+  specified[fn:1], estimated time: 40-55 hrs/term (3-4 hrs/week)
 
-- Quizzes: not timed, home, individual
+- *Term Project* (team 2-3): 3 sprint reviews (3*5%)+presentation (10%)
 
-- Midterm exam: 50 min, individual, based on quizzes
+- *Quizzes*: multiple choice, not timed, at home, individual
 
-- Final exam: 30 min, optional, individual conversation
+- *Midterm exam:* 50 min, individual, based on quizzes (with mock exam)
+
+- *Final exam*: 30 min, optional, individual conversation
 
 * Find out about the project
 #+attr_html: :width 400px :float nil:
-
+[[../img/scrum.jpg]]
 
 - Scrum = agile method (software engineering)
 
-- 4 sprint reviews (prototype presentation)
+- 4 sprint reviews (prototype presentation):
+  + Sprint 1: Project Proposal (What do you want to do?)
+  + Sprint 2: Literature Review/Method (How are you going to do it?)
+  + Sprint 3: Results/MVP (What did you do)
+  + Sprint 4: Discussion/Presentation (Why is it interesting)
 
-- Alignment with IMRaD
+- Alignment with IMRaD:
+  1. Introduction
+  2. Method
+  3. Results and
+  4. Discussion
 
+- Two tracks: Coding or Concept
+
+- Topic ideas for a *coding* (building) project:
+  1) Toy Language Interpreter
+  2) Symbol Table Dictionary / Autocomplete Tool
+  3) CLI Kanban/Scrum Board Tool
+  4) Campus/City Route Planner
+  5) Sorting Algorithm Race / Visualizer
+  6) Text-Based Inventory/Library System
+  7) Music/Media Library Manager
+  8) Personal Finance Tracker
+  9) Social Graph / Friend-Suggestion Tool
+  10) Discrete-Event Queue Simulator
+
+- Topic ideas for a *concept* (explaining) project:
+  1) Why algorithmic trading lives or dies on microseconds
+  2) How database query planners choose a strategy
+  3) How search engines rank billions of pages in milliseoncs
+  4) How Git's bisect command uses binary search
+  5) How streaming services sort/filter recommendations in real-time
+  6) The stack behind every "undo/redo" button in a browser
+  7) How ride-share and call-center dispatch systems handle fairness
+  8) How domain-to-IP address lookup works on the internet (DNS)
+  9) How LinkedIn/Facebook style "friends" suggestions work
+  10) Why unweighted search can't find you the fastest route
+
+  ([[https://augie.instructure.com/courses/15648/pages/10-project-ideas-and-ai-use-policy][Details in Canvas page]])
+
+- AI Use Policy: AI tools are welcome for research, debugging, and
+  drafting, but every line of code you submit for Sprint 3 (results)
+  must be code your team understands and can explain live; disclosed
+  use is fine, undisclosed or unexamined AI-written MVPs are not.
+  
 * Find out what you'll do every week
 
-1. Overview (theory, lecture)
-2. Example (code along)
-3. Practice (your turn, in class)
-4. Problem (take home assignment)
-5. Review (in the following class)
+Every session covers some or all of these:
+1. *Overview* (theory, lecture)
+2. *Example* (code along)
+3. *Practice* (your turn, in class)
+4. *Problem* (take home assignment)
+5. *Review* (in the following class)
 
-All classroom sessions will be recorded via Google Meet   
+All classroom sessions will be *recorded via Google Meet*.
    
 ** Detailed breakdown
 
@@ -319,9 +395,9 @@ In class:
 | Total             | 50 min |
 
 Exams:
-| Popquiz | 10 min  | Surprise |
-| Midterm | 50 min  | TBD      |
-| Final   | 120 min | TBD      |
+| Popquiz               | 10 min  | Surprise |
+| Midterm               | 50 min  | TBD      |
+| (Optional oral) Final | 30 min  | TBD      |
 
 At home (survival minimum):
 | Quiz       | 60 min | Weekly |
@@ -329,6 +405,10 @@ At home (survival minimum):
 | Reading    | 60 min | Weekly |
 | Project    | 60 min | Weekly |
 | Review     | 60 min | Weekly |
+|------------+--------+--------|
+| Total      | *5 hrs*  | Weekly |
+
+[Usual for a 3 credit class: 3 * 2-3 hrs = 6-9 hrs]
 
 * Setup: What you'll need and what I use
 
@@ -366,7 +446,7 @@ At home (survival minimum):
 
 - How will you run commands (compile, run, navigate files)?
   #+begin_quote
-  You need a terminal / shell you're comfortable typing into:
+  You need a *terminal* / *shell* / *CLI* you're comfortable with[fn:2]:
 
   - *Windows*: install [[https://gitforwindows.org/][Git Bash]] - gives you a Unix-like shell, which
     matches how I'll demo things in class and how the instructions in
@@ -392,19 +472,19 @@ At home (survival minimum):
     hand-compile requirement: you're still running ~javac~ yourself,
     just attaching a debugger to watch it run instead of only reading
     ~stdout~.
+    
   - *Linux*, if you're on Windows and want more than Git Bash gives you:
     install WSL (Windows Subsystem for Linux) for a real Linux
-    environment side-by-side with Windows, free. (My daily driver, for
-    what it's worth.)
+    environment side-by-side with Windows, free. 
   #+end_quote
  
 * Get your next assignments
 
-  1) Write a =Counter= class
+  - Simple *quiz* covering everything we did this week
+    
+  - Write a simple class and extend a class
 
-  2) Extend the =Stopwatch= class
-
-  3) Take a look at the textbook
+  - Take a look at the textbook 
 
 * Find out what's next
 
@@ -416,4 +496,80 @@ CS II Review:
 - Immutability
 - Testing and extending code
 - Interfaces and implementations
-  
+
+* Glossary
+
+** Programming concepts
+
+| Term                       | Definition                                   |
+|----------------------------+----------------------------------------------|
+| Aliasing                   | Two variables referencing the same object    |
+| API                        | Methods a class exposes to its users         |
+| Concurrent processing      | Running tasks whose execution overlaps       |
+| Defensive copy             | Copy made so edits don't affect original     |
+| Encapsulation              | Bundling data with the methods on it         |
+| Generic type               | Class/method written to work with any type   |
+| Graph                      | Nodes/edges; multiple parents, cycles OK     |
+| IMRaD                      | Intro, Method, Results, and Discussion       |
+| Instance vs. static method | Object method vs. class-level method         |
+| Lambda function            | Short unnamed function used as a value       |
+| List                       | Ordered sequence of elements                 |
+| Markov chain               | Next state depends only on current one       |
+| Memory management          | Allocating/freeing memory at runtime         |
+| Monte Carlo method         | Estimating results via random sampling       |
+| Mutability                 | Whether an object's state can change         |
+| OOP                        | Code organized around objects (data+methods) |
+| Queue                      | First in, first out data structure           |
+| Reference type             | Stores an object's location, not its value   |
+| Searching                  | Finding whether/where a value occurs         |
+| Sorting                    | Arranging elements into a defined order      |
+| Sprint                     | Short work cycle ending in a Scrum review    |
+| Stack                      | Last in, first out data structure            |
+| Stream processing          | Data as a pipeline: filter, map, reduce      |
+| Transition matrix          | Probabilities of moving between states       |
+| Tree                       | Nodes with at most one parent, no cycles     |
+
+** Course platforms & tools
+
+| Term                       | Definition                              |
+|----------------------------+-----------------------------------------|
+| Canvas                     | LMS: announcements, assignments, grades |
+| GitHub                     | Hosts course materials via Git          |
+| DataCamp                   | Free platform, 600+ coding courses      |
+| Kattis                     | Practice problems at open.kattis.com    |
+| Google Meet                | Video platform; sessions recorded here  |
+| Google Drive               | Stores recordings, whiteboard photos    |
+| Google Chat Space          | Class discussion and Q&A space          |
+| YouTube                    | Course-related video playlist           |
+| YuJa                       | Occasional supplementary video hosting  |
+| Navigate                   | Book office-hour appointments           |
+| Respondus Lockdown Browser | Locked browser, possibly for tests      |
+
+** AI tools
+
+| Term         | Definition                                     |
+|--------------+------------------------------------------------|
+| Gemini       | Google's chatbot/agent used for research demos |
+| Google Colab | Free notebook environment; runs Gemini agent   |
+| Claude Code  | Agent harness using Claude (instructor's tool) |
+| OpenCode     | Free/open agent harness, alt. to Claude Code   |
+| Ollama       | Runs open LLMs locally, for free               |
+| Qwen3-Coder  | Free open coding model, pairs with Ollama      |
+
+** Setup & dev tools
+
+| Term                | Definition                                           |
+|---------------------+------------------------------------------------------|
+| Git Bash            | Unix-like shell for Windows                          |
+| WSL                 | Windows Subsystem for Linux                          |
+| jdb                 | Command-line Java debugger                           |
+| Corretto OpenJDK 17 | Amazon's free JDK 17 build; course baseline          |
+| Emacs               | Extensible text editor; author's writing/coding tool |
+| Org-mode            | Emacs mode for notes, code, and literate documents   |
+
+* Footnotes
+[fn:2]What's the difference? A terminal describes the *device*, a shell
+is an *interpreter*, and a *Command-Line Interface* covers both terms.
+
+[fn:1]Caveat (see syllabus): your use must be disclosed. Your outputs
+must be visibly critically evaluated and tested. No AI during exams.
