@@ -133,7 +133,7 @@
 
 2) Open the first module to get to the links
 
-3) Follow my instructions
+3) Follow along
 
 ** Canvas
 #+attr_html: :width 300px :float nil:
