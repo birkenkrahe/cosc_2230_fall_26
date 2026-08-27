@@ -20,14 +20,14 @@
 * Get to know your teacher
 
 - For the professional stuff, I asked Gemini
-  ([[https://share.gemini.google/fRSXa14oNAj9][https://share.gemini.google/fRSXa14oNAj9]])
+  ([[https://share.gemini.google/fRSXa14oNAj9][https://tinyurl.com/gemini-2230]])
   #+begin_quote
   I am going to take a course with Marcus Birkenkrahe, Computer Science
   III. Tell me something about him that might be interesting and useful.
   #+end_quote
 
 - Private:
-  + PhD in theoretical particle physics ("Big Bang Theory")
+  + PhD in theoretical particle physics (Sheldon Cooper in "Big Bang Theory")
   + Worked at large multi-national companies in IT positions
   + Came to the US in 2021 from Germany (US citizen since 2026)
   + Family: 1 wife, 1 daughter, 2 grandchildren, 3 dogs, 2 cats
@@ -36,7 +36,6 @@
   + Favorite programming environment: Emacs
   + Favorite food: Schnitzel (aka Milanesa, tonkatsu, escalope)
   + Favorite drink: peppermint tea
-  + Favorite hobbies: shooting / sailing / singing
 
 ** PRACTICE Your turn - why are you here?
 #+attr_html: :width 400px :float nil:
@@ -44,7 +43,7 @@
 
 - Even if you filled in the entry survey:
 
-- Let us hear why you're here
+- Let us hear why you're here: one-word check-in
 
 - So that I can hear (and learn) your name.
 
@@ -95,15 +94,15 @@
 - What you should already be able to code:
   #+begin_quote
   Design, implement and test a simply abstract data type that you can
-  use to model a real time object - for example a stopwatch to compare
+  use to model a real time object - for example a *stopwatch* to compare
   running times of performance-critical methods.
   #+end_quote
 
 - What you will add in this class:
   #+begin_quote
   You will learn to "pay attention to the cost" of your code. You will
-  build linked structures that can be arbitrarily complex. With
-  these, and with arrays, you can build *data structures*
+  build linked structures that can be arbitrarily complex. With these,
+  and with arrays, you can build *data structures*
   #+end_quote
 
 - This is what the course is really about:
@@ -136,7 +135,7 @@
 3) Follow along
 
 ** Canvas
-#+attr_html: :width 300px :float nil:
+#+attr_html: :width 400px :float nil:
 [[../img/canvas.png]]
 
 - A learning management system (LMS)
@@ -171,9 +170,9 @@
 - The course materials are here:
   https://github.com/birkenkrahe/cosc_2230_fall_26
 
-- All lectures, assignments, tests are in the org/ directory
+- All lectures, assignments, tests are in the =org/= directory
 
-- These are Emacs Org-mode files (.org) rendered as Markdown (.md)
+- These are Emacs Org-mode files (=.org=) rendered as Markdown (=.md=)
 
 - There will also be PDFs, data, source files, and images
 
@@ -212,7 +211,7 @@ Other good books (legally free and online):
   (2023),
   https://pressbooks.palni.org/anopenguidetodatastructuresandalgorithms/
 
-** PRACTICE How have you used the book last term?
+** PRACTICE [How] have you used the book in CS II?
 
 ** Google Chat Space and YouTube Playlist
 #+attr_html: :width 300px :float nil:
@@ -233,7 +232,7 @@ Other good books (legally free and online):
 - Link to the YouTube playlist:
   https://www.youtube.com/watch?v=l9AzO1FMgM8&list=PLVhIBD_cdaHU
  
-** Photos and Papers (GDrive)
+** Photos (GDrive)
 #+attr_html: :width 600px :float nil:
 #+caption: I will ask you to put your names into the class photo
 [[../img/classroom.png]]
@@ -252,8 +251,7 @@ Other good books (legally free and online):
   you can use to write Java programs online for free (within set
   limits). For heavy use, you'll soon run out of tokens, however.
 
-- Open https://tinyurl.com/colab-scratchpad in a browser and code
-  along with me:
+- Open https://tinyurl.com/colab-scratchpad in a browser:
   + Hello world program (Java)
   + Hello world program (SQL)
   + Interesting Visualization (Python)
