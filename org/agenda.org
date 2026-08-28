@@ -9,12 +9,14 @@
 
 * W1S1: Overview of the course
 
+- *Check-in when in class:* 
+
 |   | Topic                                                           |
 |---+-----------------------------------------------------------------|
-|   | Welcome & objectives                                            |
-|   | Get to know your teacher & share why you're here                |
-|   | Understand what this course is about                            |
-|   | Find out where to find stuff: Canvas, GitHub, textbook, AI demo |
+| x | Welcome & objectives                                            |
+| x | Get to know your teacher & share why you're here                |
+| x | Understand what this course is about                            |
+| x | Find out where to find stuff: Canvas, GitHub, textbook, AI demo |
 |   | Whom to ask, formalities, and grading                           |
 |   | The project: Scrum sprints, tracks, and topic ideas             |
 |   | Weekly rhythm: in-class, exams, and at-home work                |
@@ -23,3 +25,28 @@
 |---+-----------------------------------------------------------------|
 
 File: See =org/1_overview.org= in GitHub
+
+* W1S2: Setup & [optional] jshell/jdb & Review I
+
+- Short check-in: What (if anything) do you remember from last time?
+
+- I sorted the Google Space problem out (with the help of IT): You
+  should have received an invitation from me.
+
+- I also added the link to the class photo to Canvas: please open it
+  and add your name to your face so that I can learn it.
+
+- You can also find the Google Meet recordings there.
+
+|   | Topic                                               |
+|---+-----------------------------------------------------|
+|   | Generative AI (poll & policy)                       |
+|   | Whom to ask, formalities, and grading               |
+|   | The project: Scrum sprints, tracks, and topic ideas |
+|   | Weekly rhythm: in-class, exams, and at-home work    |
+|   | Setup: JDK, IDE/hand-compile requirement, terminal  |
+|   | Assignments & what's next                           |
+|   | Review: Reference types,                            |
+|---+-----------------------------------------------------|
+
+

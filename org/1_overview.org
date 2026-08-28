@@ -27,7 +27,7 @@
   #+end_quote
 
 - Private:
-  + PhD in theoretical particle physics (Sheldon Cooper in "Big Bang Theory")
+  + PhD in theoretical particle physics (lattice gauge theory)
   + Worked at large multi-national companies in IT positions
   + Came to the US in 2021 from Germany (US citizen since 2026)
   + Family: 1 wife, 1 daughter, 2 grandchildren, 3 dogs, 2 cats
@@ -53,7 +53,7 @@
   #+begin_quote
   "This course is a continuation of *Computer Science II* and provides a
   deeper look into *object oriented programming*, generic *types*, *lambda*
-  functions, *stream( processing, and *concurrent* processing. It also
+  functions, *streamprocessing, and *concurrent* processing. It also
   presents several basic *data structures*: stacks, queues, lists,
   trees, and graphs. *Algorithms* for sorting, searching, and memory
   management are also introduced."
@@ -213,6 +213,8 @@ Other good books (legally free and online):
 
 ** PRACTICE [How] have you used the book in CS II?
 
+
+
 ** Google Chat Space and YouTube Playlist
 #+attr_html: :width 300px :float nil:
 [[../img/chat.png]]
@@ -227,7 +229,7 @@ Other good books (legally free and online):
 
 - Feel free to join or leave it at any time.
 
-- Link: https://tinyurl.com/gspace-2230 (open to all of Augie)
+- You'll be invited to the space by me.
 
 - Link to the YouTube playlist:
   https://www.youtube.com/watch?v=l9AzO1FMgM8&list=PLVhIBD_cdaHU
@@ -243,7 +245,7 @@ Other good books (legally free and online):
 - The class photo (to help me learn your names) is also here as an
   editable Powerpoint slide: *please add your name* to your image.
 
-** Chatbots / Generative AI Assistants
+* NEXT Chatbots / Generative AI Assistants
 #+attr_html: :width 300px :float nil: 
 [[../img/cyberprof.jpg]]
 
@@ -256,7 +258,7 @@ Other good books (legally free and online):
   + Hello world program (SQL)
   + Interesting Visualization (Python)
   + Hello world program (Lisp)
-- You can see the final file here: https://tinyurl.com/litprog-demo
+- You can see the final file here: [[https://tinyurl.com/litprog-demo][tinyurl.com/litprog-demo]]
 
 - Privately (since 05/26), I use [[https://claude.com/product/claude-code][Claude Code]] (agent harness using
   Claude). If you're strapped for cash, I recommend the free combo:
@@ -296,6 +298,7 @@ Other good books (legally free and online):
 - This course is an AI-enabled course ("permissive")
 
 - Feel free to inform me when I make mistakes
+
 * Understand how you're being graded
 
 | What                    | When    | How much |
@@ -310,7 +313,7 @@ Other good books (legally free and online):
 - *Programming assignments:* at home, individual, AI allowed unless
   specified[fn:1], estimated time: 40-55 hrs/term (3-4 hrs/week)
 
-- *Term Project* (team 2-3): 3 sprint reviews (3*5%)+presentation (10%)
+- *Term Project* (2-3): 3 sprint reviews (3 * 5%) + presentation (10%)
 
 - *Quizzes*: multiple choice, not timed, at home, individual
 
@@ -336,7 +339,7 @@ Other good books (legally free and online):
   3. Results and
   4. Discussion
 
-- Two tracks: Coding or Concept
+- Two tracks: *Coding* or *Concept*
 
 - Topic ideas for a *coding* (building) project:
   1) Toy Language Interpreter
@@ -399,7 +402,7 @@ Exams:
 
 At home (survival minimum):
 | Quiz       | 60 min | Weekly |
-| Assignment | 60 min | Weekly |
+n| Assignment | 60 min | Weekly |
 | Reading    | 60 min | Weekly |
 | Project    | 60 min | Weekly |
 | Review     | 60 min | Weekly |
@@ -410,13 +413,10 @@ At home (survival minimum):
 
 * Setup: What you'll need and what I use
 
-- The Java compiler I use:
+- How can you find out which Java compiler you're using?
   #+begin_src bash :results output :exports both
     javac -version
   #+end_src
-
-  #+RESULTS:
-  : javac 17.0.20
 
 - How can you get it if you don't have it yet?
   #+begin_quote
@@ -444,13 +444,16 @@ At home (survival minimum):
 
 - How will you run commands (compile, run, navigate files)?
   #+begin_quote
-  You need a *terminal* / *shell* / *CLI* you're comfortable with[fn:2]:
+  You need a *terminal* / *shell* / *CLI* you're comfortable with - what's
+  the difference?[fn:2]:
 
   - *Windows*: install [[https://gitforwindows.org/][Git Bash]] - gives you a Unix-like shell, which
     matches how I'll demo things in class and how the instructions in
     this course are written.
   - *macOS*: the built-in *Terminal* app works out of the box.
-  - *Linux*: whatever shell you already have.
+
+  - *Linux*: whatever shell you already have (Mac: zsh, Linux: bash,
+    Windows' "powershell" is not really useful).
 
   "It works on my machine" is the most common failure mode - if your
   setup doesn't match one of the above, come to office hours *before*
@@ -473,16 +476,19 @@ At home (survival minimum):
     
   - *Linux*, if you're on Windows and want more than Git Bash gives you:
     install WSL (Windows Subsystem for Linux) for a real Linux
-    environment side-by-side with Windows, free. 
+    environment side-by-side with Windows, free.
+
+  - Challenge: Check out ~jshell~ and ~jdb~ if you haven't done it yet [I
+    might give you a little tutorial session on these in class.]
   #+end_quote
  
 * Get your next assignments
 
   - Simple *quiz* covering everything we did this week
-    
-  - Write a simple class and extend a class
 
-  - Take a look at the textbook 
+  - [Complete a short ~jshell~ and ~jdb~ tutorial exercise]
+    
+  - Take a look at the textbook (chapter 3 = review)
 
 * Find out what's next
 
@@ -494,9 +500,9 @@ CS II Review:
 - Immutability
 - Testing and extending code
 - Interfaces and implementations
+- Write a simple Java ~class~ and extend a class (Monday)
 
 * Glossary
-
 ** Programming concepts
 
 | Term                       | Definition                                   |
@@ -564,8 +570,10 @@ CS II Review:
 | Corretto OpenJDK 17 | Amazon's free JDK 17 build; course baseline          |
 | Emacs               | Extensible text editor; author's writing/coding tool |
 | Org-mode            | Emacs mode for notes, code, and literate documents   |
+| jshell              | Command-line shell for Java                          |
 
 * Footnotes
+
 [fn:2]What's the difference? A terminal describes the *device*, a shell
 is an *interpreter*, and a *Command-Line Interface* covers both terms.
 
