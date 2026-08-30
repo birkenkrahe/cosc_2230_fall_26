@@ -1,0 +1,294 @@
+#+TITLE: A Quick Tour of =jshell= and =jdb=
+#+AUTHOR: Marcus Birkenkrahe
+#+SUBTITLE: COSC 2230 (CS III) Fall 2026 | Augustana U.
+#+STARTUP: overview hideblocks indent entitiespretty
+#+OPTIONS: toc:1 num:1 ^:nil
+* Objectives
+
+Two command-line tools that ship inside the same JDK as ~javac~ and
+~java~ - no IDE, no install:
+
+- ~jshell~ :: a Java REPL (read-eval-print loop). Try an expression, a
+  method, or an API call without writing a class or a ~main~. Introduced
+  in Java 9 (September 2017). It's written in Java.
+- ~jdb~ :: the Java debugger. Pause a running program, look at its
+  variables, and step through it one line at a time instead of
+  scattering ~println~ everywhere. Present since JDK 1.0 (1996). It's a
+  thin command-line front end to the JVM itself.
+
+Both are on your ~PATH~ already. Check:
+#+begin_src bash :results output :exports both
+  which jshell jdb
+  jshell --version
+#+end_src
+
+#+RESULTS:
+: /home/aletheia/.sdkman/candidates/java/current/bin/jshell
+: /home/aletheia/.sdkman/candidates/java/current/bin/jdb
+: jshell 17.0.20
+
+Time budget in class: ~6 min for ~jshell~, ~9 min for ~jdb~.
+
+* Part 1 - =jshell=: a scratchpad for Java
+
+** Start it
+
+#+begin_src bash :exports code
+  jshell          # full banner
+  jshell -q       # quiet: skip the banner, just the prompt
+#+end_src
+
+You get a ~jshell>~ prompt. Leave with ~/exit~ or =Ctrl-D=.
+
+** Expressions and scratch variables
+
+Type an expression with *no semicolon* - ~jshell~ evaluates it and
+stores the result in a numbered variable (~$1~, ~$2~, ...):
+
+#+begin_example java
+  jshell> 1 + 2
+  $1 ==> 3
+
+  jshell> Math.sqrt(2)
+  $2 ==> 1.4142135623730951
+
+  jshell> "Data Structures".length()
+  $3 ==> 15
+#+end_example
+
+** Variables and methods
+
+Named variables and methods persist for the whole session:
+
+#+begin_example java
+  jshell> int radius = 7
+  radius ==> 7
+
+  jshell> Math.PI * radius * radius // area computation
+  $5 ==> 153.93804002589985
+
+  jshell> int cube(int x) { return x * x * x; }
+  |  created method cube(int)
+
+  jshell> cube(3)
+  $7 ==> 27
+#+end_example
+
+A multi-line construct continues on a ~...>~ prompt until it is
+syntactically complete. <TAB> returns the possible completions.
+
+#+begin_example java
+  jshell> for (int i = 1; i <= 5; i++)
+     ...>     System.out.println(i + " -> " + cube(i));
+  1 -> 1
+  2 -> 8
+  3 -> 27
+  4 -> 64
+  5 -> 125
+#+end_example
+
+** Redefine on the fly
+
+You can replace a method (or variable) and keep going - ~jshell~ updates
+everything that uses it - to not have to retype, use up arrow:
+
+#+begin_example java
+  jshell> int cube(int x) { return (int) Math.pow(x, 3); }
+  |  modified method cube(int)
+#+end_example
+
+** Preview the collections you'll use in Chapter 4
+
+~java.util.*~ is imported for you, so you can exercise an API with no
+boilerplate:
+
+#+begin_example java
+  jshell> var stack = new java.util.ArrayDeque<Integer>()
+  stack ==> []
+
+  jshell> stack.push(10); stack.push(20); stack.push(30)
+
+  jshell> stack.pop()
+  $12 ==> 30
+
+  jshell> stack
+  stack ==> [20, 10]
+#+end_example
+
+** Handy commands
+
+| Command             | What it does                                     |
+|---------------------+-------------------------------------------------|
+| ~/vars~               | list the variables you've defined               |
+| ~/methods~            | list the methods you've defined                 |
+| ~/list~               | show all the code you've entered this session   |
+| ~/imports~            | show the packages imported by default           |
+| ~/save harmonic.jsh~  | write your snippets to a file                    |
+| ~/open harmonic.jsh~  | read snippets back in (or: ~jshell harmonic.jsh~)  |
+| ~/edit cube~          | open the snippet in a small editor pad          |
+| ~/help~               | full command list; ~/help /vars~ for one command  |
+| ~/exit~               | quit (=Ctrl-D= also works)                         |
+
+** When to reach for it - and when not
+
+- Good for: checking what a method returns, testing one edge case,
+  remembering an API signature, demoing an idea in class.
+- Not a substitute for the real thing: assignments are still built and
+  run by hand with ~javac~ then ~java~. ~jshell~ has no ~main~, no separate
+  compile step, and hides the structure the course is teaching.
+
+* Part 2 - =jdb=: step through a running program
+
+** The example program
+
+Save this as =Harmonic.java= (it computes the harmonic number
+$H_n = \sum_{i=1}^{n} 1/i$ - the same sum as the Stopwatch/Harmonic
+assignment):
+
+#+begin_src java :tangle src/Harmonic.java :mkdirp yes
+  public class Harmonic {
+      public static void main(String[] args) {
+          int n = 5;
+          double sum = 0.0;
+          for (int i = 1; i <= n; i++) {
+              sum += 1.0 / i;
+          }
+          System.out.println("H(" + n + ") = " + sum);
+      }
+  }
+#+end_src
+
+** Compile with debug info
+
+#+begin_src bash :exports code
+  javac -g Harmonic.java
+#+end_src
+
+The ~-g~ flag tells ~javac~ to keep local-variable names in the ~.class~
+file. Without it you can still set breakpoints and see line numbers,
+but ~locals~ (below) shows nothing useful.
+
+** Start the debugger and set a breakpoint
+
+#+begin_src bash :exports code
+  jdb Harmonic
+#+end_src
+
+At the ~>~ prompt:
+
+#+begin_example
+  > stop at Harmonic:6        # break on the line 'sum += 1.0 / i;'
+  Deferring breakpoint Harmonic:6.
+  It will be set after the class is loaded.
+
+  > run
+  Set uncaught java.lang.Throwable
+  ...
+  Breakpoint hit: "thread=main", Harmonic.main(), line=6 bci=20
+  6            sum += 1.0 / i;
+#+end_example
+
+Other ways to break:
+- ~stop in Harmonic.main~ - break on entry to a method.
+- ~stop at Harmonic:8~ - break on a specific line (must be executable;
+  a blank line or a bare ~}~ gives "No code at line").
+- ~clear Harmonic:6~ - remove that breakpoint; ~clear~ alone lists them.
+
+** Look around
+
+#+begin_example
+  > list
+  2        public static void main(String[] args) {
+  3            int n = 5;
+  4            double sum = 0.0;
+  5            for (int i = 1; i <= n; i++) {
+  6 =>         sum += 1.0 / i;
+  7            }
+  8            System.out.println("H(" + n + ") = " + sum);
+
+  > locals
+  Method arguments:
+  args = instance of java.lang.String[0]
+  Local variables:
+  n = 5
+  sum = 0.0
+  i = 1
+
+  > print sum
+   sum = 0.0
+  > print 1.0 / i
+   1.0 / i = 1.0
+#+end_example
+
+~print~ evaluates any Java expression in the current frame; ~dump obj~
+shows every field of an object; ~where~ prints the call stack.
+
+** Step and watch the sum grow
+
+- ~next~ - run the current line, stay in this method ("step over").
+- ~step~ - step *into* a called method.
+- ~step up~ - run until the current method returns.
+- ~cont~ - resume until the next breakpoint.
+
+#+begin_example
+  > next
+  > print sum
+   sum = 1.0
+  > cont
+  Breakpoint hit: ..., line=6      (i is now 2)
+  > print sum
+   sum = 1.0
+  > next
+  > print sum
+   sum = 1.5
+  > cont
+  ...
+  > cont
+  H(5) = 2.283333333333333
+  The application exited
+#+end_example
+
+Leave with ~quit~.
+
+** Command reference
+
+| Command                 | Meaning                                    |
+|-------------------------+--------------------------------------------|
+| ~run~                     | start the program                          |
+| ~stop in <class>.<meth>~  | breakpoint on method entry                 |
+| ~stop at <class>:<line>~  | breakpoint on a source line                |
+| ~clear~ / ~clear C:12~      | list / remove breakpoints                  |
+| ~cont~                    | resume execution                           |
+| ~next~ / ~step~ / ~step up~   | over / into / out                          |
+| ~list~                    | source around the current line             |
+| ~locals~                  | arguments + local variables                |
+| ~print <expr>~ / ~dump <o>~ | evaluate an expression / dump an object     |
+| ~where~                   | current call stack                         |
+| ~threads~ / ~thread <id>~   | list threads / switch                       |
+| ~help~                    | full command list                          |
+| ~quit~                    | leave ~jdb~                                   |
+
+** Gotchas
+
+- Compile with ~javac -g~ or ~locals~ is empty.
+- Run ~jdb~ from the directory that holds =Harmonic.java= (or pass
+  ~-sourcepath~) so ~list~ can find the source.
+- Line numbers in ~stop at~ are *source* lines; re-check them if you
+  edit the file.
+- Program arguments go after the class name: ~jdb Harmonic 10~.
+
+* PRACTICE Try it yourself
+
+1) In ~jshell~: write a method ~harmonic(int n)~ that returns $H_n$ as a
+   ~double~, then call ~harmonic(1)~, ~harmonic(10)~, ~harmonic(100)~. What
+   does the growth look like?
+
+2) In =Harmonic.java=: change ~i <= n~ to ~i < n~, recompile with ~-g~,
+   and run it under ~jdb~. Put a breakpoint at line 8 and use ~print sum~
+   /  ~locals~ to see which term went missing.
+
+* Footnotes
+
+[fn:1] Both tools have been part of the standard JDK since Java 9
+(~jshell~) and Java 1.0 (~jdb~). They use the same JDK on your ~PATH~ as
+~javac~, so their version always matches your compiler.
