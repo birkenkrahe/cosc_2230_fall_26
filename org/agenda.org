@@ -49,4 +49,66 @@ File: See =org/1_overview.org= in GitHub
 |   | Review: Reference types,                            |
 |---+-----------------------------------------------------|
 
+* W2S1: OOP with Java (review) - Part 1
 
+** Housekeeping
+
+- I sent you a long (weekly) email (twice, by mistake). Did you get
+  it/read it? You may have to change your Canvas settings: Account >
+  Notifications > Announcements > Notify immediately.
+
+** Review of OOP in Java (part 1)
+
+- *Session plan (~48 min).* Ends before the command-line split of =Greeting=.
+
+|   | Block                           | min |
+|---+---------------------------------+-----|
+|   | Housekeeping: weekly email      |   5 |
+|   | Objectives - What's OOP about?  |   5 |
+|   | Reference data types            |   6 |
+|   | Code-along logistics            |   2 |
+|   | Fancy OOP "hello world" program |  13 |
+|   | PRACTICE 1: commenting =Greeting= |  12 |
+|   | buffer                          |   5 |
+|---+---------------------------------+-----|
+|   |                                 |  48 |
+#+TBLFM: @9$3=vsum(@2..@8)
+
+* W2S2: OOP with Java (review) - Part 2
+
+- *Session plan (~59 min).* Encapsulation on the command line + polymorphism.
+  Absorbs the "PRACTICE Extended =Greeting=" slot into PRACTICE 2.
+
+|   | Block                                                                                  | min |
+|---+--------------------------------------------------------------------------------------+-----|
+|   | Recap: built =Greeting=, split into two files, made the field private, compiled on CLI |   5 |
+|   | The split: =Greeting.java= + =GreetingTest.java=, private field, =javac= / =java=      |  12 |
+|   | Wrapper class / autoboxing quote (deferred from S1)                                    |   4 |
+|   | Java vs C++ vs Python - show-and-tell: three side by side, run C++ and one Python      |  10 |
+|   | Interfaces and polymorphism: contract -> 2 impls -> =Greeter[]= client -> run          |  16 |
+|   | PRACTICE 2: add a third =Greeter= (e.g. =PirateGreeter=), drop it in the array, run    |  12 |
+|---+--------------------------------------------------------------------------------------+-----|
+
+** Review
+
+** Review of OOP in Java (part 2)
+
+* W2S3: OOP with Java (review) - Part 3
+
+- *Session plan (~56 min).* Immutability + =Stopwatch= + performance.
+  final / aliasing / defensive copy is a time-permitting demo only, else assigned.
+
+|   | Block                                                                              | min |
+|---+-----------------------------------------------------------------------------------+-----|
+|   | Recap: interface = contract; which body runs is decided at run-time               |   5 |
+|   | Immutability: what it means / why it matters / primitives - concept level, no code |  10 |
+|   | (final / aliasing / defensive copy: =VectorBug= demo + one-line fix, if time)      | 0-8 |
+|   | =Stopwatch= API: definition + minimal-API table + wishlist                         |   6 |
+|   | Java utilities: =currentTimeMillis=, =currentTime= (show output), =Timer= + run    |  11 |
+|   | =Stopwatch= class + testing: sqrt-vs-pow client, n=1e8/1e9, =-Xint=, JVM-version lesson |  12 |
+|   | PRACTICE 3: add =reset()= - drop =final= from =start=, add method, test, explain why |  12 |
+|---+-----------------------------------------------------------------------------------+-----|
+
+** Review
+
+** Review of OOP in Java (part 3)
