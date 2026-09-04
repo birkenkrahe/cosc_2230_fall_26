@@ -7,7 +7,7 @@
 #+caption: Three Monks at Mealtime, by Eduard v. Grützner (1885)
 [[../img/three_monks.jpg]]
 
-* W1S1: Overview of the course
+* DONE W1S1: Overview of the course
 
 - *Check-in when in class:* 
 
@@ -26,7 +26,7 @@
 
 File: See =org/1_overview.org= in GitHub
 
-* W1S2: Setup & [optional] jshell/jdb & Review I
+* DONE W1S2: Setup & [optional] jshell/jdb & Review I
 
 - Short check-in: What (if anything) do you remember from last time?
 
@@ -49,7 +49,19 @@ File: See =org/1_overview.org= in GitHub
 |   | Review: Reference types,                            |
 |---+-----------------------------------------------------|
 
-* W2S1: OOP with Java (review) - Part 1
+* DONE W2S1: OOP with Java (review) - Part 1
+
+|   | Block                                | min |
+|---+--------------------------------------+-----|
+|   | Housekeeping: weekly email, projects |   5 |
+|   | Objectives - What's OOP about?       |  10 |
+|   | Reference data types                 |   6 |
+|   | Code-along logistics                 |   2 |
+|   | Fancy OOP "hello world" program      |  15 |
+|   | PRACTICE 1: commenting =Greeting=      |  12 |
+|---+--------------------------------------+-----|
+|   |                                      |  50 |
+#+TBLFM: @8$3=vsum(@2..@7)::@9$3=vsum(@2..@8)
 
 ** Housekeeping
 
@@ -57,58 +69,307 @@ File: See =org/1_overview.org= in GitHub
   it/read it? You may have to change your Canvas settings: Account >
   Notifications > Announcements > Notify immediately.
 
+- Try to come up with a project idea this week. We'll discuss next
+  week. Use your existing domain knowledge. Sprint 1 is on 28 Sept.
+
 ** Review of OOP in Java (part 1)
 
-- *Session plan (~48 min).* Ends before the command-line split of =Greeting=.
+- What is OOP about?
+- Code along: OOP "hello world" program
+- Practice: comment =Greeting= class
 
-|   | Block                           | min |
-|---+---------------------------------+-----|
-|   | Housekeeping: weekly email      |   5 |
-|   | Objectives - What's OOP about?  |   5 |
-|   | Reference data types            |   6 |
-|   | Code-along logistics            |   2 |
-|   | Fancy OOP "hello world" program |  13 |
-|   | PRACTICE 1: commenting =Greeting= |  12 |
-|   | buffer                          |   5 |
-|---+---------------------------------+-----|
-|   |                                 |  48 |
-#+TBLFM: @9$3=vsum(@2..@8)
+* DONE W2S2: OOP with Java (review) - Part 2
 
-* W2S2: OOP with Java (review) - Part 2
+- [X] Review of the last class
+- [X] Code review: commented =Greeting= class
+- [ ] Extending the =Greeting= class
 
-- *Session plan (~59 min).* Encapsulation on the command line + polymorphism.
-  Absorbs the "PRACTICE Extended =Greeting=" slot into PRACTICE 2.
+** Review of OOP in Java (part 1)
 
-|   | Block                                                                                  | min |
-|---+--------------------------------------------------------------------------------------+-----|
-|   | Recap: built =Greeting=, split into two files, made the field private, compiled on CLI |   5 |
-|   | The split: =Greeting.java= + =GreetingTest.java=, private field, =javac= / =java=      |  12 |
-|   | Wrapper class / autoboxing quote (deferred from S1)                                    |   4 |
-|   | Java vs C++ vs Python - show-and-tell: three side by side, run C++ and one Python      |  10 |
-|   | Interfaces and polymorphism: contract -> 2 impls -> =Greeter[]= client -> run          |  16 |
-|   | PRACTICE 2: add a third =Greeter= (e.g. =PirateGreeter=), drop it in the array, run    |  12 |
-|---+--------------------------------------------------------------------------------------+-----|
+The review usually is for you to check in with yourself if you know
+the answer. Sometimes it'll come in the form of a surprise
+quiz. Sometimes it give additional details last forgotten.
 
-** Review
+1) Remember at least one "illusion" that the machine presents to the
+   user?
+   #+begin_quote
+   1. "The machine is one piece" -> CPU (very fast) + RAM (fast) + NVM
+      (very slow)
+   2. "The machine is all yours" -> OS manages massive resources
+   3. "Applications are easy"    -> You only see the interface
+   4. "You're my only client"    -> Multi-tasking, multi-user
+   #+end_quote
 
-** Review of OOP in Java (part 2)
+2) What's the memory model of the RAM?
+   #+begin_quote
+   1. Stack (grows down) -> Stack overflow
+   2. Heap (grows up) -> ~OutOfMemoryError~
+   3. Global variables
+   4. Source code in machine format
+   #+end_quote
+
+3) What's garbage collection?
+   #+begin_quote
+   - A janitor for the *heap* only. 
+   - when an object's life cycle ends, GC sweeps and reclaims memory
+   - Automatic in Java/Python but matters for speed
+   - Manual in C/C++ ~malloc~
+   #+end_quote
+
+4) ~String~ is a ~class~ but it's built in - is it primitive or reference?
+   #+begin_quote
+   It's a reference class in ~java.lang.String~ with private and public
+   member data and methods.
+   #+end_quote
+   #+begin_src bash :results output :exports both
+     javap -p java.lang.String
+   #+end_src
+
+   #+RESULTS:
+   #+begin_example
+   Compiled from "String.java"
+   public final class java.lang.String implements java.io.Serializable, java.lang.Comparable<java.lang.String>, java.lang.CharSequence, java.lang.constant.Constable, java.lang.constant.ConstantDesc {
+     private final byte[] value;
+     private final byte coder;
+     private int hash;
+     private boolean hashIsZero;
+     private static final long serialVersionUID;
+     static final boolean COMPACT_STRINGS;
+     private static final java.io.ObjectStreamField[] serialPersistentFields;
+     private static final char REPL;
+     public static final java.util.Comparator<java.lang.String> CASE_INSENSITIVE_ORDER;
+     static final byte LATIN1;
+     static final byte UTF16;
+     public java.lang.String();
+     public java.lang.String(java.lang.String);
+     public java.lang.String(char[]);
+     public java.lang.String(char[], int, int);
+     private static java.lang.Void rangeCheck(char[], int, int);
+     public java.lang.String(int[], int, int);
+     public java.lang.String(byte[], int, int, int);
+     public java.lang.String(byte[], int);
+     public java.lang.String(byte[], int, int, java.lang.String) throws java.io.UnsupportedEncodingException;
+     public java.lang.String(byte[], int, int, java.nio.charset.Charset);
+     private java.lang.String(java.nio.charset.Charset, byte[], int, int);
+     static java.lang.String newStringUTF8NoRepl(byte[], int, int, boolean);
+     static java.lang.String newStringNoRepl(byte[], java.nio.charset.Charset) throws java.nio.charset.CharacterCodingException;
+     private static java.lang.String newStringNoRepl1(byte[], java.nio.charset.Charset);
+     private static byte[] trimArray(byte[], int);
+     private static int scale(int, float);
+     private static java.nio.charset.Charset lookupCharset(java.lang.String) throws java.io.UnsupportedEncodingException;
+     private static byte[] encode(java.nio.charset.Charset, byte, byte[]);
+     private static byte[] encodeWithEncoder(java.nio.charset.Charset, byte, byte[], boolean);
+     static byte[] getBytesUTF8NoRepl(java.lang.String);
+     private static boolean isASCII(byte[]);
+     static byte[] getBytesNoRepl(java.lang.String, java.nio.charset.Charset) throws java.nio.charset.CharacterCodingException;
+     private static byte[] getBytesNoRepl1(java.lang.String, java.nio.charset.Charset);
+     private static byte[] encodeASCII(byte, byte[]);
+     private static void replaceNegatives(byte[], int);
+     private static byte[] encode8859_1(byte, byte[]);
+     private static byte[] encode8859_1(byte, byte[], boolean);
+     static int decodeASCII(byte[], int, char[], int, int);
+     private static boolean isNotContinuation(int);
+     private static boolean isMalformed3(int, int, int);
+     private static boolean isMalformed3_2(int, int);
+     private static boolean isMalformed4(int, int, int);
+     private static boolean isMalformed4_2(int, int);
+     private static boolean isMalformed4_3(int);
+     private static char decode2(int, int);
+     private static char decode3(int, int, int);
+     private static int decode4(int, int, int, int);
+     private static int decodeUTF8_UTF16(byte[], int, int, byte[], int, boolean);
+     private static int decodeWithDecoder(java.nio.charset.CharsetDecoder, char[], byte[], int, int) throws java.nio.charset.CharacterCodingException;
+     private static int malformed3(byte[], int);
+     private static int malformed4(byte[], int);
+     private static void throwMalformed(int, int);
+     private static void throwMalformed(byte[]);
+     private static void throwUnmappable(int);
+     private static void throwUnmappable(byte[]);
+     private static byte[] encodeUTF8(byte, byte[], boolean);
+     private static byte[] encodeUTF8_UTF16(byte[], boolean);
+     private static long computeSizeUTF8_UTF16(byte[], boolean);
+     public java.lang.String(byte[], java.lang.String) throws java.io.UnsupportedEncodingException;
+     public java.lang.String(byte[], java.nio.charset.Charset);
+     public java.lang.String(byte[], int, int);
+     public java.lang.String(byte[]);
+     public java.lang.String(java.lang.StringBuffer);
+     public java.lang.String(java.lang.StringBuilder);
+     public int length();
+     public boolean isEmpty();
+     public char charAt(int);
+     public int codePointAt(int);
+     public int codePointBefore(int);
+     public int codePointCount(int, int);
+     public int offsetByCodePoints(int, int);
+     public void getChars(int, int, char[], int);
+     public void getBytes(int, int, byte[], int);
+     public byte[] getBytes(java.lang.String) throws java.io.UnsupportedEncodingException;
+     public byte[] getBytes(java.nio.charset.Charset);
+     public byte[] getBytes();
+     boolean bytesCompatible(java.nio.charset.Charset);
+     void copyToSegmentRaw(java.lang.foreign.MemorySegment, long);
+     public boolean equals(java.lang.Object);
+     public boolean contentEquals(java.lang.StringBuffer);
+     private boolean nonSyncContentEquals(java.lang.AbstractStringBuilder);
+     public boolean contentEquals(java.lang.CharSequence);
+     public boolean equalsIgnoreCase(java.lang.String);
+     public int compareTo(java.lang.String);
+     public int compareToIgnoreCase(java.lang.String);
+     public boolean regionMatches(int, java.lang.String, int, int);
+     public boolean regionMatches(boolean, int, java.lang.String, int, int);
+     public boolean startsWith(java.lang.String, int);
+     public boolean startsWith(java.lang.String);
+     public boolean endsWith(java.lang.String);
+     public int hashCode();
+     public int indexOf(int);
+     public int indexOf(int, int);
+     public int indexOf(int, int, int);
+     public int lastIndexOf(int);
+     public int lastIndexOf(int, int);
+     public int indexOf(java.lang.String);
+     public int indexOf(java.lang.String, int);
+     public int indexOf(java.lang.String, int, int);
+     static int indexOf(byte[], byte, int, java.lang.String, int);
+     public int lastIndexOf(java.lang.String);
+     public int lastIndexOf(java.lang.String, int);
+     static int lastIndexOf(byte[], byte, int, java.lang.String, int);
+     public java.lang.String substring(int);
+     public java.lang.String substring(int, int);
+     public java.lang.CharSequence subSequence(int, int);
+     public java.lang.String concat(java.lang.String);
+     public java.lang.String replace(char, char);
+     public boolean matches(java.lang.String);
+     public boolean contains(java.lang.CharSequence);
+     public java.lang.String replaceFirst(java.lang.String, java.lang.String);
+     public java.lang.String replaceAll(java.lang.String, java.lang.String);
+     public java.lang.String replace(java.lang.CharSequence, java.lang.CharSequence);
+     public java.lang.String[] split(java.lang.String, int);
+     public java.lang.String[] splitWithDelimiters(java.lang.String, int);
+     private java.lang.String[] split(java.lang.String, int, boolean);
+     private java.lang.String[] split(char, int, boolean);
+     public java.lang.String[] split(java.lang.String);
+     public static java.lang.String join(java.lang.CharSequence, java.lang.CharSequence...);
+     static java.lang.String join(java.lang.String, java.lang.String, java.lang.String, java.lang.String[], int);
+     public static java.lang.String join(java.lang.CharSequence, java.lang.Iterable<? extends java.lang.CharSequence>);
+     public java.lang.String toLowerCase(java.util.Locale);
+     public java.lang.String toLowerCase();
+     public java.lang.String toUpperCase(java.util.Locale);
+     public java.lang.String toUpperCase();
+     public java.lang.String trim();
+     public java.lang.String strip();
+     public java.lang.String stripLeading();
+     public java.lang.String stripTrailing();
+     public boolean isBlank();
+     public java.util.stream.Stream<java.lang.String> lines();
+     public java.lang.String indent(int);
+     private int indexOfNonWhitespace();
+     private int lastIndexOfNonWhitespace();
+     public java.lang.String stripIndent();
+     private static int outdent(java.util.List<java.lang.String>);
+     public java.lang.String translateEscapes();
+     public <R> R transform(java.util.function.Function<? super java.lang.String, ? extends R>);
+     public java.lang.String toString();
+     public java.util.stream.IntStream chars();
+     public java.util.stream.IntStream codePoints();
+     public char[] toCharArray();
+     public static java.lang.String format(java.lang.String, java.lang.Object...);
+     public static java.lang.String format(java.util.Locale, java.lang.String, java.lang.Object...);
+     public java.lang.String formatted(java.lang.Object...);
+     public static java.lang.String valueOf(java.lang.Object);
+     public static java.lang.String valueOf(char[]);
+     public static java.lang.String valueOf(char[], int, int);
+     public static java.lang.String copyValueOf(char[], int, int);
+     public static java.lang.String copyValueOf(char[]);
+     public static java.lang.String valueOf(boolean);
+     public static java.lang.String valueOf(char);
+     public static java.lang.String valueOf(int);
+     public static java.lang.String valueOf(long);
+     public static java.lang.String valueOf(float);
+     public static java.lang.String valueOf(double);
+     public native java.lang.String intern();
+     public java.lang.String repeat(int);
+     static void repeatCopyRest(byte[], int, int, int);
+     void getBytes(byte[], int, byte);
+     void getBytes(byte[], int, int, byte, int);
+     private java.lang.String(char[], int, int, java.lang.Void);
+     java.lang.String(java.lang.AbstractStringBuilder, java.lang.Void);
+     java.lang.String(byte[], byte);
+     byte coder();
+     byte[] value();
+     boolean isLatin1();
+     static void checkIndex(int, int);
+     static void checkOffset(int, int);
+     static int checkBoundsOffCount(int, int, int);
+     static void checkBoundsBeginEnd(int, int, int);
+     static java.lang.String valueOfCodePoint(int);
+     public java.util.Optional<java.lang.String> describeConstable();
+     public java.lang.String resolveConstantDesc(java.lang.invoke.MethodHandles$Lookup);
+     public int compareTo(java.lang.Object);
+     public java.lang.Object resolveConstantDesc(java.lang.invoke.MethodHandles$Lookup) throws java.lang.ReflectiveOperationException;
+     private static java.lang.String lambda$stripIndent$0(int, java.lang.String);
+     private static java.lang.String lambda$indent$2(int, java.lang.String);
+     private static java.lang.String lambda$indent$1(java.lang.String);
+     private static java.lang.String lambda$indent$0(java.lang.String, java.lang.String);
+     static {};
+   }
+   #+end_example
+
+5) What are three lenses on OOP?
+   #+begin_quote
+   1) Everything is an object (can become a reference type)
+   2) Objects send message to each other (via their APIs)
+   3) An object is a state (classes have "memory" and their methods
+      manipulate the state)
+   #+end_quote
+
+6) Do you ever hold an object itself in Java, or only a reference to it?
+   #+begin_quote
+   For a *reference type* (any ~class~, array, or ~String~) you only ever
+   hold a *reference* to the object on the heap -- assignment and method
+   calls copy the reference, not the object.
+
+   The 8 *primitive* types (~byte~, ~short~, ~int~, ~long~, ~float~,
+   ~double~, ~char~, ~boolean~) are the exception: a primitive variable
+   holds the *value* directly and is copied by value. There is no
+   reference.
+   #+end_quote
+
+** Code review
+
+Commented =Greeting= ~class~: Open your editors to your copy of this
+assignment from Monday and show us what you've got!
+
 
 * W2S3: OOP with Java (review) - Part 3
 
-- *Session plan (~56 min).* Immutability + =Stopwatch= + performance.
-  final / aliasing / defensive copy is a time-permitting demo only, else assigned.
 
-|   | Block                                                                              | min |
-|---+-----------------------------------------------------------------------------------+-----|
-|   | Recap: interface = contract; which body runs is decided at run-time               |   5 |
-|   | Immutability: what it means / why it matters / primitives - concept level, no code |  10 |
-|   | (final / aliasing / defensive copy: =VectorBug= demo + one-line fix, if time)      | 0-8 |
-|   | =Stopwatch= API: definition + minimal-API table + wishlist                         |   6 |
-|   | Java utilities: =currentTimeMillis=, =currentTime= (show output), =Timer= + run    |  11 |
-|   | =Stopwatch= class + testing: sqrt-vs-pow client, n=1e8/1e9, =-Xint=, JVM-version lesson |  12 |
-|   | PRACTICE 3: add =reset()= - drop =final= from =start=, add method, test, explain why |  12 |
-|---+-----------------------------------------------------------------------------------+-----|
+** Extras
 
-** Review
+1) YouTube playlist: 100 Seconds of Java, Java for the Haters
+2) Competitive programming: use open.kattis.com for coding practice
+3) Tutorial for jshell and jdb
+4) Classic textbook by Kernighan & Ritchie "The C Programming Language"
+5) Visualization of how the JVM works
+
+You will also get a 1-page infographic and a video overview for this
+week (links in Canvas in the 2. Programming module).
 
 ** Review of OOP in Java (part 3)
+
+- [X] Code walkthrough of the =Greeting= class
+- [X] Command-line workflow to test a Java class
+- [ ] Compare Java vs. C++ vs. Python (demo)
+- [ ] Extend the =Greeting= class (practice)
+- [ ] Review interface vs. implementation
+- [ ] Review immutability
+- [ ] Review polymorphism
+
+** Homework
+
+- Write a simple =Counter= class
+- Quiz 2 will cover all the content of this week
+
+Optional:
+- Check out the video overview (to be posted)
+- Check out the infographic (to be posted)
+- Check out DataCamp's OOP with Java course
