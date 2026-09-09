@@ -339,9 +339,7 @@ quiz. Sometimes it give additional details last forgotten.
 Commented =Greeting= ~class~: Open your editors to your copy of this
 assignment from Monday and show us what you've got!
 
-
-* W2S3: OOP with Java (review) - Part 3
-
+* DONE W2S3: OOP with Java (review) - Part 3
 
 ** Extras
 
@@ -354,22 +352,163 @@ assignment from Monday and show us what you've got!
 You will also get a 1-page infographic and a video overview for this
 week (links in Canvas in the 2. Programming module).
 
-** Review of OOP in Java (part 3)
-
-- [X] Code walkthrough of the =Greeting= class
-- [X] Command-line workflow to test a Java class
-- [ ] Compare Java vs. C++ vs. Python (demo)
-- [ ] Extend the =Greeting= class (practice)
-- [ ] Review interface vs. implementation
-- [ ] Review immutability
-- [ ] Review polymorphism
-
 ** Homework
 
 - Write a simple =Counter= class
 - Quiz 2 will cover all the content of this week
 
-Optional:
+*Optional:*
 - Check out the video overview (to be posted)
 - Check out the infographic (to be posted)
 - Check out DataCamp's OOP with Java course
+  
+** Review of OOP in Java (part 3)
+
+- [X] Code walkthrough of the =Greeting= class
+- [X] Command-line workflow to test a Java class
+- [X] Compare Java vs. C++ vs. Python
+- [X] Extend the =Greeting= class (practice)
+- [X] Review interface and polymorphism
+- [ ] Review immutability
+
+* W3S1: OOP with Java (review) - Part 4
+
+** Submissions
+
+- I check every submission and give you comments if needed
+
+- Before I do that, I check your submissions against the task:
+  
+  | Bucket                         | Students |
+  |--------------------------------+----------|
+  | Did not submit                 |          |
+  | Broken / does not compile      |          |
+  | Incomplete                     |          |
+  | Thin / partly wrong comments   |          |
+  | Complete and correct           |          |
+  | Strong (complete + real depth) |          |
+
+  24 of 26 registered students submitted.
+
+- You need to submit the code-along files so that I can value your
+  participation, and as a record of your own progress in the class.
+
+- If your grasp on OOP in Java is still a little weak, give the
+  DataCamp course "Introduction to OOP in Java" a try.
+
+** Projects
+
+- Anything?
+
+** Review (Sept 4 video)
+
+Check yourself against the Sept 4 video: the Java/C++/Python comparison
+of =Greeting=, the =setGreeting= practice exercise, and interfaces &
+polymorphism.
+
+1) Why compare the =Greeting= class across Java, C++ and Python at all?
+   #+begin_quote
+   Algorithms and data structures are *language-agnostic*. You learn
+   DS&A first, then pick the language that best supports your solution
+   path. All high-level languages share the basics (e.g. arrays), but
+   not the same data structures, and they implement them differently:
+   a resizable array is ~std::vector~ in C++ and ~ArrayList~ in Java --
+   the same data structure, but different implementations and semantics
+   (value vs. reference).
+   #+end_quote
+
+2) What does Java give you for free that C++ makes you set up
+   explicitly?
+   #+begin_quote
+   In C++ you ~#include~ a library for I/O and one for strings; the
+   standard string is ~std::string~ (namespace prefix); and there is no
+   ~println~ -- output goes through ~std::cout~, an ~ostream~ object.
+   Access defaults differ too: a C++ ~class~ has no keyword on the class
+   itself, and its members default to ~private~ (C's ~struct~ is ~public~).
+   #+end_quote
+
+3) How many ~main~ functions can a C++ program have, and what is the
+   full signature?
+   #+begin_quote
+   Exactly one ~main~ for the whole program, however many files there
+   are. Full form: ~int main(int argc, char *argv[])~ -- ~argc~ is the
+   argument count, ~argv~ is an array of C-string (~char *~) pointers,
+   and ~argv[0]~ is the program name.
+   #+end_quote
+
+4) Python is "interpreted" -- how is it still like Java under the hood,
+   and how is it different?
+   #+begin_quote
+   Like Java: CPython compiles the source to byte code that a virtual
+   machine interprets. Unlike Java: no type checking at compile time
+   (dynamically typed -- ~greet~ has no declared type), no separate
+   build artifacts (~.class~ / ~.jar~) -- everything stays a ~.py~ file --
+   and it is much slower.
+   #+end_quote
+
+5) In the practice exercise you added ~setGreeting~ to =Greeting=. What
+   kind of method is it, and what are its modifiers and return type?
+   #+begin_quote
+   A mutator (setter). It is ~public~ (so the test client can call it),
+   returns ~void~ (like ~main~), and takes one ~String~ argument that it
+   assigns to the private ~greeting~ field.
+   #+end_quote
+
+6) ~setGreeting~ and the constructor have almost the same body. What is
+   the essential difference -- and why does renaming the class break
+   the constructor?
+   #+begin_quote
+   When the constructor runs there is no object yet -- it is building
+   one. When ~setGreeting~ runs there is already an object, and the call
+   must name it (~greet.setGreeting("today mate")~). A constructor must
+   also have exactly the class's name; once the class is renamed, the
+   old constructor header is just an ordinary method with no return
+   type, so it no longer parses as a constructor.
+   #+end_quote
+
+7) What does a Java ~interface~ declare, what does it *not* contain, and
+   what does ~implements~ let you do at the call site?
+   #+begin_quote
+   An ~interface~ declares a contract: one or more method signatures
+   (return type, name, parameters) with no bodies -- no
+   implementation. Any class that ~implements~ it can then be held
+   through the interface type instead of its concrete type, so a
+   variable or array of the interface type can hold any implementing
+   object.
+   #+end_quote
+
+8) In ~for (Greeter g : greeters) System.out.println(g.sayHello());~,
+   which ~sayHello~ runs, and when is that decided? Name the mechanism.
+   #+begin_quote
+   Whichever ~sayHello~ belongs to the object's *real* class
+   (~FormalGreeter~ or ~CasualGreeter~), decided at run time from the
+   actual object -- not at compile time from the declared type
+   ~Greeter~. This is *polymorphism*, implemented in Java as *dynamic
+   dispatch*.
+   #+end_quote
+
+9) What is the payoff of writing =GreeterTest= against the ~Greeter~
+   interface, and how does this preview the data structures later in
+   the course?
+   #+begin_quote
+   The loop names no concrete class, so code written against the
+   interface keeps working when you add another ~Greeter~ later, and the
+   two greeter classes need no knowledge of each other. Same mechanism
+   ahead: ~Stack~ and ~Queue~ will ~implement~ ~Iterable~ (one method,
+   ~iterator()~), so ~for (String s : stack)~ works whether the stack is
+   an array or a linked list underneath. (This course uses interfaces,
+   not ~extends~ or abstract classes.)
+   #+end_quote
+
+10) Why delete the old ~.class~ files before recompiling, and what does
+    the ~2>&1~ after ~javac~ do?
+    #+begin_quote
+    Delete them because ~.class~ files are rebuilt on every compile; a
+    stale one left on the path can be picked up instead of your edited
+    source, so ~rm -rf *.class~ forces a clean rebuild. ~2>&1~ sends
+    standard error into standard output, so ~javac~'s errors show up in
+    the same stream you are reading -- needed when that stream is
+    captured (a notebook) rather than shown live in a terminal.
+    #+end_quote
+
+
