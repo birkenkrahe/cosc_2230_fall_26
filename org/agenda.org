@@ -373,6 +373,12 @@ week (links in Canvas in the 2. Programming module).
 
 * W3S1: OOP with Java (review) - Part 4
 
+** Sept 4 Video = Attendance
+
+- You have to have watched at least 80% of the video 
+
+- You should upload the "extended =Greeting= ~class~" assignment
+
 ** Submissions
 
 - I check every submission and give you comments if needed
@@ -398,13 +404,15 @@ week (links in Canvas in the 2. Programming module).
 
 ** Projects
 
-- Anything?
+- Anything you're interested in as a project?
+
+- Get together with 1-2 other people to brainstorm, with or without AI
+  
+- Will open the Sprint 1 assignment ("Project proposal") this week
+
+- Deadline: Friday, 9/25
 
 ** Review (Sept 4 video)
-
-Check yourself against the Sept 4 video: the Java/C++/Python comparison
-of =Greeting=, the =setGreeting= practice exercise, and interfaces &
-polymorphism.
 
 1) Why compare the =Greeting= class across Java, C++ and Python at all?
    #+begin_quote
@@ -511,4 +519,9 @@ polymorphism.
     captured (a notebook) rather than shown live in a terminal.
     #+end_quote
 
+** Next
+
+- [ ] Code-along: Immutability and ~final~ data
+- [ ] =Stopwatch= class and performance measurements
+- [ ] Iterative development (a primer)
 
