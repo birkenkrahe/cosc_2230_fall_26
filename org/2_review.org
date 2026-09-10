@@ -621,6 +621,842 @@ Time = 15 min
   other code - it's solving this same problem with a different,
   heavier tool, not a concept you're missing from here.
 
+* Immutability
+
+- When is a data type called "immutable"?
+  #+begin_quote
+  A data type is *immutable* if its objects cannot change value once
+  created. ="hello"= is a value of an immutable type (~String~); an =int[]=
+  array is a value of a mutable type (mutated via array index).
+
+  The one question immutability answers: /can another reference change
+  what I am holding?/
+  #+end_quote
+
+- Let's look at three cases.
+
+  - *Immutable (=String=)* - the callee cannot touch the caller's value:
+    #+name: immutable String
+    #+begin_src java :dir src
+      public class ImmutableString
+      {
+          static void shout(String s) { s = s.toUpperCase(); } // new object, not a mutation
+          
+          public static void main(String[] args)
+          {
+              String greeting = "hello";
+              shout(greeting);
+              System.out.println(greeting); // hello
+          }
+      }
+    #+end_src
+
+  Java passes arguments by value, including references: =s= is a fresh
+  local variable that gets a copy of the reference in =greeting=. =s =
+  s.toUpperCase()= rebinds that local copy to point at a different
+  object. =greeting= back in ~main~ is untouched - it still points where
+  it always did. To "shout", point =greeting= at the new object:
+  #+begin_example java
+  greeting = 
+  #+end_example
+
+- *Mutable (array)* - change through one reference, see it through the other:
+
+  #+name: mutable array
+  #+begin_src java :dir src
+    import java.util.Arrays; // Not sure students have to add this?
+
+    public class MutableArray
+    {
+        static void zero(int[] a) { a[0] = 0; } 
+        
+        public static void main(String[] args)
+        {
+            int[] data = {1, 2, 3}; // create object on the heap and stores reference
+            zero(data); // copies value of reference into parameter a (same heap object)
+            System.out.println(Arrays.toString(data)); // [0, 2, 3]
+        }
+    }
+  #+end_src
+
+  #+RESULTS: mutable array
+  : [0, 2, 3]
+
+  The array container is mutable here, not the ~int~ elements. You're
+  overwriting slot 0. =zero()= is a setter reaching into your data:
+  that's what you need a "defensive copy" for - copy the array on the
+  way in so no outside reference is aliased to your internal state.
+
+- *Primitive* - nothing to alias; the callee gets a copy of the value:
+
+  #+name: primitive copy
+  #+begin_src java :dir src
+    public class Primitive
+    {
+        static void bump(int x) { x++; }
+        
+        public static void main(String[] args)
+        {
+            int i = 0;
+            bump(i);
+            System.out.println(i); // 0
+        }
+    }
+  #+end_src
+
+  #+RESULTS: primitive copy
+  : 0
+
+  In ~main~, =i= holds the =int 0=. =bump(i)= copies that value into the
+  parameter =x=, an independent local variable, not a link back to
+  =i=. =x++= bumps that copy to =1=, but the copy is discarded when =bump=
+  returns, and ~void~ means nothing is handed back. So =i=, never
+  reassigned and never connected to =x=, still prints =0=. With a
+  primitive *there is no shared heap object* to *mutate* and no reference
+  to *alias*, so a method can affect the caller's variable only through
+  a returned value the caller assigns.
+
+  To return =1=, you'd have to return the new value and have ~main~ assign it back:
+  #+begin_src java :dir src
+    static int bump(int x) { return x + 1; }
+    
+    public static void main(String[] args)
+    {
+        int i = 0;
+        i = bump(i);                 // reassign with the returned value
+        System.out.println(i);       // 1
+    }
+  #+end_src
+
+  #+RESULTS:
+  : 1
+
+- Summary:
+
+  | Type                            | Example              | Can a callee/alias change what you hold? |
+  |---------------------------------+----------------------+------------------------------------------|
+  | ~String~, primitives, wrappers    | ="hello"=, ~int~         | no                                       |
+  | arrays, ~ArrayList~, most objects | ~int[]~, ~StringBuilder~ | yes - shared reference                   |
+
+- *Wrapper (=Integer=)* - autoboxing converts ~int~ <-> ~Integer~, and the
+  wrapper is immutable, so it is as safe as ~String~:
+
+  #+name: wrapper autoboxing
+  #+begin_src java :dir src
+    public class Wrapper
+    {
+        static void bump(Integer n) { n = n + 1; } // unbox, add, re-box: new object
+        public static void main(String[] args)
+        {
+            Integer count = 5;         // autoboxing: int 5 -> Integer
+            bump(count);
+            System.out.println(count); // 5 - unchanged
+            int prim = count;          // unboxing: Integer -> int
+            System.out.println(prim);  // 5
+        }
+    }
+  #+end_src
+
+  #+RESULTS: wrapper autoboxing
+  : 5
+  : 5
+
+- Python has the same split: immutable ~int float str tuple bytes~,
+  mutable ~list dict set~. With =b = a; b.append(4)= the change is visible
+  through =a= too; =a = (1, 2, 3)= (a tuple) cannot be mutated.
+
+- Why is this important for algorithms?
+  #+begin_quote
+  1. Sorting/Searching in-place algorithms only make sense because
+     arrays are mutable.
+  2. Stacks: =Stack<Integer>= autoboxing only works because ~Integer~ is
+     immutable.
+  3. Symbol tables: hash-based and comparison-based symbol table keys
+     need to be immutable (or at least not mutated while in the
+     table).
+  #+end_quote
+
+* The ~final~ modifier, aliasing bugs, and defensive copy
+
+- To enforce immutability in a data type, you can label it as ~final~. A
+  ~final~ variable is assigned a value only once, either in an inline
+  initialization statement, or in the constructor. Any other code that
+  could modify the value leads to a compile-time error.
+
+- The ~final~ modifier guarantees immutability only for primitive type
+  instance variables but not for reference types: if an instance
+  variable of a reference type has the ~final~ modifier, its value (the
+  object reference) will never change - it will always refer to the
+  same object. However the value of the object itself can change.
+
+- If your ~final~ instance variable is an array, you cannot change the
+  array's length or type, but you can change the values of the array
+  elements. This leads to *aliasing bugs*.
+
+- Example: in the =Vector= class below, ~final~ only freezes the
+  reference - after the constructor, =cartesian= can never execute
+  again, but if the constructor stores the caller's array by reference
+  instead of copying it, the object and the caller are both aliased to
+  the same array on the heap, and external mutation leaks through to
+  the supposedly immutable type.
+
+  #+name: Vector class with bugs
+  #+begin_src java :dir src
+    public class VectorBug
+    {
+        private final double[] cartesian;
+        public VectorBug(double[] data) { cartesian = data; } // bug 1: stores
+        // reference,
+        // not a copy
+        public double component(int i) { return cartesian[i]; }
+        public double[] cartesian() { return cartesian; } // bug 2: leaks
+                                                          // internal
+                                                          // reference
+
+        public static void main(String[] args)
+        {
+            double[] coords = {4.0, 3.0};
+            VectorBug v = new VectorBug(coords);
+            System.out.println(v.component(0));
+            // caller still holds the same array object
+            coords[0] = 999.0;
+            // bug 1: 999.0 - v changed with no mutator ever called
+            System.out.println(v.component(0));
+            // bug 2: mutates v's internal state with no setter
+            v.cartesian()[0] = -1.0;
+            System.out.println(v.component(0));
+        }
+    }
+  #+end_src
+
+  #+RESULTS: Vector class with bugs
+  : 4.0
+  : 999.0
+  : -1.0
+
+- In the code example, the object =v= has no setters, =cartesian= is
+  final, and yet its state changed: two references, one array (bug
+  1). Mutating through either is indistinguishable to Java. The same
+  hole exists on the way out, if an accessor hands back the live array
+  (bug 2).
+
+- The fix: *defensive copy* at both boundaries - copy on the way in
+  (constructor), and on the way out (any accessor that returns the
+  array) using ~data.clone()~ (or ~Arrays.copyOf~).
+
+  #+name: Vector class with defensive copy
+  #+begin_src java :dir src
+    public class Vector
+    {
+        private final double[] cartesian;
+        public Vector(double[] data)
+        {
+            cartesian = data.clone();// alternatively:
+            // Arrays.copyOf(data,data.length)
+        }
+        public double component(int i) { return cartesian[i]; }
+        public double[] cartesian()
+        {
+            return cartesian.clone();
+        }
+
+        public static void main(String[] args)
+        {
+            double[] coords = {3.0, 4.0};
+            Vector v = new Vector(coords);
+            System.out.println(v.component(0));
+            // caller still holds the same array object
+            coords[0] = 999.0;
+            // bug 1 fixed: No access
+            System.out.println(v.component(0));
+            // bug 2 fixed: No access
+            v.cartesian()[0] = -1.0;
+            System.out.println(v.component(0));
+        }
+    }
+  #+end_src
+
+  #+RESULTS: Vector class with defensive copy
+  : 3.0
+  : 3.0
+  : 3.0
+
+- Note that =cartesian= is a ~private~ array that only ~Vector~ itself ever
+  writes to: no outside reference holds a life reference to it in
+  either direction, so ~final~ actually delivers immutability.
+
+- In the book's ~Vector~ class, the constructor copies the vector
+  element-wise (rather than with a library call), and the accessor is
+  left out altogether.
+
+- See also: difference between *shallow* and *deep copy* (same thing here,
+  for copy of primitive ~double~ content types).
+
+- The textbook code differs in two ways:
+  1) the defensive copy is hand-rolled, spelled out loop by loop,
+     rather than using a library function,
+  2) The API only exposes =cartesian(int i)=, and never the live =coords=
+     array itself so there is no "bug 2" to defend against.
+
+- This code
+  #+name: Vector class with loop by loop copy
+  #+begin_src java :dir src
+    public class Vector
+    {
+        private final double[] cartesian;
+        public Vector(double[] data)
+        {   // defensive copy on the way in (construction)
+        cartesian = new double[data.length];
+        for (int i = 0; i < data.length; i++)
+            cartesian[i] = data[i];
+        }
+        public double component(int i) {return cartesian[i];}
+        public double[] cartesian()
+        {   // defensive copy on the way out (access)
+        double[] copy = new double[cartesian.length];
+        for (int i = 0; i < cartesian.length; i++)
+            copy[i] = cartesian[i];
+        return copy;
+        }
+
+        public static void main(String[] args)
+        {
+        double[] coords = {4.0,3.0};
+        Vector v = new Vector(coords);
+        System.out.println(v.component(0));
+        // caller still holds the same array object
+        coords[0] = 999.0;
+        // bug 1 fixed: no access to `cartesian`
+        System.out.println(v.component(0));
+        // bug 2 fixed: no direct access
+        v.cartesian()[0] = -1.0;
+        System.out.println(v.component(0));
+        }
+    }
+  #+end_src
+
+  #+RESULTS: Vector class with loop by loop copy
+  : 4.0
+  : 4.0
+  : 4.0
+
+* =Stopwatch= API
+
+- This program is a simplified version of a stopwatch.
+
+- What's an API?
+  #+begin_quote
+  API = Application Programming Interface. For an abstract data type
+  (ADT), like =Stopwatch=, this is a list of all constructors and ~public~
+  methods that can be used to manipulate the state of its objects.
+  #+end_quote
+
+- What do we need to measure time?
+  #+begin_quote
+  1) Start the stopwatch
+  2) Stop the stopwatch
+  3) Return the elapsed time
+  #+end_quote
+
+- That settles our minimal API:
+  #+begin_quote
+  =public class Stopwatch=:
+
+  | Returns | Name          | Task                                      |
+  |---------+---------------+-------------------------------------------|
+  |         | =Stopwatch()=   | Create new stopwatch and start it running |
+  | =double=  | =elapsedTime()= | Return elapsed time since creation (secs) |
+
+  #+end_quote
+
+- What are other things one would like to do with a stopwatch?
+  #+begin_quote
+  + Reset the stopwatch
+  + Pause the stopwatch
+  + Start and stop the stopwatch
+  + Include a lap timer
+  + Swap milliseconds for nanoseconds
+  #+end_quote
+
+* Java Utilities and ~System~ functions
+
+- Is there already a stopwatch available in Java?
+  #+begin_quote
+  The ~java.util~ package contains date and time methods, among them
+  ~System.currentTimeMillis()~. It returns the number of milliseconds
+  (1/1000 sec) passed since 00:00 hrs on January 1, 1970, the
+  so-called *epoch* or *Unix time*[fn:1].
+  #+end_quote
+
+- Overview of the Java utilities classes in ~java.util~:
+  #+attr_html: :width 700px :float nil:
+  #+caption: Source: geeksforgeeks.com
+  [[../img/java_util.png]]
+
+- How does it work? A quick program to illustrate (source:
+  [[https://www.geeksforgeeks.org/java/java-lang-system-currenttimemillis-method-with-examples/][geeksforgeeks.org]])
+  #+name: currentTimeMillis
+  #+begin_src java :dir src
+    public class currentTime
+    {
+        public static void main(String[] args)
+        {
+            // Print the milliseconds passed currently
+            System.out.println("Milliseconds: " + System.currentTimeMillis());
+            // Print the seconds passed currently
+            System.out.println("Seconds : " + System.currentTimeMillis()/1000);
+            // Print the minutes passed currently
+            System.out.println("Minutes : " + System.currentTimeMillis()/1000/60);
+            // Print the hours passed currently
+            System.out.println("Hours : " + System.currentTimeMillis()/1000/60/60);
+            // Print the days passed currently
+            System.out.println("Days : " + System.currentTimeMillis()/1000/60/60/24);
+            // Print the years passed currently
+            System.out.println("Years : " + System.currentTimeMillis()/1000/60/60/24/365);
+            // What day is today?
+            System.out.println("Today is: " + java.time.LocalDate.now());
+        }
+    }
+  #+end_src
+
+  #+RESULTS: currentTimeMillis
+  : Milliseconds: 1789053624757
+  : Seconds : 1789053624
+  : Minutes : 29817560
+  : Hours : 496959
+  : Days : 20706
+  : Years : 56
+  : Today is: 2026-09-10
+
+- Here is a simple program to time execution:
+  #+begin_src java :dir src :tangle ../src/Timer.java :noeval
+    public class Timer
+    {
+        public static void main(String[] args)
+        {
+            long starting, ending;
+            System.out.println("Timing a loop from 0 to 100,000,000");
+            starting = System.currentTimeMillis();
+            for (long i=0; i < 100000000L; i++);
+            ending = System.currentTimeMillis();
+            System.out.println("Elapsed time: "+(ending-starting)+" ms.");
+        }
+    }
+  #+end_src
+
+- On the command-line:
+  #+begin_src bash :results output :exports both
+    cd src
+    javac --version
+    javac Timer.java 2>&1
+    java Timer 2>&1
+  #+end_src
+
+  #+RESULTS:
+  : javac 17.0.20.1
+  : Timing a loop from 0 to 100,000,000
+  : Elapsed time: 23 ms.
+
+- The =public static double= for =starting= is enforced by Java 25 (on my
+  machine, with Java 17) - it should be ~static~ to be referenced from
+  ~main~.
+
+* The =Stopwatch= class
+
+- What =Stopwatch= computes:
+  #+attr_html: :width 350px :float nil:
+  [[../img/stopwatch_harmonic.png]]  
+
+- How do ~Math.sqrt~ and ~Math.pow~ differ computationally?
+  #+begin_quote
+  ~Math.sqrt(x)~ is one instruction: a dedicated instruction on every
+  CPU defined in IEEE-754.
+
+  ~Math.pow(a,b)~ is a subroutine: computed as exp(b log(a)) with a lot
+  of special cases, amounting to hundreds of instructions.
+  #+end_quote
+
+- What do we expect?
+  #+begin_quote
+  We expect the two calls to show significant differences. However,
+  there is also the question of the hardware (I'm testing two CPUs).
+  #+end_quote  
+
+  #+begin_src java :dir src :tangle ../src/Stopwatch.java :noeval :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar"
+    public class Stopwatch
+    {
+        private final long start;
+
+        public Stopwatch()
+        {   // set stopwatch
+            start = System.currentTimeMillis();
+        }
+        public double elapsedTime()
+        {   // return time between start and now in seconds
+            long now = System.currentTimeMillis();
+            return (now - start) / 1000.0;
+        }
+
+        public static void main(String[] args)
+        {
+            int n = Integer.parseInt(args[0]);
+            // Compute and time computation using Math.sqrt()
+            Stopwatch timer1 = new Stopwatch();
+            double sum1 = 0.0;
+            for (int i = 1; i <= n; i++)
+                sum1 += Math.sqrt(i);
+            double time1 = timer1.elapsedTime();
+            StdOut.printf("Math.sqrt(): %e (%.2f seconds)\n", sum1, time1);
+
+            // Compute and time computation using Math.sqrt()
+            Stopwatch timer2 = new Stopwatch();
+            double sum2 = 0.0;
+            for (int i = 1; i <= n; i++)
+                sum2 += Math.pow(i,0.5);
+            double time2 = timer2.elapsedTime();
+            StdOut.printf("Math.pow(): %e (%.2f seconds)\n", sum2, time2);
+        }
+    }
+  #+end_src
+  
+* Testing the =Stopwatch= class
+
+- Tangle the program and test it for n = 100,000,000 and n = 1,000,000,000:
+  #+begin_src bash :results output :exports both
+    cd src
+    rm -rf *.class
+    javac --version
+    javac -cp .:stdlib.jar Stopwatch.java
+    java  -cp .:stdlib.jar Stopwatch 100000000
+    java  -cp .:stdlib.jar Stopwatch 1000000000
+  #+end_src
+
+  #+RESULTS:
+  : javac 17.0.20.1
+  : Math.sqrt(): 6.666667e+11 (0.05 seconds)
+  : Math.pow(): 6.666667e+11 (0.06 seconds)
+  : Math.sqrt(): 2.108185e+13 (0.46 seconds)
+  : Math.pow(): 2.108185e+13 (0.58 seconds)
+  
+- To test the effect of the JIT[fn:2], remove it from the compilation:
+  #+begin_src bash :results output :exports both
+    cd src
+    rm -rf *.class
+    javac --version
+    javac -cp .:stdlib.jar Stopwatch.java
+    java -Xint -cp .:stdlib.jar Stopwatch 100000000
+    java -Xint -cp .:stdlib.jar Stopwatch 1000000000
+  #+end_src
+
+  #+RESULTS:
+  : Math.sqrt(): 6.666667e+11 (0.62 seconds)
+  : Math.pow(): 6.666667e+11 (0.75 seconds)
+  : Math.sqrt(): 2.108185e+13 (6.28 seconds)
+  : Math.pow(): 2.108185e+13 (7.28 seconds)
+
+- To test the effect of the improvements JDK 17 to JDK 25:
+  #+begin_src bash :results output :exports both
+    # Select a JDK 25 if one is available, else fall back to the current java.
+    if [ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]; then          # Linux: SDKMAN
+        source "$HOME/.sdkman/bin/sdkman-init.sh"
+        sdk use java "$(ls "$HOME/.sdkman/candidates/java/" | grep '^25' | head -1)"
+    elif /usr/libexec/java_home -v 25 >/dev/null 2>&1; then     # macOS: a JDK 25 is installed
+        export JAVA_HOME="$(/usr/libexec/java_home -v 25)"
+        export PATH="$JAVA_HOME/bin:$PATH"
+    else
+        echo "No JDK 25 found - running with the current java instead:"
+    fi
+    java -version 2>&1
+
+    cd src
+    rm -rf *.class
+    javac -cp .:stdlib.jar Stopwatch.java
+    java  -cp .:stdlib.jar Stopwatch 100000000
+    java  -cp .:stdlib.jar Stopwatch 1000000000
+  #+end_src
+
+  #+RESULTS:
+  : openjdk version "25.0.4.1" 2026-08-18 LTS
+  : OpenJDK Runtime Environment Corretto-25.0.4.8.1 (build 25.0.4.1+8-LTS)
+  : OpenJDK 64-Bit Server VM Corretto-25.0.4.8.1 (build 25.0.4.1+8-LTS, mixed mode, sharing)
+  : Math.sqrt(): 6.666667e+11 (0.05 seconds)
+  : Math.pow(): 6.666667e+11 (0.06 seconds)
+  : Math.sqrt(): 2.108185e+13 (0.46 seconds)
+  : Math.pow(): 2.108185e+13 (0.57 seconds)
+
+  Output (on my workstation):
+  #+begin_example
+  : Using java version 25-open in this shell.
+  : openjdk version "25" 2025-09-16
+  : OpenJDK Runtime Environment (build 25+36-3489)
+  : OpenJDK 64-Bit Server VM (build 25+36-3489, mixed mode, sharing)
+  : Math.sqrt(): 6.666667e+11 (0.15 seconds)
+  : Math.pow(): 6.666667e+11 (0.15 seconds)
+  : Math.sqrt(): 2.108185e+13 (1.46 seconds)
+  : Math.pow(): 2.108185e+13 (1.46 seconds)
+  #+end_example
+
+  Here are all three runs on two machines - an Apple M4 laptop and an
+  AMD Ryzen desktop - at n = 1,000,000,000:
+
+  | Run            | M4 sqrt / pow |  pow | AMD Ryzen sqrt / pow |  pow |
+  |----------------+---------------+------+----------------------+------|
+  | JIT on, JDK 17 | 0.46 / 0.58 s | +26% | 4.55 / 4.69 s        |  +3% |
+  | JIT on, JDK 25 | 0.46 / 0.57 s | +24% | 1.46 / 1.46 s        |   0% |
+  | JIT off JDK 17 | 6.28 / 7.28 s | +16% | 6.37 / 9.05 s        | +42% |
+
+  With the JIT switched off (=-Xint=) both machines run at nearly the
+  same speed, and =pow(i, 0.5)= is 15-40% slower than =sqrt(i)= - the raw
+  behavior the 2017 textbook describes. With the JIT on, both calls
+  get much faster (=sqrt= at n = 1e9 drops from ~6 s to under 0.5 s) and
+  the =pow=/=sqrt= gap shrinks or disappears, by an amount that depends
+  on the CPU and the JDK version.
+
+  A timing result therefore holds only for one JVM, one JIT setting,
+  and one machine; =Stopwatch= is what lets you measure instead of
+  guess.
+
+* PRACTICE Add a =reset= method to =Stopwatch=
+
+Time = 15 min
+
+1) Copy =Stopwatch= to a new class =StopwatchReset=, and remove ~final~
+   from =start=.
+2) Write a method =reset()= that sets =start= back to the current time,
+   so the same object can be timed a second time without creating a
+   new =Stopwatch=.
+3) Test it: run a task, print =elapsedTime()=, call =reset()=, then
+   print =elapsedTime()= again immediately - it should now read close
+   to zero.
+4) Be ready to explain: why did =start= have to stop being ~final~ for
+   this to work?
+
+* Iterative development
+
+I offer this without too much extra explanation - will merge it into
+the class presentation: Below you find an example of iterative
+development of =Stopwatch= when I tried to develop it without peeking at
+the textbook solution (and also without using the book's ~stdlib.jar~).
+
+This is the way I develop all my programs - recommended, not
+required. The sections below run =Stopwatch= through it once.
+
+| Step                        | What you do                                          |
+|-----------------------------+------------------------------------------------------|
+| 1. Spec in pseudocode       | Write the whole class as comments before any code    |
+| 2. Code with fixed values   | Hard-wire the inputs - no command-line, no I/O       |
+| 3. Add command-line input   | Replace the constants with ~args[]~                    |
+| 4. Grow the test client     | Extend ~main~ to test the API - 2nd timer, ~sqrt~ vs ~pow~ |
+| 5. Summarize lessons learnt | Diff against reference version, write down changes   |
+
+** Pseudocode:
+#+begin_example java
+// Define Stopwatch timer that measures elapsed_time for computations.
+// Declare a start_time for the Stopwatch
+// Define a Stopwatch constructor that sets start_time
+// Define a Stopwatch accessor that returns the elapsed_time
+// Define a Stopwatch main test method
+   // Create a Stopwatch timer at start_time
+   // Perform a computation
+   // Compute and print elapsed_time as difference between now
+   // and start time
+#+end_example
+
+** Code - without external input
+#+name: Stopwatch1
+#+begin_src java :tangle Stopwatch1.java
+  // Define Stopwatch timer that measures elapsed_time for computations.
+  public class Stopwatch1
+  {
+      // Declare a start_time for the Stopwatch
+      private final double start_time;
+      // Define a Stopwatch constructor that sets start_time
+      Stopwatch1(double start) { start_time=start; }
+      // Define a Stopwatch accessor that returns the elapsed_time
+      public double elapsed_time() { return System.currentTimeMillis()-start_time; }
+      // Define a Stopwatch main test method
+      public static void main(String[] args)
+      {
+          // Create a Stopwatch timer at start_time
+          Stopwatch1 timer = new Stopwatch1(System.currentTimeMillis());
+          // Perform a computation
+          for (int i=0; i < 100000000; i++)
+              Math.sqrt(i);
+          // Compute and print elapsed_time as difference between now
+          // and start time
+          System.out.println((timer.elapsed_time())/1000.);
+      }
+  }
+#+end_src
+
+#+RESULTS: Stopwatch1
+: 0.001
+
+** Code - with command-line input
+#+name: Stopwatch2
+#+begin_src java :tangle src/Stopwatch2.java :noeval
+  // Define Stopwatch timer that measures elapsed_time for computations.
+  public class Stopwatch2
+  {
+      // Declare a start_time for the Stopwatch
+      private final double start_time;
+      // Define a Stopwatch constructor that sets start_time
+      Stopwatch2(double start) { start_time=start; }
+      // Define a Stopwatch accessor that returns the elapsed_time
+      public double elapsed_time() { return System.currentTimeMillis()-start_time; }
+      // Define a Stopwatch main test method
+      public static void main(String[] args)
+      {
+          // Get input: number of iterations n
+          long n = Integer.parseInt(args[0]);
+          // Create a Stopwatch timer at start_time
+          Stopwatch2 timer = new Stopwatch2(System.currentTimeMillis());
+          // Perform a computation
+          for (int i=0; i < n; i++)
+              Math.sqrt(i);
+          // Compute and print elapsed_time as difference between now
+          // and start time
+          System.out.println((timer.elapsed_time())/1000.);
+      }
+  }
+#+end_src
+#+begin_src bash :results output :exports both
+  cd src
+  rm -rf Stopwatch*.class
+  javac Stopwatch2.java
+  java Stopwatch2 100000000
+#+end_src
+
+#+RESULTS:
+: 0.027
+** Code - with command-line input and another timer
+#+name: Stopwatch3
+#+begin_src java :tangle src/Stopwatch3.java :noeval
+  // Define Stopwatch3 timer that measures elapsed_time for computations.
+  public class Stopwatch3
+  {
+      // Declare a start_time for the Stopwatch3
+      private final double start_time;
+      // Define a Stopwatch3 constructor that sets start_time
+      Stopwatch3(double start) { start_time=start; }
+      // Define a Stopwatch3 accessor that returns the elapsed_time
+      public double elapsed_time() { return System.currentTimeMillis()-start_time; }
+      // Define a Stopwatch3 main test method
+      public static void main(String[] args)
+      {
+          // Get input: number of iterations n
+          long n = Integer.parseInt(args[0]);
+          // Create a Stopwatch3 timer at start_time
+          Stopwatch3 timer1 = new Stopwatch3(System.currentTimeMillis());
+          // Perform a computation
+          for (int i=0; i < n; i++)
+              Math.sqrt(i);
+          // Compute and print elapsed_time as difference between now
+          // and start time
+          System.out.println((timer1.elapsed_time())/1000.);
+          // Create another Stopwatch3 timer at start_time
+          Stopwatch3 timer2 = new Stopwatch3(System.currentTimeMillis());
+          // Perform a computation
+          for (int i=0; i < n; i++)
+              Math.pow(i,0.5);
+          // Compute and print elapsed_time as difference between now
+          // and start time
+          System.out.println((timer2.elapsed_time())/1000.);
+      }
+  }
+#+end_src
+#+begin_src bash :results output :exports both
+  cd src
+  rm -rf Stopwatch3.class
+  javac Stopwatch3.java
+  java Stopwatch3 100000000
+#+end_src
+
+#+RESULTS:
+: 0.026
+: 0.075
+
+** Comparison with the textbook code:
+
+- *Constructor design differs.* The book's =Stopwatch()= constructor
+  takes no arguments and calls =System.currentTimeMillis()= internally,
+  guaranteeing every =Stopwatch= object records "now" the moment it's
+  created. =Stopwatch3='s constructor takes =start= as a parameter, so
+  the *caller* is responsible for passing =System.currentTimeMillis()=
+  correctly at every call site - the class trusts the caller instead
+  of enforcing the guarantee itself.
+
+- *Units are ambiguous at the API level.* =elapsed_time()= returns raw
+  milliseconds (=System.currentTimeMillis()-start_time=, no division);
+  the =/1000.= conversion to seconds happens externally, at each
+  =println= call in =main=. The book's =elapsedTime()= performs the
+  =/1000.0= conversion *inside* the method, so the name and the unit
+  agree, and every caller gets seconds for free, with no risk of
+  forgetting the conversion.
+
+- *The loop discards its result.* Neither the =sqrt= loop nor the =pow=
+  loop stores anything - =Math.sqrt(i);= and =Math.pow(i,0.5);= are
+  called purely for their (nonexistent) side effects. The book instead
+  accumulates =sum1 += Math.sqrt(i)= and =sum2 += Math.pow(i,0.5)=, both
+  to have something meaningful to print and to give the JIT no legal
+  excuse to eliminate the loop as dead code.
+
+- *The measured slowdown differs from the book's modern rerun.* My run:
+  =0.026 sec= (sqrt) vs =0.075 sec= (pow) - =pow= about 3x slower - closer
+  to the book's original 2017 finding (over 10x) than to
+  near-parity. Since my loop discards its result, it's theoretically
+  JIT-eliminable, yet the observed times are clearly non-zero and
+  non-trivial - in practice HotSpot did not eliminate either loop
+  here.
+
+** The textbook program
+
+#+name: Stopwatch4
+#+begin_src java :tangle ../src/Stopwatch4.java :noeval
+  public class Stopwatch4
+  {
+      private final long start;
+      public Stopwatch4() { start = System.currentTimeMillis(); }
+      public double elapsed_time()
+      {
+          long now = System.currentTimeMillis();
+          return (now - start)/1000.0;
+      }
+      public static void main(String[] args)
+      {
+          int n = Integer.parseInt(args[0]);
+
+          Stopwatch4 timer1 = new Stopwatch4();
+          double sum1 = 0.0;
+          for (int i=0; i<n; i++)
+              sum1 += Math.sqrt(i);
+          double time1 = timer1.elapsed_time();
+          System.out.printf("%e (%.2f seconds)\n", sum1, time1);
+
+          Stopwatch4 timer2 = new Stopwatch4();
+          double sum2 = 0.0;
+          for (int i=0; i<n; i++)
+              sum2 += Math.pow(i,0.5);
+          double time2 = timer2.elapsed_time();
+          System.out.printf("%e (%.2f seconds)\n", sum2, time2);
+      }
+  }
+#+end_src
+#+begin_src bash :results output :exports both
+  cd ../src
+  rm -rf *.class
+  java -version 2>&1 | grep "version"
+  javac Stopwatch4.java
+  java Stopwatch4 1000000000
+  java -Xint Stopwatch4 1000000000 # without JIT optimization
+#+end_src
+
+#+RESULTS:
+: openjdk version "25.0.4.1" 2026-08-18 LTS
+: 2.108185e+13 (0.50 seconds)
+: 2.108185e+13 (0.54 seconds)
+: 2.108185e+13 (6.37 seconds)
+: 2.108185e+13 (6.91 seconds)
 * Questions and answers
 
 1) What's the meaning of ~public static void main(String[] args)~?
@@ -751,19 +1587,25 @@ Time = 15 min
     #+end_quote
 11) What has changed since JDK 17 (now: JDK 25)?
     #+begin_quote
-    Both =Math.sqrt()= and =Math.pow()= are HotSpot *intrinsics*
-    (hand-optimized, often assembly-level implementations the JIT
-    substitutes for the plain Java method).  What changed between 17
-    and 25 is the *quality* of the =pow= intrinsic itself: newer JIT
-    releases regularly refine these hand-written fast paths
-    (e.g. detecting more special-case exponents, using newer CPU
-    instructions). Pinning down the exact JDK release and bug/JEP
-    responsible would mean searching the OpenJDK issue tracker (JBS)
-    directly, not general web search.
+    Both =Math.sqrt()= and =Math.pow()= are HotSpot *intrinsics* -
+    hand-written, near-assembly implementations that the JIT
+    substitutes for the plain Java method (see Q12).
 
-    We have solid *empirical* evidence (two reproducible runs) that
-    something changed, without a confirmed *mechanistic* citation for
-    exactly what or when.
+    The tempting explanation is that the =pow= intrinsic itself got
+    faster. The measurements don't support that: from JDK 17 to 25,
+    =sqrt= and =pow= sped up by the *same* factor (about 3x). If only
+    =pow= had improved it would have moved closer to =sqrt=; instead
+    both moved together. So what changed is not one intrinsic but the
+    general quality of the native code *C2* (HotSpot's optimizing JIT
+    compiler) produces for this loop - most plausibly stronger
+    auto-vectorization, which speeds up any tight numeric loop
+    regardless of which math function it calls.
+
+    We have solid *empirical* evidence (reproducible runs on two JDKs)
+    that something improved, and the uniform speedup tells us it was
+    broad rather than =pow=-specific. Pinning down the exact JEP or bug
+    ID would mean searching the OpenJDK issue tracker (JBS) directly,
+    not a general web search.
     #+end_quote
 12) What does the JIT do exactly?
     #+begin_quote
@@ -787,10 +1629,12 @@ Time = 15 min
     of common methods, HotSpot doesn't even bother compiling the
     normal Java implementation - it substitutes a hand-written,
     highly optimized native version directly. =Math.sqrt()= and
-    =Math.pow()= are both on that list, which is why their relative
-    performance can shift between JDK releases as those hand-written
-    versions get refined - the underlying Java source for =Stopwatch=
-    or your test client never changes at all.
+    =Math.pow()= are both on that list, so their performance can shift
+    between JDK releases as HotSpot's compiled code is refined - even
+    though the Java source for =Stopwatch= or your test client never
+    changes. (Here the JDK 17 -> 25 speedup hit both functions
+    equally, so it was the compiled loop as a whole, not one
+    intrinsic; see Q11.)
     #+end_quote
 13) Can you explain what this code does?
     #+begin_example sh
