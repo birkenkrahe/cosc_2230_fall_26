@@ -527,7 +527,7 @@ week (links in Canvas in the 2. Programming module).
 - [X] Code-along =Stopwatch= class and performance measurements
 - [ ] Iterative development (a primer)
 
-* W3S2: Stopwatch and the Analysis of Algorithms
+* W3S2: OOP with Java (review) - Part 5
 
 ** Bonus content (Google Space)
 
@@ -540,6 +540,7 @@ week (links in Canvas in the 2. Programming module).
 - Tutorial on wrapper classes (~Integer~ etc.)
 - Java linter, IDE effects and ~static~ class member data
 - Project idea: Job interview (with my own example)
+- Fun animation of a stack buffer overflow attack (in C)
 
 ** Stopwatch continued (code along)
 
