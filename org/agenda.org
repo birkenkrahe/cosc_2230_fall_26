@@ -341,7 +341,7 @@ assignment from Monday and show us what you've got!
 
 * DONE W2S3: OOP with Java (review) - Part 3
 
-** Extras
+** Bonus content (Google Space)
 
 1) YouTube playlist: 100 Seconds of Java, Java for the Haters
 2) Competitive programming: use open.kattis.com for coding practice
@@ -371,7 +371,7 @@ week (links in Canvas in the 2. Programming module).
 - [X] Review interface and polymorphism
 - [ ] Review immutability
 
-* W3S1: OOP with Java (review) - Part 4
+* DONE W3S1: OOP with Java (review) - Part 4
 
 ** Sept 4 Video = Attendance
 
@@ -405,6 +405,8 @@ week (links in Canvas in the 2. Programming module).
 ** Projects
 
 - Anything you're interested in as a project?
+
+  + Personal finance tracker
 
 - Get together with 1-2 other people to brainstorm, with or without AI
   
@@ -522,6 +524,35 @@ week (links in Canvas in the 2. Programming module).
 ** Next
 
 - [ ] Code-along: Immutability and ~final~ data
-- [ ] =Stopwatch= class and performance measurements
+- [X] Code-along =Stopwatch= class and performance measurements
 - [ ] Iterative development (a primer)
+
+* W3S2: Stopwatch and the Analysis of Algorithms
+
+** Bonus content (Google Space)
+
+- Video summary "OOP in Java" by NotebookLM
+- Short tutorial on OOP Python (DataCamp)
+- Introduction to OOP in Python course (DataCamp)
+- Tutorial to install and get started with Linux on Windows
+- Tutorial for ~make~ and ~Makefile~ (GNU build automation utility)
+- Video explainer, infographic and code along lecture on Immutability
+- Tutorial on wrapper classes (~Integer~ etc.)
+- Java linter, IDE effects and ~static~ class member data
+- Project idea: Job interview (with my own example)
+
+** Stopwatch continued (code along)
+
+- We're going to build and then extend the Stopwatch class
+- You need to pay special attention because of the following popquiz
+
+** Analysing program performance (lecture)
+
+** Home programming assignment:
+
+- Stopwatch iteration vs. recursion (deadline Sept 18)
+- Bonus assignment: Stopwatch extended (deadline Oct 9)
+
+
+
 

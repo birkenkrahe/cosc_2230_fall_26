@@ -940,7 +940,7 @@ Time = 15 min
   : 4.0
   : 4.0
 
-* =Stopwatch= API
+* =Stopwatch= * API
 
 - This program is a simplified version of a stopwatch.
 
@@ -1082,38 +1082,55 @@ Time = 15 min
   there is also the question of the hardware (I'm testing two CPUs).
   #+end_quote  
 
+- The code:
   #+begin_src java :dir src :tangle ../src/Stopwatch.java :noeval :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar"
+    // Stopwatch.java: measure elapsed time during a computation
     public class Stopwatch
     {
+        // Private final data - set once
         private final long start;
-
+        // Constructor: set stopwatch to current system time
         public Stopwatch()
-        {   // set stopwatch
+        { 
             start = System.currentTimeMillis();
         }
+        // Return elapsed time between start and now in seconds
         public double elapsedTime()
-        {   // return time between start and now in seconds
+        { 
             long now = System.currentTimeMillis();
             return (now - start) / 1000.0;
         }
-
+        // Test client
         public static void main(String[] args)
         {
+    	// Input number of iterations n
             int n = Integer.parseInt(args[0]);
-            // Compute and time computation using Math.sqrt()
+    	
+            // Compute and time computation using Math.sqrt(x)
+    	// Create a Stopwatch object
             Stopwatch timer1 = new Stopwatch();
+    	// Set sum to zero
             double sum1 = 0.0;
+    	// Loop from 1 to n
             for (int i = 1; i <= n; i++)
+    	    // Add term to the sum
                 sum1 += Math.sqrt(i);
+    	// Measure the elapsed time after the loop
             double time1 = timer1.elapsedTime();
+    	// Print total sum and elapsed time    	
             StdOut.printf("Math.sqrt(): %e (%.2f seconds)\n", sum1, time1);
 
-            // Compute and time computation using Math.sqrt()
-            Stopwatch timer2 = new Stopwatch();
+    	// Compute and time computation using Math.pow(a,b)
+    	Stopwatch timer2 = new Stopwatch();
+    	// Set sum to zero
             double sum2 = 0.0;
+    	// Loop from 1 to n
             for (int i = 1; i <= n; i++)
+    	    // Add term to the sum
                 sum2 += Math.pow(i,0.5);
+    	// Measure the elapsed time after the loop
             double time2 = timer2.elapsedTime();
+    	// Print total sum and elapsed time
             StdOut.printf("Math.pow(): %e (%.2f seconds)\n", sum2, time2);
         }
     }
@@ -1210,26 +1227,9 @@ Time = 15 min
   behavior the 2017 textbook describes. With the JIT on, both calls
   get much faster (=sqrt= at n = 1e9 drops from ~6 s to under 0.5 s) and
   the =pow=/=sqrt= gap shrinks or disappears, by an amount that depends
-  on the CPU and the JDK version.
-
-  A timing result therefore holds only for one JVM, one JIT setting,
-  and one machine; =Stopwatch= is what lets you measure instead of
-  guess.
-
-* PRACTICE Add a =reset= method to =Stopwatch=
-
-Time = 15 min
-
-1) Copy =Stopwatch= to a new class =StopwatchReset=, and remove ~final~
-   from =start=.
-2) Write a method =reset()= that sets =start= back to the current time,
-   so the same object can be timed a second time without creating a
-   new =Stopwatch=.
-3) Test it: run a task, print =elapsedTime()=, call =reset()=, then
-   print =elapsedTime()= again immediately - it should now read close
-   to zero.
-4) Be ready to explain: why did =start= have to stop being ~final~ for
-   this to work?
+  on the CPU and the JDK version. A timing result therefore holds only
+  for one JVM, one JIT setting, and one machine; =Stopwatch= is what
+  lets you measure instead of guess.
 
 * Iterative development
 
@@ -1459,17 +1459,20 @@ required. The sections below run =Stopwatch= through it once.
 : 2.108185e+13 (6.91 seconds)
 * Questions and answers
 
+These are some questions that I asked myself as I was working through
+this material. We've discussed a few of them in class.
+
 1) What's the meaning of ~public static void main(String[] args)~?
    #+begin_quote
-   1) ~public~: this function can be seen and called from anywhere in the
-      program.
-   2) ~static~: this function belongs to the ~class~ itself, not to any
-      particular object of it, so it can be called without first
-      creating an instance (needed here because no object exists yet)
-   3) ~void~: this function has no return value
-   4) ~main~: this is the mandatory name for the program's entry point
-   5) ~String[] args~: this is an array of strings representing the
-      (optional) arguments to the program on the command-line
+   - ~public~: this function can be seen and called from anywhere in the
+     program.
+   - ~static~: this function belongs to the ~class~ itself, not to any
+     particular object of it, so it can be called without first
+     creating an instance (needed here because no object exists yet)
+   - ~void~: this function has no return value
+   - ~main~: this is the mandatory name for the program's entry point
+   - ~String[] args~: this is an array of strings representing the
+     (optional) arguments to the program on the command-line
    #+end_quote
 2) Why can't a constructor be called =public void Greeting(String s)=
    if it does not return anything?
@@ -1734,6 +1737,54 @@ required. The sections below run =Stopwatch= through it once.
     does what I intended."
     #+end_quote
 
+* Summary
+
+The through-line of this review: a Java program is built out of
+*types*. Some you write with ~class~, some come from libraries, and you
+use both the same way - construct an object with ~new~, then act on it
+through the reference you get back.
+
+- *Reference vs. primitive.* A reference variable holds a link to an
+  object on the heap; a primitive variable holds the value itself. The
+  eight primitives are not objects. Each has a *wrapper* class (=int=
+  -> =Integer=), and *autoboxing* / *unboxing* convert between the two
+  silently - which is what lets =Stack<Integer>= accept =5=.
+
+- *Interface vs. implementation.* A type's *interface* - its API, the
+  public constructors and methods - is the contract callers depend on;
+  the *implementation* is the private detail behind it. Hiding that
+  detail is *encapsulation*, enforced by =private= / package-private /
+  =public=.
+
+- *Polymorphism.* The declared type says what you may call; the
+  object's real class decides which code runs, picked at run time
+  (*dynamic dispatch*). One block of client code then works with many
+  implementations of an interface.
+
+- *Immutability and =final=.* An immutable type (=String=) cannot
+  change after construction, so no other reference can alter what you
+  hold. =final= is weaker - assign-once for the variable, not a promise
+  about the object. For mutable state that is shared, take a *defensive
+  copy* to avoid *aliasing* bugs.
+
+- *Compile time vs. run time.* =javac= checks types and produces
+  *bytecode*; the *JVM* runs it. Static typing catches most type
+  errors before the program starts - but "=javac= is happy" is not
+  "the program is correct."
+
+- *How code actually runs.* The standard JVM, *HotSpot*, first
+  *interprets* bytecode, profiles it, and hands the *hot* methods to a
+  JIT compiler (*C1* quick, *C2* optimizing) that emits native code.
+  So performance is version-dependent: the =Stopwatch= test gives
+  different =Math.sqrt()= vs =Math.pow()= results across JDK releases,
+  and reverses entirely under =-Xint= (JIT off). Measure, don't assume.
+
+- *Packaging and tooling.* Types group into *packages*, ship as =jar=
+  files, and run from the shell via =java -cp=. =Stopwatch= is a
+  minimal ADT - a constructor that starts it, =elapsedTime()= that
+  reads it - and shows why wrapping =System.currentTimeMillis()= in a
+  class beats copy-pasting the =/1000.0= arithmetic into every client.
+
 * Glossary
 
 | Term                | Definition                                           |
@@ -1777,9 +1828,19 @@ required. The sections below run =Stopwatch= through it once.
 | library             | reusable collection of packages/classes              |
 | jar file            | packaged archive of compiled classes for reuse       |
 | bytecode            | compiled =.class= instructions the JVM runs            |
+| JVM                 | runs bytecode; HotSpot is the standard one           |
+| HotSpot             | OpenJDK's JVM: interpret + JIT-compile hot code      |
+| interpreter         | runs bytecode op-by-op, no compilation               |
 | JIT                 | compiles bytecode to native code at runtime          |
+| C1 / C2             | HotSpot's quick / optimizing JIT compilers           |
+| tiered compilation  | interpret, then C1, then C2 as code heats up         |
+| hot method          | run often enough for the JIT to compile it           |
 | intrinsic           | hand-optimized native swap-in for a method           |
+| auto-vectorization  | JIT does many loop steps at once (SIMD)              |
+| =-Xint=               | JVM flag: interpret only, no JIT                     |
 | epoch (Unix time)   | seconds/ms since Jan 1 1970, 00:00 UTC               |
+| wall-clock time     | calendar time; jumps if the clock is reset          |
+| monotonic time      | never goes backward; for timing intervals           |
 | widening            | implicit conversion to a larger/wider type           |
 | overflow            | value exceeds its type's range and wraps             |
 | call stack          | fixed-size structure tracking active method calls    |
