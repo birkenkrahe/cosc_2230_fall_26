@@ -546,13 +546,10 @@ week (links in Canvas in the 2. Programming module).
 - We're going to build and then extend the Stopwatch class
 - You need to pay special attention because of the following popquiz
 
-** Analysing program performance (lecture)
-
 ** Home programming assignment:
 
-- Stopwatch iteration vs. recursion (deadline Sept 18)
-- Bonus assignment: Stopwatch extended (deadline Oct 9)
-
-
+- Stopwatch iteration vs. recursion (by Sept 18)
+- First sprint deliverable: project proposal (by Sept 25)
+- Bonus assignment: Stopwatch extended (by Oct 9)
 
 
