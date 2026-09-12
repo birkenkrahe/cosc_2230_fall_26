@@ -1057,10 +1057,6 @@ Time = 15 min
   : Timing a loop from 0 to 100,000,000
   : Elapsed time: 23 ms.
 
-- The =public static double= for =starting= is enforced by Java 25 (on my
-  machine, with Java 17) - it should be ~static~ to be referenced from
-  ~main~.
-
 * The =Stopwatch= class
 
 - What =Stopwatch= computes:
@@ -1230,6 +1226,117 @@ Time = 15 min
   on the CPU and the JDK version. A timing result therefore holds only
   for one JVM, one JIT setting, and one machine; =Stopwatch= is what
   lets you measure instead of guess.
+
+* PRACTICE Add a =reset= method to =Stopwatch= (with PC)
+
+Time = 15 min solo on paper + 5 min debrief
+
+1) Copy =Stopwatch= to a new class =StopwatchReset=, and remove ~final~
+   from =start=.
+
+2) Write a method =reset()= that sets =start= back to the current time,
+   so the same object can be timed a second time without creating a
+   new =Stopwatch=.
+
+3) Test it: run a task, print =elapsedTime()=, call =reset()=, then
+   print =elapsedTime()= again immediately - it should now read close
+   to zero.
+
+Example output:
+: before reset: 0.267
+: right after reset: 0.0
+
+* PRACTICE Add a =reset= method to =Stopwatch= (full retrieval with paper)
+
+- Instructions:
+  #+begin_quote
+  Closed-book rewrite from memory, right after building =Stopwatch=
+  together. Slip 1 goes out at the start; Slip 2 (the rubric) goes to
+  the graders once the 15 minutes are up. Budget ~15 min write + ~6 min
+  peer grade and board reconstruction. The "why did =start= stop being
+  ~final~" point is handled aloud in the debrief (step 4 above).
+  #+end_quote
+
+** Slip 1 - hand out at the start
+
+COSC 2230 - Rebuild =StopwatchReset= from memory
+
+Name: ______________  Grader (neighbor): ______________  Date: ______
+
+Closed book: no notes, no open files, work on your own. *15 minutes.*
+Your neighbor grades this afterwards against a checklist; a serious
+attempt earns extra credit even if it is incomplete.
+
+Write the complete =StopwatchReset= program from memory:
+
+- the class - start field, constructor, =elapsedTime()= (returns
+  seconds), =reset()=
+- a =main= (no command-line input) that: creates one =StopwatchReset=;
+  runs a loop from 0 to a billion calling =Math.pow(i, 0.5)=; prints
+  =elapsedTime()= after a label; calls =reset()=; prints =elapsedTime()=
+  after a label again - the second value should be =0.0=
+
+Grading is done in peer-mode with checklist.
+
+** Slip 2 - rubric, to graders after the write
+
+Swap papers. One point for each item, then hand back.
+
+Class:
+- [ ] a field holds the start time; the constructor sets it to =now=
+- [ ] =elapsedTime()= returns =(now - start) / 1000.0=
+- [ ] =reset()= sets the start time to now
+
+=main=:
+- [ ] creates one =StopwatchReset= object
+- [ ] correct loop of about 10^9 iterations calling =Math.pow(i, 0.5)=
+- [ ] prints =elapsedTime()=, calls =reset()=, prints =elapsedTime()= again
+
+A serious attempt earns the extra credit even if the program is
+incomplete.
+
+** Solution
+
+#+name: StopwatchReset.java
+#+begin_src java :dir ../src :tangle ../src/StopwatchReset.java :noeval
+  public class StopwatchReset
+  {
+      private long start; // no longer final - reset() reassigns it
+
+      public StopwatchReset()
+      {
+          start = System.currentTimeMillis();
+      }
+      public double elapsedTime()
+      {
+          return (System.currentTimeMillis() - start) / 1000.0;
+      }
+      public void reset()
+      {
+          start = System.currentTimeMillis();
+      }
+      public static void main(String[] args)
+      {
+          StopwatchReset timer = new StopwatchReset();
+          for (int i = 0; i < 1000000000; i++) Math.pow(i, 0.5);
+          StdOut.println("before reset: " + timer.elapsedTime());
+          timer.reset();
+          StdOut.println("right after reset: " + timer.elapsedTime());
+      }
+  }
+#+end_src
+
+Compile and run:
+#+begin_src bash :results output :exports both
+  cd ../src
+  rm -rf *.class
+  javac -cp .:stdlib.jar StopwatchReset.java
+  java  -cp .:stdlib.jar StopwatchReset
+#+end_src
+
+#+RESULTS:
+: before reset: 0.269
+: right after reset: 0.0
 
 * Iterative development
 
