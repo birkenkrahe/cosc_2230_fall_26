@@ -527,7 +527,7 @@ week (links in Canvas in the 2. Programming module).
 - [X] Code-along =Stopwatch= class and performance measurements
 - [ ] Iterative development (a primer)
 
-* W3S2: OOP with Java (review) - Part 5
+* DONE W3S2: OOP with Java (review) - Part 5
 
 ** Bonus content (Google Space)
 
@@ -553,4 +553,58 @@ week (links in Canvas in the 2. Programming module).
 - First sprint deliverable: project proposal (by Sept 25)
 - Bonus assignment: Stopwatch extended (by Oct 9)
 
+* DONE W4S1: Performance - Part 1: The Challenge
 
+- Three ways to look at hard problems: Program, Process, People
+- Benefits and examples of algorithm re-design
+- The scientific method and why bother with it
+* W4S2: Performance - Part 2: Example problem / Doubling Hypothesis
+
+- [ ] Review: The performance challenge
+- [ ] Observation: Sample problem
+- [ ] Assumption: Doubling Hypothesis
+- [ ] Mathematical analysis
+
+** Review - The performance challenge
+
+1) What makes programming challenging?
+   #+begin_quote
+   Problems grow with input size. They may outgrow our processing
+   capabilities: the program simply does not finish (in time).
+   #+end_quote
+2) What is the scientific method?
+   #+begin_quote
+   1. *Observe* reality (take *data*).
+   2. Make an *assumption* about what's going on (*hypothesize*).
+   3. *Predict* new events based on your assumption.
+   4. *Check* your predictions with more data.
+   5. *Modify* your assumption until you assume correctly.
+   #+end_quote
+3) How could you apply the scientific method to the weather?
+   #+begin_quote
+   1. You *observe* dark clouds in the sky.
+   2. You *assume* it's going to rain.
+   3. You *predict* rain in an hour.
+   4. After an hour, you *check* if it's raining.
+   5. If it isn't raining, you look for more weather *features*
+      (pressure, wind, season) until you can better predict the
+      weather.
+   #+end_quote
+4) What are the two conditions for the scientific method to work?
+   #+begin_quote
+   1. Your data must be *reproducible*. One-offs are useless.
+
+      Weather example: focus on features that repeat
+      
+   2. Your assumptions must be *falsifiable*.
+
+      Weather: if you assume that it rains when your nose itches, and
+      then it does not rain when your nose itches, means that you
+      falsified your assumption.
+   #+end_quote
+5) Why do we bother with the scientific method in programming?
+   #+begin_quote
+   - To *predict* program behavior -> will it finish?
+   - To *compare* implementations -> will this make it better?
+   - To *develop* new algorithms -> solve bigger problems
+   #+end_quote

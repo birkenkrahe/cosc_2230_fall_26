@@ -1,0 +1,644 @@
+#+TITLE: Performance --- Part 1: Why We Measure, and What a Program Costs
+#+AUTHOR: Marcus Birkenkrahe
+#+SUBTITLE: COSC 2230 (CS III) Fall 2026 | Augustana U.
+#+STARTUP: overview hideblocks indent entitiespretty
+#+OPTIONS: toc:1 num:1 ^:nil
+
+* Hook: Babbage
+#+attr_html: :width 700px :float nil:
+#+caption: Source: Sedgewick/Wayne
+[[../img/babbage.png]]
+
+Babbage predicted, in the 1800s, that a machine could do this kind of
+work -- decades before the electronics existed to build one.[fn:1] The
+principle was right long before the hardware caught up: pay attention
+to the cost, because it decides what you can even attempt.
+
+[Project idea: research and explain Babbage's Difference Engine.]
+
+* Three ways to look at "hard"
+
+When exploring a new hard question (like the one by Babbage), it's
+useful to gather your wits and check different angles of attack.
+
+Here are three such angles (not the only ones):
+
+- Focus on the programs we write
+
+- Focus on the processes we use to develop programs
+
+- Focus on the people who develop the programs
+
+* Program focus -- what kind of program do we want to write?
+
+#+begin_quote
+| Challenge          | Fails when...                                      |
+|--------------------+------------------------------------------------------|
+| 1. Runs at all     | code breaks a compiler rule                        |
+| 2. Finishes at all | loop/recursion never ends, or data outgrows memory |
+| 3. Finishes fast   | work grows too steeply with input size             |
+| 4. Is right        | output disagrees with the spec                     |
+#+end_quote
+
+A program can clear 1-3 -- compiles, finishes, fast -- and still
+fail 4. This unit is challenge 3.
+
+- Examples:
+
+  1. *Runs at all*: breaks a compiler (syntax) rule
+     #+begin_src java :dir src :results none
+       int n = "5";
+     #+end_src
+
+  2. *Finishes at all*: loop or recursion never ends (or data outgrows
+     memory)
+
+     Loop:
+     #+begin_example java
+       int i = 0, sum = 0;
+       while (i < n) sum += i; // no increment i++: loops forever
+     #+end_example
+
+     Recursion:
+     #+begin_example java
+       public static int factorial(int n) {
+          return n * factorial(n-1); } // no base case: StackOverflowError
+     #+end_example
+
+  3. *Finishes at all...fast*: this fails when work grows too steeply
+     with input size, O(n^{2}) - a nested loop checking for duplicate
+     values in an array.
+     #+begin_example java
+       for (int i = 0; i < n; i++) {
+           for (int j = i + 1; j < n; j++) {
+               if ( a[i] == a[j]) return true;
+           }
+       }
+     #+end_example
+
+     Full code:
+     #+begin_src java :dir src :tangle Duplicates.java :noeval
+       public class Duplicates {
+           public static void main(String[] args) {
+               int[] a = {1,2,3,2,1,10,3,4,5,1,1,1};
+               System.out.println("Size N = " + a.length);
+               int count = 0;
+               for (int i = 0; i < a.length; i++) {
+                   for (int j = i + 1; j < a.length; j++) {
+                       count++; // count iterations
+                       if ( a[i] == a[j]) {
+                           System.out.printf("Duplicate: %d %d\n", i, j); // checks duplicates
+                       }
+                   }
+               }
+               System.out.println("Iterations = " + count); // N(N-1)/2 iterations
+           }
+       }
+     #+end_src
+     #+begin_src bash :results output :exports both
+       javac Duplicates.java
+       java Duplicates
+     #+end_src
+
+     #+RESULTS:
+     #+begin_example
+     Size N = 12
+     Duplicate: 0 4
+     Duplicate: 0 9
+     Duplicate: 0 10
+     Duplicate: 0 11
+     Duplicate: 1 3
+     Duplicate: 2 6
+     Duplicate: 4 9
+     Duplicate: 4 10
+     Duplicate: 4 11
+     Duplicate: 9 10
+     Duplicate: 9 11
+     Duplicate: 10 11
+     Iterations = 66
+     #+end_example
+
+  4. *Is right*: fails when output disagrees with the spec
+
+     #+begin_src java :dir src
+       String a = new String("hi");
+       String b = new String("hi");
+       if (a == b) {
+           System.out.println("equal"); // never prints: compares references,
+                                        // not content
+       }
+     #+end_src
+
+     Fix:
+     #+begin_src java :dir src
+       String a = new String("hi");
+       String b = new String("hi");
+       if (a.equals(b)) {
+           System.out.println("equal"); // prints "equal": compares content,
+                                        // not references
+       }
+     #+end_src
+
+     #+RESULTS:
+     : equal
+
+     (Note: in C++, ~==~ on =std::string= compares content -- but on raw
+     C-strings (~char*~) it still compares addresses, same trap as Java.)
+
+* Process focus
+
+In the real world, programs are built with a feedback loop, not a
+straight line:
+#+attr_html: :width 500px :float nil:
+[[../img/process.png]]
+
+* People focus
+
+There are four kinds of developer, by what they do about performance:
+#+begin_quote
+1. The *assumer*: never measures ("everyone knows =Math.pow= is slow").
+2. The *bad benchmarker*: measures, but times the wrong thing.
+3. The *premature optimizer*: measures well, optimizes the wrong code.
+4. The *profiler*: measures the whole program, finds the real hot spot,
+   fixes that, measures again.
+#+end_quote
+
+Which one are you, most days? (Nobody is #4 by default -- it's a
+discipline, which is what this unit is about.)
+
+* The benefits: two examples where algorithm design won
+
+Same problem, same hardware, wildly different cost -- because someone
+changed the *algorithm*, not the machine.
+
+#+attr_html: :width 500px :float nil:
+[[../img/n_body_simulation.png]]
+N-body simulation (gravitational interaction among N bodies --
+spacecraft trajectories, galaxy formation). The brute-force algorithm
+from the Ch. 3 case study costs N^2 steps per time unit. Barnes-Hut
+(1986) does the same job in N log N.[fn:2]
+
+#+attr_html: :width 500px :float nil:
+[[../img/fft.png]]
+Discrete Fourier Transform (breaking N samples into periodic
+components -- signal processing, spectroscopy). Brute force costs
+N^2; the Cooley-Tukey Fast Fourier Transform costs N log N.
+
+Hold onto N^2 vs. N log N -- =ThreeSum=, which we build next, is the
+N^3 case, and it has the same kind of faster cousin waiting in Ch.
+4.2.
+
+* The scientific method, and why bother
+
+The question: how might I understand a program's performance
+characteristics well enough to improve it? Knuth's answer, from the
+1970s: use the *scientific* method.[fn:3]
+
+#+begin_quote
+1. *Observe* some feature of the natural world.
+2. *Hypothesize* a model consistent with the observations.
+3. *Predict* events using the hypothesis.
+4. *Verify* the predictions with further observations.
+5. *Validate* by repeating until hypothesis and observations agree.
+#+end_quote
+
+Two conditions make this work at all: experiments must be
+*reproducible*, and hypotheses must be *falsifiable* -- there must be some
+observation that could prove one wrong.[fn:4] (This is also why so
+much published research doesn't replicate[fn:5] -- samples too small,
+designs too flexible, one study alone was never going to be the last
+word. The discipline is the point, not the honor system.)
+
+Why put in the effort at all?
+#+begin_quote
+1. *To predict program behavior.* Will my program finish? When?
+2. *To compare algorithms and implementations.* Will this change make
+   my program faster? How can I make it faster?
+3. *To build a basis for new algorithms.* Understanding the problem
+   well enough to design something better -- new products, new
+   research.
+#+end_quote
+
+* Observations
+
+- What are we trying to observe?
+  #+begin_quote
+  The running time of a program. That's our measure.
+
+  We could also observe something else: e.g. the memory (space) , or
+  the way a human reads or uses the code ("usability").
+
+  Time and space are the two common things we're interested in.
+  #+end_quote
+- Is this measure always the same?
+  #+begin_quote
+  No, even for one program, the running time varies if only slightly,
+  even on the same machine. And it can vary wildly between machines.
+
+  Same for memory, especially if the code is parallelized.
+  #+end_quote
+- What does the measure depend on?
+  #+begin_quote
+  The running time depends on the number of instructions executed to
+  solve a problem - an indirect measure of the problem size.
+  We looked at two different for loops already and there it seems easy
+  to come up with a scaling law like N squared or O(N+N) = O(2N) = O(N).
+  #+end_quote
+- What part of a problem tells us its size?
+  #+begin_quote
+  The size of the input required to process, and the type of the
+  input - e.g. is it large, and is it already ordered.
+  #+end_quote
+- How are we going to measure it?
+  #+begin_quote
+  The =Stopwatch= data type is designed to measure running time.
+  #+end_quote
+
+For real applications, it is not always easy to separate the steps of
+the scientific method - but when you take stock of your problem and
+your solution, you need to be able to explain them separately.
+
+For example, when you publish a result in a paper or a talk, people
+will ask you:
+
+1) Where did you get your data?
+2) When you give me your data, will I get the same result?
+3) What did you think how fast your program would be?
+4) What did you find out when you increased the input size?
+5) Did you have to modify your assumption?
+6) Which changes did you make to your program?
+
+If you want to get on in life as a developer, it is as important to be
+able to *reflect* on your exploits in a *systematic* way, as it is to
+solve the problem itself. This is something you can train with AI!
+
+* Sample problem: =ThreeSum= (understanding)
+
+- Problem: given N integers, count the triples that sum to 0 [fn:6]
+
+- What does this mean? Let's take an example: {-4 3 1} N=3
+
+- Success! -4 + 3 + 1 = 0
+
+- What does this tell us already?
+  #+begin_quote
+  Since addition is commutative, the order of the triples does not
+  alter the sum. So we don't need to enumerate (list), only count. We
+  don't need permutations (ordered) but combinations (unordered).
+  #+end_quote
+
+- Let's add another number: {-4 3 1 5} N = 4
+
+- First, enumerate all the triples, first by hand then by code:
+  #+begin_example
+  -4 3 1    3 1 5    1 5 -4   5 -4 3
+  -4 3 5    3 1 -4   1 5  3   5 -4 1
+  #+end_example
+
+- That's 2 rows x C(4,3) = 8 orderings of the same underlying
+  triples. But if we disregard the order, the unique ones are given by
+  the number of times we can draw three elements from N elements
+  without replacement - C(N,3), a binomial, or N!/(3!(N-3)!) = 24/6 =
+  4
+  #+begin_example
+  -4 3 1
+   3 1 5
+   1 5 -4
+   5 -4 3
+  #+end_example
+
+- Of these four triples, only one (-4 3 1) adds up to zero.
+
+- How can we code that?
+  #+begin_quote
+  1) store the numbers from input in an integer array
+
+  2) start a counter at zero.
+
+  3) run over the indices of the array: i,j,k \in [0,N-1]
+
+  4) when you have built a triple =a[i] a[j] a[k]=, check if
+     =a[0]==a[1]==a[2]=, then increase the counter.
+
+  5) Print the counter once all loops have finished.
+  #+end_quote
+
+* Code-along: build =ThreeSum= - version 1
+
+- This implements the iterative algorithm sketched earlier:
+  #+begin_src java :dir src :tangle ../src/ThreeSum.java :noeval :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar"
+    // ThreeSum.java
+    public class ThreeSum
+    {
+        // countTriples: input integer array, returns number of triples adding up to zero
+        public static int countTriples(int[] a)
+        {
+    	// define length of array
+    	int n = a.length;
+    	// set counter to zero
+    	int count = 0;
+    	// loop over array for first triple element
+    	for (int i = 0; i < n; i++)
+    	    // loop over array for second triple element    	    
+    	    for (int j = 0; j < n; j++)
+    		// loop over array for third triple element
+    		for (int k = 0; k < n; k++)
+    		    // check if triple adds up to zero
+    		    if (a[i] + a[j] + a[k] == 0)
+    			// increase counter
+    			count++;
+    	// return counter
+    	return count;
+        }
+        // test client
+        public static void main (String[] args)
+        {
+    	// input array from command-line
+    	int[] a = StdIn.readAllInts();
+    	// compute number of triples that add up to zero
+    	int count = countTriples(a);
+    	// print result
+    	StdOut.println(count);
+        }
+    }
+  #+end_src
+
+Compile it, then sanity-check by hand with six numbers small enough
+to verify yourself while it runs:
+
+#+begin_src bash :results output :exports both
+  cd ../src
+  javac -cp .:stdlib.jar ThreeSum.java
+  echo "-4 3 1 5" | java -cp .:stdlib.jar ThreeSum
+#+end_src
+
+#+RESULTS:
+: 6
+
+- This is wrong, so we need to print a trace to see what we got:
+  #+begin_src java :dir src :tangle ../src/ThreeSum.java :noeval :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar"
+    public class ThreeSum
+    {
+        public static int countTriples(int[] a)
+        {
+            int n = a.length;
+            int count = 0;
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                    for (int k = 0; k < n; k++)
+                        if (a[i] + a[j] + a[k] == 0) {
+                            System.out.printf("hit: i=%d j=%d k=%d  ->  %d %d %d%n", i, j, k, a[i], a[j], a[k]);
+                            count++;
+                        }
+            return count;
+        }
+
+        public static void main(String[] args)
+        {
+            int[] a = StdIn.readAllInts();
+            int count = countTriples(a);
+            StdOut.println(count);
+        }
+    }
+  #+end_src
+
+Compile it, then sanity-check by hand with six numbers small enough
+to verify yourself while it runs:
+
+#+begin_src bash :results output :exports both
+  cd ../src
+  javac -cp .:stdlib.jar ThreeSum.java
+  echo "-4 3 1 5" | java -cp .:stdlib.jar ThreeSum
+#+end_src
+
+#+RESULTS:
+: hit: i=0 j=1 k=2  ->  -4 3 1
+: hit: i=0 j=2 k=1  ->  -4 1 3
+: hit: i=1 j=0 k=2  ->  3 -4 1
+: hit: i=1 j=2 k=0  ->  3 1 -4
+: hit: i=2 j=0 k=1  ->  1 -4 3
+: hit: i=2 j=1 k=0  ->  1 3 -4
+: 6
+
+- So the "brute force" method got us the wrong result (though we could
+  just divide by 3! = 6 to get the correct result but that's a cheat).[fn:7]
+
+- How can we code that more cleverly?
+  #+begin_quote
+
+1) store the numbers from input in an integer array
+
+2) to account for order, each triple is counted exactly once: cannot
+   range freely over indices i,j,k because this includes some
+   identical indices (i==j, i==k, j==k), and even with three
+   distinct indices, (e.g. 012,021,102,120,201,210), there is only
+   one underlying triple =a[0] a[1] a[2]=.
+
+3) we pick one fixed ordering rule. To reduce the 3!=6 permutations
+   (ways to pick 3 elements from n without replacement) to one,
+   require i < j < k (that selects =a[0] a[1] a[2]=).
+
+4) To implement this, we pick =i= from =0..N-1=, then =j= from =i+1,..N-1=,
+   then =k= from =j+1..N-1=. Looping over all indices unrestricted is
+   N^{3}^{} = 64 iterations (every ordering, including repeated
+   indices). Restricting to i < j < k removes both: C(N,3) =
+   N!/(3!(N-3)!) = N(N-1)(N-2)/3! iterations. For =N=4= that's 24/6 = 4
+   *combinations* to check instead of 64 -- and of those 4, only 1
+   actually sums to zero.
+
+   C(n,k) is the coefficient of x^{k} y^{n-k} in the expansion of the
+   binomial (x+y)^{n}:
+   [[../img/binomial.png]]
+
+   C(n,3) = n! / (3!(n-3)!) = n(n-1)(n-2) / 6
+   
+   Notice that for this iterative algorithm, the loop bounds encode
+   "unordered" and "distinct", instead of a separate check inside the
+   loop (you could do that to but it would be "expensive").
+  #+end_quote
+
+* Code-along: build =ThreeSum= - version 2
+
+- This implements the iterative algorithm with the improvement
+  #+begin_src java :dir src :tangle ../src/ThreeSum.java :noeval :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar"
+    public class ThreeSum
+    {
+        public static int countTriples(int[] a)
+        {
+            int n = a.length;
+            int count = 0;
+            for (int i = 0; i < n; i++)
+                for (int j = i+1; j < n; j++)
+                    for (int k = j+1; k < n; k++)
+                        if (a[i] + a[j] + a[k] == 0)
+                            count++;
+            return count;
+        }
+
+        public static void main(String[] args)
+        {
+            int[] a = StdIn.readAllInts();
+            int count = countTriples(a);
+            StdOut.println(count);
+        }
+    }
+  #+end_src
+
+- Compile it, then sanity-check by hand with six numbers small enough
+  to verify yourself while it runs:
+
+  #+begin_src bash :results output :exports both
+    cd ../src
+    javac -cp .:stdlib.jar ThreeSum.java
+    echo "-4 3 1 5" | java -cp .:stdlib.jar ThreeSum
+    echo "-4 3 1 5 -2 -3" | java -cp .:stdlib.jar ThreeSum
+    echo "-4 3 1 5 -2 -3 2 3" | java -cp .:stdlib.jar ThreeSum
+  #+end_src
+
+  #+RESULTS:
+  : 1
+  : 2
+  : 4
+
+- Check these cases by hand:
+  #+begin_example
+  "-4 3 1 5"              (1 triple)
+    -4 + 3 + 1 = 0
+
+  "-4 3 1 5 -2 -3"        (2 triples)
+    -4 + 3 + 1 = 0
+     5 - 2 - 3 = 0
+
+  "-4 3 1 5 -2 -3 2 3"    (4 triples)
+    -4 + 3 + 1 = 0        (indices 0,1,2 -- the first 3)
+    -4 + 1 + 3 = 0        (indices 0,2,7 -- the second 3)
+     5 - 2 - 3 = 0        (indices 3,4,5)
+     1 - 3 + 2 = 0        (indices 2,5,6)
+  #+end_example
+
+* Bonus, if time allows: watching the loop enumerate (Sedgewick's trace)
+
+A third version of =ThreeSum= that prints the trace instead of just the
+=count=, so the class can count rows on the same six numbers instead of
+taking the formula on faith. This is like a proper experimental
+output.
+
+#+begin_src java :dir src :tangle ../src/ThreeSumTrace.java :noeval :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar"
+  public class ThreeSumTrace
+  {
+      public static int countTriples(int[] a)
+      {
+          int n = a.length;
+          int count = 0;
+  	// print header
+          StdOut.println(" i  j  k   a[i]   a[j]   a[k]");
+          for (int i = 0; i < n; i++)
+              for (int j = i+1; j < n; j++)
+                  for (int k = j+1; k < n; k++)
+                    {
+  		      // store boolean if triple sum is zero  		      
+                        boolean hit = (a[i] + a[j] + a[k] == 0);
+  		      // print format string
+                        StdOut.printf("%2d %2d %2d %6d %6d %6d%s\n",
+                                      i, j, k, a[i], a[j], a[k],
+  				    // evaluate using ternary operator:
+  				    // `condition ? valueIfTrue : valueIfFalse
+                                      hit ? "   <- sums to 0" : "");
+  		      // increase counter for hit
+                        if (hit) count++;
+                    }
+          return count;
+      }
+
+      public static void main(String[] args)
+      {
+          int[] a = StdIn.readAllInts();
+          int n = a.length;
+          int count = countTriples(a);
+          long rows = (long) n * (n - 1) * (n - 2) / 6;
+          StdOut.println();
+  	// print more information
+          StdOut.printf("rows printed:         %d%n", rows);
+          StdOut.printf("C(%d,3) = %d! / (3! (%d-3)!) = %d%n", n, n, n, rows);
+          StdOut.printf("triples summing to 0: %d%n", count);
+      }
+  }
+#+end_src
+
+#+begin_src bash :results output :exports both
+  cd ../src
+  javac -cp .:stdlib.jar ThreeSumTrace.java
+  echo "-4 3 1 5 -2 -3" | java -cp .:stdlib.jar ThreeSumTrace
+#+end_src
+
+#+RESULTS:
+#+begin_example
+ i  j  k   a[i]   a[j]   a[k]
+ 0  1  2     -4      3      1   <- sums to 0
+ 0  1  3     -4      3      5
+ 0  1  4     -4      3     -2
+ 0  1  5     -4      3     -3
+ 0  2  3     -4      1      5
+ 0  2  4     -4      1     -2
+ 0  2  5     -4      1     -3
+ 0  3  4     -4      5     -2
+ 0  3  5     -4      5     -3
+ 0  4  5     -4     -2     -3
+ 1  2  3      3      1      5
+ 1  2  4      3      1     -2
+ 1  2  5      3      1     -3
+ 1  3  4      3      5     -2
+ 1  3  5      3      5     -3
+ 1  4  5      3     -2     -3
+ 2  3  4      1      5     -2
+ 2  3  5      1      5     -3
+ 2  4  5      1     -2     -3
+ 3  4  5      5     -2     -3   <- sums to 0
+
+rows printed:         20
+C(6,3) = 6! / (3! (6-3)!) = 20
+triples summing to 0: 2
+#+end_example
+
+Twenty rows for six numbers, no triple skipped -- and 20 = C(6,3),
+exactly. Same two hits as the hand check above. 
+
+We have a correct =ThreeSum=, we've watched it enumerate every triple
+by hand, and we have no idea yet how it behaves under real load. Part
+2 finds out.
+
+* Footnotes
+
+[fn:1] Charles Babbage (1791-1871) was a British polymath credited
+with the invention of the digital programmable computer and the
+computer printer.
+
+[fn:2] Barnes-Hut is credited to Josh Barnes and Piet Hut (Nature,
+1986). Andrew Appel independently developed a similar hierarchical
+tree algorithm around the same time, from his 1981 Princeton senior
+thesis (published in SIAM J. Sci. Stat. Comput., 1985) -- a related
+but distinct result, not the same algorithm.
+
+[fn:3] Knuth is not only the father of algorithmic analysis, but also
+the creator of TeX, Metafont, and literate programming (which you use
+whenever you use Jupyter notebooks or Emacs Org-mode like this
+document).
+
+[fn:4] Falsifiability was popularized by Sir Karl Popper in the 1930s
+("The Logic of Scientific Discovery"). It means an assumption can be
+refuted by a single observation that shows it's wrong -- in contrast
+to verifiability (must be able to produce observations that confirm
+it).
+
+[fn:5] Cp. J.P.A. Ioannidis, Why Most Published Research Findings Are
+False, PLOS Medicine 19(8):
+[[https://doi.org/10.1371/journal.pmed.1004085][doi.org/10.1371/journal.pmed.1004085]].
+The author argued that perhaps a majority of published medical
+research papers contain results that cannot be replicated (= not
+scientific).
+
+[fn:6] The three sum problem has applications in computational
+geometry, for example robot motion planning.
+
+[fn:7] The number of permutations (of different orderings) of an
+ordered set of {1 2 3 ... N} elements is N!.
