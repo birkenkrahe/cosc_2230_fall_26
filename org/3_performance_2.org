@@ -1,0 +1,506 @@
+#+TITLE: Performance --- Part 2: The Doubling Hypothesis
+#+AUTHOR: Marcus Birkenkrahe
+#+SUBTITLE: COSC 2230 (CS III) Fall 2026 | Augustana U.
+#+STARTUP: overview hideblocks indent entitiespretty
+#+OPTIONS: toc:1 num:1 ^:nil
+
+* Objectives
+
+Topics:
+- Generate (random) input for =ThreeSum=
+- Checking =ThreeSum='s dependency on the input range
+- Timing with the built-in ~time(1)~ function
+- Using a ~Makefile~ with ~make~ to build, run, clean files
+- Checking the timing pattern for different N
+- 
+
+Programs:
+- =stdlib.jar=
+- =ThreeSum.java=
+- ~time(1)~
+- =Stopwatch.java=
+- =RandomInts.java=
+
+* Random input generator
+
+- To make more experiments and study the performance of our code in a
+  controlled way, we need some kind of representative inputs.
+
+- To find representative inputs, we could either collect actual input
+  data, or write a program that generates it for us (more flexible).
+
+- For =RandomInts.java=, we take a value M, the range of our integers,
+  from the command line, and then we print uniform randomly
+  distributed integers in [-M,M].
+
+  #+begin_src java :dir ../src :tangle ../src/RandomInts.java :noeval
+    public class RandomInts
+    {   // Generate N integers in [-M,M]
+        public static void main(String[] args)
+        {
+            int M = Integer.parseInt(args[0]); // range generated
+            int N = Integer.parseInt(args[1]); // count of integers printed
+            for (int i = 0; i < N; i++)
+                StdOut.println(StdRandom.uniformInt(-M,M));
+        }
+    }
+  #+end_src
+  #+begin_src bash :results output :exports both
+    cd ../src
+    rm -rf *.class
+    javac -cp .:stdlib.jar RandomInts.java
+    java -cp .:stdlib.jar RandomInts 10 5
+    java -cp .:stdlib.jar RandomInts 1000000 5
+  #+end_src
+
+  #+RESULTS:
+  #+begin_example
+  4
+  1
+  4
+  9
+  2
+  51025
+  -544282
+  618565
+  575093
+  -197945
+  #+end_example
+
+- Can we guess the chances to find a three-sum depending on the range
+  R = [-M,M] of our uniform distribution?
+  #+begin_quote
+  If we assume that the possible sums are uniformly spread out (we
+  expect to find them with equal probability anywhere in R), the
+  chance to find any one such triple is 1/R - it goes down with R.
+
+  So we expect to find many more three-sums in a small R than in a
+  large R.
+  #+end_quote
+
+* Checking =ThreeSum= on a small and on a large range
+
+- Let's check that assumption directly: generate the *same* count of
+  integers (N=1000) twice, once from a small range and once from a
+  large one, then run =ThreeSum= on each and ~time~ it using the
+  built-in (for Linux, MacOS) shell function [fn:1]. N stays fixed on
+  purpose -- only M (the range) changes, so any difference in the
+  three-sum count can only be caused by the range, not by input size.
+
+- Create the data files:
+  #+name: RandomInts data
+  #+begin_src bash :results output :exports both
+    cd ../src
+    rm -rf *.class
+    javac -cp .:stdlib.jar RandomInts.java
+    java -cp .:stdlib.jar RandomInts 1000 1000 > ../data/smallR.txt
+    java -cp .:stdlib.jar RandomInts 1000000 1000 > ../data/largeR.txt
+    ls -l ../data/smallR.txt ../data/largeR.txt
+    cat ../data/smallR.txt | wc -l
+    cat ../data/largeR.txt | wc -l
+  #+end_src
+
+  #+RESULTS: RandomInts data
+  : -rw-r--r--@ 1 mbirkenkrahe  staff  7384 Sep 17 15:46 ../data/largeR.txt
+  : -rw-r--r--@ 1 mbirkenkrahe  staff  4404 Sep 17 15:46 ../data/smallR.txt
+  :     1000
+  :     1000
+
+- Run =ThreeSum= on both -- same input N in each (C(1000,3) \approx 166
+  million triples to check), only the range differs:
+  #+name: time ThreeSum
+  #+begin_src bash :results output :exports both
+    cd ../src
+    javac -cp .:stdlib.jar ThreeSum.java
+    { time java -cp .:stdlib.jar ThreeSum < ../data/smallR.txt; } 2>&1
+    { time java -cp .:stdlib.jar ThreeSum < ../data/largeR.txt; } 2>&1
+  #+end_src
+
+  #+RESULTS: time ThreeSum
+  #+begin_example
+  61539
+
+  real	0m0.125s
+  user	0m0.142s
+  sys	0m0.012s
+  61
+
+  real	0m0.122s
+  user	0m0.143s
+  sys	0m0.009s
+  #+end_example
+
+* Making time for ~time(1~)
+
+- Why is the running time the same?
+  #+begin_quote
+  The *count* swings wildly (60,000 vs. 70 -- roughly the same 1000x
+  ratio as the range itself, matching the 1/R guess above), while the
+  *running time* barely moves (0.122s vs.  0.124s) -- because =ThreeSum=
+  does the same N^3 amount of work either way. The range changes what
+  fraction of triples happen to sum to zero; it has no effect on how
+  many triples get checked.
+  #+end_quote
+
+- What does ~time~ writes to? How can you find out more?
+  #+begin_quote
+  ~time~ writes to ~stderr~, the standard error stream. To find out, look
+  at the ~time(1)~ manual page.
+  #+end_quote
+  #+attr_html: :width 600px :float nil:
+  [[../img/man_time.png]]
+  
+- What's the difference between ~real~, ~user~, and ~sys~ time?
+  #+begin_quote
+  - ~real~: wall-clock time: how long you actually waited, start to
+    finish. Includes time waiting on I/O, other processes, disk etc.
+  - ~user~: CPU time spent executing your program's own code (user
+    space, not kernel) 
+  - ~sys~: CPU time the kernel spent on the program's behalf (system
+    calls: I/O, memory allocation, etc.)
+  #+end_quote
+
+- Look at ~real~, ~user~ and ~sys~ reporting times again. Notice anything?
+  #+begin_quote
+  The ~user~ time is larger than the ~real~ time - how is that possible?
+  Because ~user~ sums CPU-seconds across all threads/cores, while ~real~
+  is just wall-clock time for the whole run - your time experience.
+  #+end_quote
+  
+- What does ~System.currentTimeMillis()~ measure?
+  #+begin_quote
+  The Java function uses ~real~ time, which is noisier. ~user~ is the more
+  stable, since it isolates just the CPU work your program did. That's
+  what you're trying to measure with =Stopwatch.elapsedTime()=.
+  #+end_quote
+
+- At this point, you're juggling two files, and later you'll be
+  juggling more. It's time to teach you the basics of ~make~! This will
+  be a useful example.
+
+* Demo: A =Makefile= so you stop deleting =.class= files by hand
+
+- =make= reads a =Makefile= of *targets*: each target lists what it
+  *depends on*, and a recipe to build it. If a target's file is newer
+  than everything it depends on, =make= skips the recipe -- that's the
+  whole trick, and it replaces =rm -rf *.class= entirely.
+
+- To run this on Windows, you need to install ~make~[fn:2]
+
+  #+begin_src makefile :tangle ../src/Makefile :noeval -i
+    # CP: classpath used for every compile/run (this dir, plus the jar)
+    CP = .:stdlib.jar
+
+    # Pattern rule: X.class depends on X.java. make only recompiles a file
+    # if its .java is newer than its .class -- no more `rm -rf *.class`.
+    %.class: %.java
+    javac -cp $(CP) $<
+
+    # Data files depend on RandomInts.class, not on each other -- change
+    # RandomInts.java and both get regenerated next time they're needed.
+    # Same N (1000) in both -- only the range M differs, so any
+    # difference in ThreeSum's count is caused by the range, not by N.
+    ../data/smallR.txt: RandomInts.class
+    java -cp $(CP) RandomInts 1000 1000 > $@
+
+    ../data/largeR.txt: RandomInts.class
+    java -cp $(CP) RandomInts 1000000 1000 > $@
+
+    # Time ThreeSum against both data files. Depends on ThreeSum.class and
+    # both data files, so `make run` rebuilds exactly what changed.
+    run: ThreeSum.class ../data/smallR.txt ../data/largeR.txt
+    time java -cp $(CP) ThreeSum < ../data/smallR.txt
+    time java -cp $(CP) ThreeSum < ../data/largeR.txt
+
+    clean:
+    rm -f *.class
+
+    .PHONY: run clean
+  #+end_src
+
+- Run it twice in a row -- the first run compiles and generates data
+  (whatever is missing or stale); the second run rebuilds *nothing* and
+  jumps straight to timing:
+  #+begin_src bash :results output :exports both
+    cd ../src
+    make run
+    echo "--- running again, nothing should rebuild ---"
+    make run
+  #+end_src
+
+  #+RESULTS:
+  #+begin_example
+  javac -cp .:stdlib.jar ThreeSum.java
+  javac -cp .:stdlib.jar RandomInts.java
+  java -cp .:stdlib.jar RandomInts 1000 1000 > ../data/smallR.txt
+  java -cp .:stdlib.jar RandomInts 1000000 1000 > ../data/largeR.txt
+  time java -cp .:stdlib.jar ThreeSum < ../data/smallR.txt
+  61539
+  time java -cp .:stdlib.jar ThreeSum < ../data/largeR.txt
+  61
+  --- running again, nothing should rebuild ---
+  time java -cp .:stdlib.jar ThreeSum < ../data/smallR.txt
+  61539
+  time java -cp .:stdlib.jar ThreeSum < ../data/largeR.txt
+  61
+  #+end_example
+
+  (Counts will differ every run -- the input is random, same as
+  earlier in this file. The point is the second =make run= jumping
+  straight to =time= with no compile/generate lines above it.)
+
+- If any of the =.java= files is changed, ~make~ will pick it up and
+  rebuild the file that I touched (changed the time stamp). The
+  =sleep= here is not part of the lesson -- it's a workaround for
+  macOS's =make= (GNU Make 3.81, from 2006) only comparing timestamps
+  to whole-second resolution: without a gap, =touch= immediately
+  followed by =make= can land in the same second and =make= sees no
+  change at all. In normal use (edit, save, build) this never
+  happens -- only a scripted =touch;make= with zero pause hits it.
+  #+begin_src bash :results output :exports both
+    cd ../src
+    touch ThreeSum.java
+    sleep 1.5
+    make run
+  #+end_src
+
+  #+RESULTS:
+  : make: `../data/smallR.txt' is up to date.
+  : javac -cp .:stdlib.jar ThreeSum.java
+  : time java -cp .:stdlib.jar ThreeSum < ../data/smallR.txt
+  : 62703
+  : time java -cp .:stdlib.jar ThreeSum < ../data/largeR.txt
+  : 51
+
+- =make clean= removes every =.class= file in one line, for when you
+  really do want a from-scratch build.
+
+  #+begin_src bash :results output :exports both
+    cd ../src
+    make clean
+  #+end_src
+
+  #+RESULTS:
+  : rm -f *.class
+
+- One thing this =Makefile= is *not* the only way to get: ~javac~ itself
+  already resolves and compiles referenced classes automatically. If
+  you just run =javac DoublingTest.java=, =javac= notices that
+  =DoublingTest= refers to =ThreeSum= and =Stopwatch=, finds their =.java=
+  sources, and compiles them too if their =.class= is missing or stale
+  -- no =Makefile= required for that single call. What the =Makefile= buys
+  you on top of that is a *standing, whole-directory* build:
+  regenerating the data files, timing both of them, and =make clean= (so
+  called "phony targets"), all as one repeatable command instead of a
+  sequence of =javac/java= calls you'd otherwise have to remember and
+  re-type by hand.
+
+* Checking the timing pattern
+
+- Now we're keeping the large range of =M = 1,000,000= and vary only the
+  number =N= of numbers that form triples. What happens if we double the
+  number on the same range (same probability of hitting a three-sum)?
+  #+begin_quote
+  Since we have to check C(N,3) combinations, if the number =N= doubles,
+  the number of combinations, being proportional to N^{3} octuples (it's
+  cubic in N): C(2N,3)/C(N,3) = 4(2N-1)/(N-2) \approx (2N)^{3}/N^{3} -> 8 as N ->
+  \infty. At N=1000 specifically 4 * 1999 / 998 \approx 8.01.
+  #+end_quote
+
+- Update ~.class~ files and check them:
+  #+begin_src bash :results output :exports both
+    cd ../src
+    rm -rf *.class
+    javac -cp .:stdlib.jar RandomInts.java
+    javac -cp .:stdlib.jar ThreeSum.java
+    ls -l RandomInts.class ThreeSum.class
+  #+end_src
+
+  #+RESULTS:
+  : -rw-rw-r-- 1 aletheia aletheia 507 Sep 17 22:11 RandomInts.class
+  : -rw-rw-r-- 1 aletheia aletheia 600 Sep 17 22:11 ThreeSum.class
+
+- Generate 1,000 and 2,000 random integers, store, and check them:
+  #+begin_src bash :results output :exports both
+    cd ../src
+    java -cp .:stdlib.jar RandomInts 1000000 1000 > ../data/1Kints.txt
+    java -cp .:stdlib.jar RandomInts 1000000 2000 > ../data/2Kints.txt
+    ls -l ../data/1Kints.txt ../data/2Kints.txt
+    cat 1Kints.txt | wc -l
+    cat 2Kints.txt | wc -l    
+  #+end_src
+
+  #+RESULTS:
+  : -rw-rw-r-- 1 aletheia aletheia  7389 Sep 17 22:25 ../data/1Kints.txt
+  : -rw-rw-r-- 1 aletheia aletheia 14756 Sep 17 22:25 ../data/2Kints.txt
+  : 1000
+  : 2000
+
+- Now run the built-in ~time~ on =ThreeSum= with the random integers as
+  input, and return the number of three-sums in each dataset:
+  #+begin_src bash :results output :exports both
+    cd ../src
+    { time java -cp .:stdlib.jar ThreeSum < ../data/1Kints.txt; } 2>&1
+    { time java -cp .:stdlib.jar ThreeSum < ../data/2Kints.txt; } 2>&1
+  #+end_src
+
+  #+RESULTS:
+  #+begin_example
+  58
+
+  real	0m0.124s
+  user	0m0.138s
+  sys	0m0.015s
+  483
+
+  real	0m0.708s
+  user	0m0.736s
+  sys	0m0.014s
+  #+end_example
+
+- The triple counts will differ for every run -- the input is
+  random. The timing pattern is the point, not the count: doubling =n=
+  to roughly 5-6 times longer here, not 2 times.
+
+- In another run, I got 0 for the number of three-sums. Couldn't
+  figure it out until I realized that I had used M = 1,000,000,000. At
+  that range, the expected count drops to 0.06 (so effectively 0).
+
+* Class catalog (list)
+
+- Last =ThreeSum.java= and =Stopwatch.java= classes: In professional Java,
+  the .java files would not contain the test clients. But when you
+  develop, it's useful to see how these classes were tested and used.
+
+- =Stopwatch.java=:
+  #+name: Stopwatch.java
+  #+begin_src java :dir ../src :tangle ../src/Stopwatch.java :noeval :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar"
+    // Stopwatch.java: measure elapsed time during a computation
+    public class Stopwatch
+    {
+        // Private final data - set once
+        private final long start;
+        // Constructor: set stopwatch to current system time
+        public Stopwatch()
+        {
+            start = System.currentTimeMillis();
+        }
+        // Return elapsed time between start and now in seconds
+        public double elapsedTime()
+        {
+            long now = System.currentTimeMillis();
+            return (now - start) / 1000.0;
+        }
+        // Test client
+        public static void main(String[] args)
+        {
+            // Input number of iterations n
+            int n = Integer.parseInt(args[0]);
+
+            // Compute and time computation using Math.sqrt(x)
+            // Create a Stopwatch object
+            Stopwatch timer1 = new Stopwatch();
+            // Set sum to zero
+            double sum1 = 0.0;
+            // Loop from 1 to n
+            for (int i = 1; i <= n; i++)
+                // Add term to the sum
+                sum1 += Math.sqrt(i);
+            // Measure the elapsed time after the loop
+            double time1 = timer1.elapsedTime();
+            // Print total sum and elapsed time
+            StdOut.printf("Math.sqrt(): %e (%.2f seconds)\n", sum1, time1);
+
+            // Compute and time computation using Math.pow(a,b)
+            Stopwatch timer2 = new Stopwatch();
+            // Set sum to zero
+            double sum2 = 0.0;
+            // Loop from 1 to n
+            for (int i = 1; i <= n; i++)
+                // Add term to the sum
+                sum2 += Math.pow(i,0.5);
+            // Measure the elapsed time after the loop
+            double time2 = timer2.elapsedTime();
+            // Print total sum and elapsed time
+            StdOut.printf("Math.pow(): %e (%.2f seconds)\n", sum2, time2);
+        }
+    }
+  #+end_src
+  #+begin_src bash :results output :exports both
+    cd ../src
+    ls -lt Stopwatch.*
+    javac --version
+    javac -cp .:stdlib.jar Stopwatch.java
+    java  -cp .:stdlib.jar Stopwatch 100000000
+  #+end_src
+
+  #+RESULTS:
+  : -rw-rw-r-- 1 aletheia aletheia 1686 Sep 17 21:31 Stopwatch.java
+  : javac 17.0.20
+  : Math.sqrt(): 6.666667e+11 (0.46 seconds)
+  : Math.pow(): 6.666667e+11 (0.47 seconds)
+
+- =ThreeSum.java=
+  #+name: ThreeSum.java
+  - This implements the iterative algorithm with the improvement
+  #+name: ThreeSum.java v2
+  #+begin_src java :dir src :tangle ../src/ThreeSum.java :noeval :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar"
+    // ThreeSum.java
+    public class ThreeSum
+    {
+        // countTriples: input integer array, returns number of triples adding up to zero
+        public static int countTriples(int[] a)
+        {
+            // define length of array
+            int n = a.length;
+            // set counter to zero
+            int count = 0;
+            // loop over array for first triple element
+            for (int i = 0; i < n; i++)
+                // loop over array for second triple element, starting after i
+                for (int j = i+1; j < n; j++)
+                    // loop over array for third triple element, starting after j
+                    for (int k = j+1; k < n; k++)
+                        // check if triple adds up to zero
+                        if (a[i] + a[j] + a[k] == 0)
+                            // increase counter
+                            count++;
+            // return counter
+            return count;
+        }
+        // test client
+        public static void main(String[] args)
+        {
+            // input array from command-line
+            int[] a = StdIn.readAllInts();
+            // compute number of triples that add up to zero
+            int count = countTriples(a);
+            // print result
+            StdOut.println(count);
+        }
+    }
+  #+end_src
+  #+begin_src bash :results output :exports both
+    cd ../src
+    javac -cp .:stdlib.jar ThreeSum.java
+    echo "-4 3 1 5" | java -cp .:stdlib.jar ThreeSum
+    echo "-4 3 1 5 -2 -3" | java -cp .:stdlib.jar ThreeSum
+    echo "-4 3 1 5 -2 -3 2 3" | java -cp .:stdlib.jar ThreeSum
+  #+end_src
+
+  #+RESULTS:
+  : 1
+  : 2
+  : 4
+
+* Footnotes
+
+[fn:1] If you're on Windows, you should at this point have installed
+Git bash. You can do this by downloading the installer from
+https://git-scm.com/download/win and then verify on a terminal with
+=git --version=. After that you can run the executable ~git-bash.exe~ and
+you have a bash shell.
+
+[fn:2] If you're on Windows, you can install ~make~ with chocolatey: get
+the package manager itself from https://chocolatey.org/install, then
+run =choco install make= in a fresh terminal.

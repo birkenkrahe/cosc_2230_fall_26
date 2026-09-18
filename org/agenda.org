@@ -558,12 +558,14 @@ week (links in Canvas in the 2. Programming module).
 - Three ways to look at hard problems: Program, Process, People
 - Benefits and examples of algorithm re-design
 - The scientific method and why bother with it
-* W4S2: Performance - Part 2: Example problem / Doubling Hypothesis
+* DONE W4S2: Performance - Part 2: Observation - =ThreeSum= problem
 
-- [ ] Review: The performance challenge
-- [ ] Observation: Sample problem
+- [X] Review: The performance challenge
+- [X] Observation: Sample problem
 - [ ] Assumption: Doubling Hypothesis
-- [ ] Mathematical analysis
+- [ ] Running and documenting experiments
+- [ ] Order of growth classifications
+- [ ] Prediction and Memory
 
 ** Review - The performance challenge
 
@@ -577,7 +579,7 @@ week (links in Canvas in the 2. Programming module).
    1. *Observe* reality (take *data*).
    2. Make an *assumption* about what's going on (*hypothesize*).
    3. *Predict* new events based on your assumption.
-   4. *Check* your predictions with more data.
+   4. *Check* your predictions with more data (experiment)
    5. *Modify* your assumption until you assume correctly.
    #+end_quote
 3) How could you apply the scientific method to the weather?
@@ -608,3 +610,130 @@ week (links in Canvas in the 2. Programming module).
    - To *compare* implementations -> will this make it better?
    - To *develop* new algorithms -> solve bigger problems
    #+end_quote
+
+* W4S3: Performance - Part 3: Hypothesis - =DoublingHypothesis=
+
+Four weeks in, here's the tally:
+
+|-------------------------------------+-----|
+| Class sessions so far               |  10 |
+| Pages of material covered           | ~48 |
+| Lines of Java code you've seen      | 615 |
+| Lines of it you typed live in class | 417 |
+| Class attendance index              | 88% |
+|-------------------------------------+-----|
+
+The class attendance is pulled down by the 09-04 video session (10/25
+present that day under the 80%-watched rule).
+
+- [X] Review: The performance challenge
+- [X] Observation: Sample problem
+- [ ] Assumption: timing with ~time~, ~make~, Doubling Hypothesis
+- [ ] Running and documenting experiments
+- [ ] Order of growth classifications
+- [ ] Prediction and Memory
+
+** How to read, how to study, how to learn programming
+
+I'm going to make a video on this, I think, because it's important:
+
+1) You don't learn by *grazing* (like a cow eat grass)
+
+2) You don't learn by *gorging* (like a shark)
+
+3) You don't learn by *gallivanting* (like a tourist)
+
+4) You only learn by *grappling* with the material (like a wrestler)
+
+5) How does one immerse oneself deeply (in CS)?
+   #+begin_quote
+   - Read the same passage (or code) again and again until it makes
+     sense to you (or until you understand why it does not make sense)
+   - Practice in small daily doses rather than cramming once a week --
+   - Write code every day, even for ten minutes, the way you'd practice an instrument.
+   - Struggle with a problem for a while before looking  up (or asking AI for) the answer: the friction is where the   learning happens, not the solution itself.
+   - Produce, don't just consume -- reading someone else's code or
+     watching a video feels like progress but doesn't build the same
+     muscle as typing it yourself, breaking it, and fixing it.
+   - Explain what you wrote to someone else, or out loud to yourself,
+     or to the AI: if you can't explain it, you haven't actually
+     learned it yet, no matter how cleanly it compiles.
+   #+end_quote
+
+** Submissions
+
+- I haven't graded assignment 1 (=Counter=) yet (will do on the w/e).
+
+- All programs should have a *program header* (title, author, statement
+  of AI use, input/output for test client). *AI use* is esp. important.
+
+- The more detailed your statement of AI use, the better. If you use
+  AI consistently to help you (too much), you won't learn anything.
+
+- When I provide sample input/output, that's what you should submit:
+  that way, you'll make grading easier for me.
+
+- If you don't submit on time, you have 1 week to turn in a solution
+  for 50% of the points. After that = ~NULL~, nada, zilch, zero, =0=.
+
+- We'll discuss solutions in the session following the deadline.
+
+** Review
+
+1. What is =ThreeSum= supposed to give us?
+   #+begin_quote
+   Given =N= integers, =ThreeSum= gives us the number of triples (x,y,z)
+   that add up to zero: x + y + z = 0.
+   #+end_quote
+
+2. How many triples can we pick from a set of N integers?
+   #+begin_quote
+   Looping i,j,k unrestricted over 0..N-1 gives N^3 = N * N * N index
+   triples -- not permutations, since most of them have repeated
+   indices (i=j, i=k, j=k) that don't pick 3 distinct elements at all.
+
+   Of those, only N(N-1)(N-2) have three distinct indices -- that's
+   the actual permutation count. Restricting further to i < j < k
+   (one fixed ordering per underlying triple) gives C(N,3) =
+   N(N-1)(N-2)/6 \approx N^{3}/6 unordered triples (combinations).
+   #+end_quote
+
+3. What does "brute-force" method mean? Example?
+   #+begin_quote
+   Try every possibility, with no cleverness to skip work. For
+   example, brute-force =ThreeSum= loops N^3 index triples total. Only
+   N(N-1)(N-2) of those have three distinct indices, and each of the
+   C(N,3) real combinations shows up 3!=6 times among them -- the rest
+   (i=j, i=k, j=k) are wasted iterations on repeated indices, not
+   overcounted triples. Restricting to i < j < k fixes both problems
+   at once (N^3 -> C(N,3)).
+
+   Our other example: =Duplicates= (checking if a[i]==a[j]). Instead of
+   brute-force pairwise comparison (N^{2}) sort first and scan adjacent
+   elements once (sorting costs N log N -> next week).
+   #+end_quote
+
+What if you never heard of "binomial coefficients" or permutations?
+#+begin_quote
+If permutations, binomial coefficients etc. are like a foreign
+language to you, you need to take the course "discrete structures" -
+or train yourself: here is a [[https://www.freecodecamp.org/news/learn-discrete-mathematics/][fun course at freeCodeCamp with Python]].
+#+end_quote
+
+** Home programming assignments
+
+- There are still a few bonus assignments laying around for you!
+
+- If you needed any AI help to finish =Counter= 
+
+- New assignment: =DoublingTest= analysis. Run the provided program
+  twice, then explain the ratios you get - *due Monday at 1 pm*.
+
+- There's also a bonus assignment to play around with ~make~
+  
+- We will discuss programming assignments in the future
+
+- For the review assignments, I'll just give you my sample solutions
+
+- You should contact me if you have questions or comments
+  
