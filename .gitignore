@@ -24,3 +24,4 @@ reveal.js
 *_archive
 # ignore Jupyter checkpoints
 .ipynb_checkpoints/
+*.deb
