@@ -1,0 +1,179 @@
+#+TITLE: Counting Index Triples in ThreeSum
+#+AUTHOR: Marcus Birkenkrahe
+#+SUBTITLE: COSC 2230 (CS III) Fall 2026 | Augustana U.
+#+STARTUP: overview hideblocks indent entitiespretty
+#+OPTIONS: toc:nil num:nil ^:nil
+
+* The question
+
+=ThreeSum= counts the triples of array elements that add up to zero. To
+count them, it has to look at every group of three elements once. How
+many groups is that? Take a tiny array with =N = 3= elements:
+
+#+begin_example
+index:   0    1   2
+a:     -10    4   6
+#+end_example
+
+There is exactly one group of three elements, and it sums to zero:
+-10 + 4 + 6 = 0. The steps below show how three nested loops arrive at
+that count, and why =ThreeSum= writes its loops the way it does.
+
+* Step 1: All index triples
+
+Three loops, each running over all indices =0..N-1=, with nothing
+restricted:
+
+#+begin_src java :eval no
+  for (int i = 0; i < N; i++)
+      for (int j = 0; j < N; j++)
+          for (int k = 0; k < N; k++)
+              // look at a[i], a[j], a[k]
+#+end_src
+
+Each loop has =N= choices, so there are =N * N * N = N^3= index triples.
+For =N = 3= that is 3 * 3 * 3 = *27*:
+
+| i | j | k | indices      |
+|---+---+---+--------------|
+| 0 | 0 | 0 | all equal    |
+| 0 | 0 | 1 | two equal    |
+| 0 | 0 | 2 | two equal    |
+| 0 | 1 | 0 | two equal    |
+| 0 | 1 | 1 | two equal    |
+| 0 | 1 | 2 | all distinct |
+| 0 | 2 | 0 | two equal    |
+| 0 | 2 | 1 | all distinct |
+| 0 | 2 | 2 | two equal    |
+| 1 | 0 | 0 | two equal    |
+| 1 | 0 | 1 | two equal    |
+| 1 | 0 | 2 | all distinct |
+| 1 | 1 | 0 | two equal    |
+| 1 | 1 | 1 | all equal    |
+| 1 | 1 | 2 | two equal    |
+| 1 | 2 | 0 | all distinct |
+| 1 | 2 | 1 | two equal    |
+| 1 | 2 | 2 | two equal    |
+| 2 | 0 | 0 | two equal    |
+| 2 | 0 | 1 | all distinct |
+| 2 | 0 | 2 | two equal    |
+| 2 | 1 | 0 | all distinct |
+| 2 | 1 | 1 | two equal    |
+| 2 | 1 | 2 | two equal    |
+| 2 | 2 | 0 | two equal    |
+| 2 | 2 | 1 | two equal    |
+| 2 | 2 | 2 | all equal    |
+
+Only 6 of the 27 use three different indices. The others repeat an
+index (=i = j=, =i = k= or =j = k=), so they do not pick three
+different elements of the array at all:
+
+| indices      | how many |
+|--------------+----------|
+| all equal    |        3 |
+| two equal    |       18 |
+| all distinct |        6 |
+|--------------+----------|
+| total        |       27 |
+
+* Step 2: Permutations - three different indices
+
+Keep only the triples whose three indices differ. Count them by
+choosing one index at a time: =N= choices for =i=, then =N-1= for =j=
+(not the one already used), then =N-2= for =k=:
+
+#+begin_example
+N (N-1) (N-2) = 3 * 2 * 1 = 6
+#+end_example
+
+These are the *permutations* (orderings) of the three indices. Order
+matters here: =(0,1,2)= and =(2,1,0)= are different triples.
+
+| i | j | k | a[i] | a[j] | a[k] | sum |
+|---+---+---+------+------+------+-----|
+| 0 | 1 | 2 |  -10 |    4 |    6 |   0 |
+| 0 | 2 | 1 |  -10 |    6 |    4 |   0 |
+| 1 | 0 | 2 |    4 |  -10 |    6 |   0 |
+| 1 | 2 | 0 |    4 |    6 |  -10 |   0 |
+| 2 | 0 | 1 |    6 |  -10 |    4 |   0 |
+| 2 | 1 | 0 |    6 |    4 |  -10 |   0 |
+
+All six rows add up the same three numbers, so they all have the same
+sum. Checking each of them would be six times the same work.
+
+* Step 3: Combinations - each set of indices once
+
+The six permutations are the same *set* of indices, ={0,1,2}=, written in
+every possible order. A set of three indices can be ordered in
+=3! = 3 * 2 * 1 = 6= ways, and only one of those orderings has the
+indices in increasing order: =i < j < k=.
+
+| ordering (i,j,k) | same set | i<j<k? |
+|------------------+----------+--------|
+| (0,1,2)          | {0,1,2}  | yes    |
+| (0,2,1)          | {0,1,2}  | no     |
+| (1,0,2)          | {0,1,2}  | no     |
+| (1,2,0)          | {0,1,2}  | no     |
+| (2,0,1)          | {0,1,2}  | no     |
+| (2,1,0)          | {0,1,2}  | no     |
+
+So counting one ordering per set means dividing the number of
+permutations by =3! = 6=:
+
+#+begin_example
+N (N-1) (N-2) / 3! = 3 * 2 * 1 / 6 = 1
+#+end_example
+
+This is the number of *combinations* of 3 indices out of =N=, written
+=C(N,3)= ("N choose 3"): the number of unordered sets of three
+indices, each counted once.
+
+* Step 4: What ThreeSum does
+
+=ThreeSum= starts =j= after =i= and =k= after =j=. That forces
+=i < j < k=, so it visits each unordered set exactly once:
+
+#+begin_src java :eval no
+  for (int i = 0; i < n; i++)
+      for (int j = i+1; j < n; j++)
+          for (int k = j+1; k < n; k++)
+              if (a[i] + a[j] + a[k] == 0)
+                  count++;
+#+end_src
+
+The number of times the =if= is evaluated is =C(N,3)=, which is about
+=N^3 / 6= for large =N=.
+
+* A second example: N = 4
+
+For =N = 4=, the three stages give 64, 24 and 4. The 4 combinations
+are listed below; each one stands for 6 permutations:
+
+| combination i<j<k | its 6 orderings                                 |
+|-------------------+-------------------------------------------------|
+| {0,1,2} = (0,1,2) | (0,1,2) (0,2,1) (1,0,2) (1,2,0) (2,0,1) (2,1,0) |
+| {0,1,3} = (0,1,3) | (0,1,3) (0,3,1) (1,0,3) (1,3,0) (3,0,1) (3,1,0) |
+| {0,2,3} = (0,2,3) | (0,2,3) (0,3,2) (2,0,3) (2,3,0) (3,0,2) (3,2,0) |
+| {1,2,3} = (1,2,3) | (1,2,3) (1,3,2) (2,1,3) (2,3,1) (3,1,2) (3,2,1) |
+
+4 combinations * 6 orderings each = 24 permutations. The other
+64 - 24 = 40 index triples repeat an index.
+
+* Summary
+
+|    N | N^3 (all triples) | N(N-1)(N-2) (permutations) | C(N,3) (combinations) |
+|------+-------------------+----------------------------+-----------------------|
+|    3 |                27 |                          6 |                     1 |
+|    4 |                64 |                         24 |                     4 |
+|    5 |               125 |                         60 |                    10 |
+|   10 |              1000 |                        720 |                   120 |
+| 1000 |        1000000000 |                  997002000 |             166167000 |
+
+- All triples: =N^3= - every choice of =i=, =j=, =k=, repeats included.
+- Permutations: =N(N-1)(N-2)= - three different indices, order matters.
+- Combinations: =C(N,3) = N(N-1)(N-2)/6= - three different indices,
+  order does not matter. This is what =ThreeSum= checks.
+
+For large =N=, =C(N,3) \approx N^3/6=. Doubling =N= makes =ThreeSum= about
+8 times slower: the count grows with the cube of =N=. The factor 6 does not
+change that, which is why =ThreeSum= is called a cubic algorithm.
