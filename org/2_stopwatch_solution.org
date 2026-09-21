@@ -1,0 +1,716 @@
+#+TITLE: Stopwatch assignment (week 2a)
+#+AUTHOR: Marcus Birkenkrahe
+#+SUBTITLE: COSC 2230 (CS III)Fall 26 | Augustana U.
+#+STARTUP: overview hideblocks indent entitiespretty
+#+OPTIONS: toc:nil num:nil ^:nil
+
+Use =Stopwatch= to compare the cost of computing harmonic numbers with a
+=for= loop (pure iteration) as opposed to using a recursive method.
+
+* Provided code
+
+Use these two methods, given different names so they can coexist in
+one file:
+
+#+begin_src java :dir src
+  // Compute harmonic numbers - iterate
+  public static double harmonicLoop(int n)
+  {
+      double sum = 0.0;
+      for (int i = 1; i <= n; i++)
+          sum += 1.0/i;
+      return sum;
+  }
+
+  // Section 2.3 — recursive
+  public static double harmonicRecursive(int n)
+  {
+      if (n == 1) return 1.0;
+      return harmonicRecursive(n-1) + 1.0/n;
+  }
+#+end_src
+
+#+RESULTS:
+: success
+
+* Requirements
+
+1) Submit one file, =HarmonicTiming.java=, containing:
+   - The two methods above, exactly as given (names must match).
+   - A ~main()~ that uses =Stopwatch= to time both methods at the same
+     value(s) of =n=, and prints the results - following the same
+     pattern as the =Stopwatch= test client from class (~Math.sqrt()~
+     vs. ~Math.pow()~).
+
+2) Run your program at increasing values of =n= until the recursive
+   version fails with a =StackOverflowError=. *This crash is expected -
+   it is the point of the exercise, not a bug you need to fix.*
+
+3) At the *bottom of the file*, add a comment block (2-3 sentences)
+   answering: /why does the iterative version keep working at values of
+   =n= where the recursive version fails?/
+
+* Solution tips
+
+- Reuse the =Stopwatch= class from class - its logic doesn't need to
+  change. Since everything has to live in one file, though, you'll need
+  to nest it inside =HarmonicTiming= rather than keep it as its own
+  file - think carefully about what that nesting requires, given that
+  =main()= is ~static~.
+
+- Start with small =n= (e.g. 1,000) to confirm both versions compile and
+  agree on the result, then increase =n= step by step (e.g. x10 each
+  time) to see how the timings diverge.
+
+- Note the =n= at which the recursive version crashes.
+
+* Submission instructions
+
+- Submit *exactly one file*: =HarmonicTiming.java=
+- Public class name must be =HarmonicTiming= (must match the filename).
+- Write and test your code however you like - locally, or using a
+  scratch tool like Colab or an online compiler - but the file you
+  submit to Canvas must be a plain =.java= file, not a notebook or a
+  URL.
+- One file only - no =.zip=, no pasting into the Canvas text box.
+- Provide a program header including program title, author, statement
+  of AI use (if any), and input/output for the test client
+
+* Appendix: If you need a kick for this assignment
+
+The harmonic numbers you're computing in this assignment aren't just a
+textbook exercise - they sit right next to one of the most famous open
+problems in mathematics.
+
+=H_n = 1 + 1/2 + 1/3 + ... + 1/n= is the =n=-th partial sum of the
+*Riemann zeta function* at =s=1=: =zeta(s) = sum 1/n^s=. The harmonic
+series' divergence is exactly why =zeta(s)= has a pole at =s=1= - and
+that pole anchors the whole theory around the *Riemann Hypothesis*
+(RH), which claims that all "interesting" zeros of =zeta(s)= lie on a
+single line in the complex plane. It's one of seven Millennium Prize
+Problems - unsolved since 1859, $1 million reward for a proof.
+
+There's an even more direct link: a 2002 theorem (Lagarias) showed
+that RH is *equivalent* to a purely elementary inequality involving
+=H_n= and the sum of divisors of =n= - no complex analysis required,
+just harmonic numbers. The "boring" sum you're timing this week is,
+in a precise sense, one algebraic step away from a century-and-a-half
+old unsolved problem.
+
+** A recent, honestly-reported update (Aug 2026)
+
+An unreleased Anthropic research model was recently asked to make a
+real attempt at proving RH itself. It failed - as expected, nobody
+solves a $1M problem by accident. But along the way, working on a
+side result, it found a way to recombine decades of existing
+mathematical work into a new argument that raised a *lower bound*
+related to RH: the proportion of zeta zeros /proven/ to sit on the
+critical line, up from 41.6% to 67.2%. This was independently checked
+by mathematicians (inside and outside Anthropic) and backed by a
+machine-verifiable Lean proof.
+
+*This is not a proof of RH*, and nobody involved claims it's close to
+one - it's a genuine, verified improvement to a 50-year-old side
+result, produced while failing at the bigger goal. Source:
+https://www.anthropic.com/research/riemann-zeta
+
+The takeaway for you: real math (and real code) rarely goes straight
+from question to answer. Even a very capable attempt at a hard problem
+mostly fails - and the interesting result shows up sideways, while
+you're trying something else. That's worth remembering the next time
+your recursive =harmonic()= throws a =StackOverflowError= and it feels
+like the run was wasted.
+
+* Sample Solution
+
+My plan:
+1) [X] Test the two code functions first in a class
+2) [X] Run with a shell script for different n
+3) [X] Run as requested for a few small n (manually on command-line)
+4) [X] Merge them with the =Stopwatch= class
+
+Post-mortem: I split the functions and wrote a Python script to run a
+simulation over many values of n to discover the exact break point.
+
+Then I wrote another Python script to collect the simulation data and
+plot them in order to verify the assumption that the harmonic numbers
+grow logarithmically with the index =n=.
+
+** Testing harmonic number programs
+
+- Going to split these up in noweb chunks to use below.
+  #+name: harmonicLoop
+  #+begin_src java :noeval
+    // Compute harmonic numbers - iterate
+    public static double harmonicLoop(int n)
+    {
+        double sum = 0.0;
+        for (int i = 1; i <= n; i++)
+            sum += 1.0/i;
+        return sum;
+    }
+  #+end_src
+
+  #+name: harmonicRecursive
+  #+begin_src java :noeval
+  // Compute harmonic numbers - recursive
+  public static double harmonicRecursive(int n)
+  {
+      if (n == 1) return 1.0;
+      return harmonicRecursive(n-1) + 1.0/n;
+  }
+  #+end_src
+
+  #+begin_src java :noweb yes :noeval :tangle ../src/Harmonic.java :dir ../src
+  public class Harmonic {
+
+      // functions
+      <<harmonicLoop>>
+      <<harmonicRecursive>>
+
+       // Main
+          public static void main(String[] args)
+      {
+          // Get number of terms as input
+          int n = Integer.parseInt(args[0]);
+          // Call iterative harmonic numbers function
+          System.out.println(harmonicLoop(n));
+          // Call recursive harmonic numbers function
+          System.out.println(harmonicRecursive(n));
+      }
+  }
+  #+end_src
+
+  Running this for 1000, 10000,...
+
+  #+begin_src bash :results output :exports both
+  cd ../src
+  rm -rf *.class
+  javac Harmonic.java 2>&1
+  java Harmonic 1000
+  java Harmonic 10000
+  java Harmonic 126120
+  #+end_src
+
+  #+RESULTS:
+  : 7.485470860550343
+  : 7.485470860550343
+  : 9.787606036044348
+  : 9.787606036044348
+  : 12.322208743033448
+
+- Error output:
+  #+begin_example
+  Exception in thread "main" java.lang.StackOverflowError
+	at Harmonic.harmonicRecursive(Harmonic.java:16)
+    ...
+  #+end_example
+
+** Running the recursive function in a loop to discover the break point
+:LOGBOOK:
+CLOCK: [2026-08-11 Tue 16:27]--[2026-08-11 Tue 16:52] =>  0:25
+:END:
+
+  - Make a version that only runs the recursive function, where we
+    expect a breakdown problem (stack overflow):
+    #+begin_src java :noweb yes :noeval :tangle ../src/HarmonicRecursive.java :dir ../src
+      public class HarmonicRecursive {
+
+          // functions
+          <<harmonicRecursive>>
+
+           // Main
+              public static void main(String[] args)
+          {
+              // Get number of terms as input
+              int n = Integer.parseInt(args[0]);
+              // Call recursive harmonic numbers function
+              System.out.println(harmonicRecursive(n));
+          }
+      }
+    #+end_src
+
+  - Write a bash script to run the ~class~ file.
+    #+begin_src bash :results output :exports both
+      cd /home/aletheia/GitHub/admin/fall26/cs2230/src
+      rm -rf *.class
+      javac HarmonicRecursive.java
+      if [ -f HarmonicRecursive.class ]; then
+          for ((i=12400; i<=12700; i=i+10)); do
+              result=$(java HarmonicRecursive "$i" 2>&1)
+              status=$?
+              if [ $status -ne 0 ]; then
+                  echo "$i: $(echo "$result" | head -1)"
+                  echo "crashed at n=$i"
+                  break
+              else
+                  echo "$i: $result"
+              fi
+          done
+      fi
+    #+end_src
+
+    #+RESULTS:
+    #+begin_example
+    12400: 10.002707738533303
+    12410: 10.003513832647695
+    12420: 10.004319277497698
+    12430: 10.005124074128366
+    12440: 10.005928223582227
+    12450: 10.0067317268993
+    12460: 10.0075345851171
+    12470: 10.008336799270639
+    12480: Exception in thread "main" java.lang.StackOverflowError
+    crashed at n=12480
+    #+end_example
+
+  - Same thing for the other function (loop):
+    #+begin_src java :noweb yes :noeval :tangle ../src/HarmonicLoop.java :dir ../src
+      public class HarmonicLoop {
+
+          // functions
+          <<harmonicLoop>>
+
+           // Main
+              public static void main(String[] args)
+          {
+              // Get number of terms as input
+              int n = Integer.parseInt(args[0]);
+              // Call iterative harmonic numbers function
+              System.out.println(harmonicLoop(n));
+          }
+      }
+    #+end_src
+
+  - Write a bash script to run the ~class~ file.
+    #+begin_src bash :results output :exports both
+      cd /home/aletheia/GitHub/admin/fall26/cs2230/src
+      rm -rf *.class
+      javac HarmonicLoop.java
+      if [ -f HarmonicLoop.class ]; then
+          for ((i=80000; i<=100000; i=i+1000)); do
+              result=$(java HarmonicLoop "$i" 2>&1)
+              status=$?
+              if [ $status -ne 0 ]; then
+                  echo "crashed at n=$i"
+                  break
+              else
+                  echo "$i: $result"
+              fi
+          done
+      fi
+    #+end_src
+
+    #+RESULTS:
+    #+begin_example
+    80000: 11.867003828544558
+    81000: 11.879426271382956
+    82000: 11.891696288696552
+    83000: 11.903817575764572
+    84000: 11.91579369509615
+    85000: 11.927628082715433
+    86000: 11.93932405407944
+    87000: 11.950884809653731
+    88000: 11.962313440169323
+    89000: 11.973612931582819
+    90000: 11.98478616975919
+    91000: 11.995835944895926
+    92000: 12.006764955705457
+    93000: 12.017575813371364
+    94000: 12.028271045293135
+    95000: 12.038853098632819
+    96000: 12.049324343675735
+    97000: 12.059687077017307
+    98000: 12.069943524586312
+    99000: 12.08009584451473
+    100000: 12.090146129863335
+    #+end_example
+
+** Catching the StackOverflowError
+
+- Here is a Java solution that does not require a bash
+  script. Explanation below.
+  
+- Put each call in a ~try~ block and catch the ~StackOverflowError~
+  instead of letting the program die. The loop then goes on with the
+  next =n=, so we see which of the two functions survives:
+  #+begin_src java :noweb yes :noeval :tangle ../src/HarmonicCatch.java :dir ../src
+    public class HarmonicCatch {
+
+        // functions
+        <<harmonicLoop>>
+        <<harmonicRecursive>>
+
+        // Main
+        public static void main(String[] args)
+        {
+            // Increase n by a factor of 10 each time
+            for (int n = 1000; n <= 100000000; n *= 10)
+            {
+                System.out.println("n = " + n);
+                // Iterative version
+                try
+                {
+                    System.out.println("  harmonicLoop:      " + harmonicLoop(n));
+                }
+                catch (StackOverflowError e)
+                {
+                    System.out.println("  harmonicLoop:      StackOverflowError");
+                }
+                // Recursive version
+                try
+                {
+                    System.out.println("  harmonicRecursive: " + harmonicRecursive(n));
+                }
+                catch (StackOverflowError e)
+                {
+                    System.out.println("  harmonicRecursive: StackOverflowError");
+                }
+            }
+        }
+    }
+  #+end_src
+
+- Run it (the crash point depends on the machine and its stack size):
+  #+begin_src bash :results output :exports both
+    cd /home/aletheia/GitHub/admin/fall26/cs2230/src
+    javac HarmonicCatch.java
+    java HarmonicCatch
+  #+end_src
+
+  #+RESULTS:
+  #+begin_example
+  n = 1000
+    harmonicLoop:      7.485470860550343
+    harmonicRecursive: 7.485470860550343
+  n = 10000
+    harmonicLoop:      9.787606036044348
+    harmonicRecursive: 9.787606036044348
+  n = 100000
+    harmonicLoop:      12.090146129863335
+    harmonicRecursive: StackOverflowError
+  n = 1000000
+    harmonicLoop:      14.392726722864989
+    harmonicRecursive: StackOverflowError
+  n = 10000000
+    harmonicLoop:      16.695311365857272
+    harmonicRecursive: StackOverflowError
+  n = 100000000
+    harmonicLoop:      18.997896413852555
+    harmonicRecursive: StackOverflowError
+  #+end_example
+
+- What the ~catch~ does: when the call throws, Java skips the rest of
+  the ~try~ block and runs the ~catch~ block instead of ending the
+  program. By then the stack has unwound, so the program can carry on
+  with the next =n=.
+
+- ~StackOverflowError~ is an ~Error~, not an ~Exception~: the JVM reports
+  that it has run out of stack space, not a bug in your logic.
+  Catching it is fine for an experiment like this, but not normal
+  practice.
+
+- A loop inside one program can report a higher crash point than a
+  fresh run. The JVM compiles hot methods while the program runs, and
+  the compiled version of ~harmonicRecursive~ may use smaller stack
+  frames.  Its crash point can therefore be higher, and it can change
+  from run to run. To get the same crash point every time, start a new
+  JVM for each =n=, as the bash script and the Python script do.
+
+** Answer to the question
+
+- Why does the iterative version keep working at values of =n= where the
+  recursive version fails?
+  #+begin_quote
+  *Answer:* Each unfinished call to =harmonicRecursive(n)= occupies a
+  stack frame - space for the parameter =n=, the return address, and
+  other data - on the thread's call stack. This call stack has a fixed
+  size set at JVM startup (you can set it with the ~-Xss~
+  flag). Standard stack size has a ceiling of around 1MB. A small
+  frame like this one takes 40-80 bytes per call, so 12,500 calls come
+  to 500KB-1MB memory, which cannot be released until the base case is
+  reached. See [[https://www.baeldung.com/java-call-stack-max-depth][baeldung, 2024]]. This is *space complexity*.
+  #+end_quote
+
+** Final program: =HarmonicTiming.java= with =Stopwatch= (submission-ready)
+
+#+begin_src java :dir ../src :noweb yes :tangle ../src/HarmonicTiming.java :noeval :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar"
+  // HarmonicTiming.java
+  //------------------------------------------------------------
+  // Title:   HarmonicTiming - iterative vs. recursive harmonic numbers
+  // Author:  Marcus Birkenkrahe
+  // Course:  COSC 2230 (CS III), Fall 2026 - Week 2a assignment
+  //
+  // Purpose: Uses a nested Stopwatch to time harmonicLoop (iteration)
+  //          and harmonicRecursive (recursion) at the same n.
+  //
+  // Usage:   java -cp .:stdlib.jar HarmonicTiming <n>
+  //              <n>  number of terms, a positive integer (e.g. 1000)
+  //
+  // Input:   one command-line argument (args[0]), parsed with
+  //          Integer.parseInt() into n.
+  // Output:  one line per method with n, the harmonic number, and the
+  //          elapsed time in seconds.
+  //
+  //            $ java -cp .:stdlib.jar HarmonicTiming 1000
+  //            harmonicLoop:      n=1000, 7.485471 (0.0000000000 seconds)
+  //            harmonicRecursive: n=1000, 7.485471 (0.0000000000 seconds)
+  //
+  //          For n around 12,600 or more the recursive call ends with
+  //          a StackOverflowError (the crash point depends on the
+  //          machine and its stack size).
+  //
+  // AI use: Claude (Anthropic) drafted this program header, and checked
+  //          that the file compiles and runs under JDK 17. The
+  //          Stopwatch nesting, both harmonic methods and main() are my
+  //          own work.
+  //
+  // Pledge:  I pledge that this submission is my own work, in
+  //          keeping with the Augustana academic-integrity and
+  //          course AI-use policies.
+  //------------------------------------------------------------
+  public class HarmonicTiming
+  {
+      public static class Stopwatch
+      {
+          private final long start;
+
+          public Stopwatch()
+          {   // set stopwatch
+              start = System.currentTimeMillis();
+          }
+          public double elapsedTime()
+          {   // return time between start and now in seconds
+              long now = System.currentTimeMillis();
+              return (now - start) / 1000.0;
+          }
+      }
+      // Compute harmonic numbers - iterate
+      public static double harmonicLoop(int n)
+      {
+          double sum = 0.0;
+          for (int i = 1; i <= n; i++)
+              sum += 1.0/i;
+          return sum;
+      }
+      // Compute harmonic numbers - recursive
+      public static double harmonicRecursive(int n)
+      {
+          if (n == 1) return 1.0;
+          return harmonicRecursive(n-1) + 1.0/n;
+      }
+      // HarmonicTiming main function
+      public static void main(String[] args)
+      {
+          int n = Integer.parseInt(args[0]);
+          // Compute and time computation using harmonicLoop
+          Stopwatch timer1 = new Stopwatch();
+          double result1 = harmonicLoop(n);
+          double time1 = timer1.elapsedTime();
+          StdOut.printf("harmonicLoop:      n=%d, %f (%.10f seconds)\n", n, result1, time1);
+
+          // Compute and time computation using harmonicRecursive
+          Stopwatch timer2 = new Stopwatch();
+          double result2 = harmonicRecursive(n);
+          double time2 = timer2.elapsedTime();
+          StdOut.printf("harmonicRecursive: n=%d, %f (%.10f seconds)\n", n, result2, time2);
+      }
+  }
+
+  /*
+   ,* Why does the iterative version keep working where the recursive one
+   ,* fails? Every unfinished call to harmonicRecursive() keeps a stack
+   ,* frame on the call stack, and none is released until the base case is
+   ,* reached; the stack has a fixed size, so at around n = 12,500 it runs
+   ,* out and the JVM throws a StackOverflowError. harmonicLoop() reuses
+   ,* the same few local variables no matter how large n is, so its memory
+   ,* use stays constant (O(1) space versus O(n) for the recursion).
+   ,*/
+#+end_src
+
+#+begin_src bash :results output :exports both
+  cd ../src
+  rm -rf *.class
+  javac -cp .:stdlib.jar HarmonicTiming.java
+  java -cp .:stdlib.jar HarmonicTiming 1000
+  java -cp .:stdlib.jar HarmonicTiming 10000
+#+end_src
+
+#+RESULTS:
+: harmonicLoop:      n=1000, 7.485471 (0.0000000000 seconds)
+: harmonicRecursive: n=1000, 7.485471 (0.0000000000 seconds)
+: harmonicLoop:      n=10000, 9.787606 (0.0000000000 seconds)
+: harmonicRecursive: n=10000, 9.787606 (0.0000000000 seconds)
+
+** A few OOP design questions
+
+- How should =HarmonicTiming= and =Stopwatch= be nested?
+  #+begin_quote
+  As a *static* nested class: =public static class Stopwatch=, inside
+  =public class HarmonicTiming=. The first attempt left off ~static~
+  (=public class Stopwatch=), which makes it a *non-static inner class* -
+  and a non-static inner class carries an invisible reference to a
+  specific enclosing =HarmonicTiming= *object*, so creating one always
+  means =someHarmonicTiming.new Stopwatch()=. But =main()= is ~static~, so
+  no =HarmonicTiming= object exists yet when =new Stopwatch()= runs -
+  there's no enclosing instance to attach to, hence: "non-static
+  variable this cannot be referenced from a static context."
+
+  Adding ~static~ removes that requirement: a *static* nested class
+  doesn't carry a reference to any enclosing instance - it behaves like
+  an ordinary top-level class that simply lives inside =HarmonicTiming='s
+  namespace. That's exactly what's needed here, since =Stopwatch= is
+  only ever used from ~static~ context (~static~ methods, called
+  without ever constructing a =HarmonicTiming= object).
+  #+end_quote
+
+- Could =Stopwatch.java= itself have been the submitted file, with
+  =main()= and the harmonic task functions added directly to =Stopwatch= -
+  no nesting, no ~static~ wrapper at all?
+  #+begin_quote
+  Mechanically, yes - nothing stops you from adding more ~static~
+  methods (a task function, ~main~) directly to =Stopwatch=. It would just
+  become both the reusable timer *and* the test driver in one class, the
+  same pattern the very first =Greeting= class used before it got split
+  into =Greeting= + =GreetingTest=.
+
+  Two separate reasons this wasn't the actual option here:
+
+  1) *The submission rule itself* - the required public class name was
+     =HarmonicTiming=, matching the mandatory filename
+     =HarmonicTiming.java=. A top-level ~public class~ name must match
+     its file, so submitting =Stopwatch.java= with a public class
+     =HarmonicTiming= isn't legal Java at all. That closes the door
+     regardless of design taste.
+     
+  2) *The design reason* - bolting task-specific logic and ~main~ onto
+     =Stopwatch= is exactly the anti-pattern the =Greeting=/=GreetingTest=
+     split was teaching against: it stops being a clean, reusable timer
+     once every user of it also drags along your harmonic-number logic
+     and entry point. A cleaner third option (not used here, but legal)
+     would have been a second, *non-public* top-level =class Stopwatch=
+     alongside =public class HarmonicTiming= in the same file - Java
+     allows multiple top-level classes per =.java= file as long as only
+     one is ~public~ and it matches the filename. That needs no
+     ~static~ or nesting either, since top-level classes never carry an
+     enclosing-instance reference in the first place.
+  #+end_quote
+
+** Visualize the algorithms with Python
+
+- An equivalent Python script is fair bit more complicated:
+  #+begin_src python :results output :exports both :session *Python* :python python3
+    import subprocess
+
+    src = "/home/aletheia/GitHub/admin/fall26/cs2230/src"
+
+    if subprocess.run(["javac", "HarmonicRecursive.java"], cwd=src).returncode == 0:
+        for n in range(12000, 13001, 100):
+            result = subprocess.run(["java", "HarmonicRecursive", str(n)],
+                                    cwd=src, capture_output=True, text=True)
+            if result.returncode != 0:
+                print(f"{n}: {result.stderr.splitlines()[0]}")
+                print(f"crashed at n={n}")
+                break
+            print(f"{n}: {result.stdout.strip()}")
+  #+end_src
+
+  #+RESULTS:
+  : 12000: 9.969919259759596
+  : 12100: 9.978217718231209
+  : 12200: 9.986447878669518
+  : 12300: 9.994610856117697
+  : 12400: 10.002707738533303
+  : 12500: 10.010739587658568
+  : 12600: Exception in thread "main" java.lang.StackOverflowError
+  : crashed at n=12600
+
+- We're going to use the script to 1) collect the data, 2) fit a curve
+  through them, and 3) plot them:
+
+  #+begin_src python :file ../src/HarmonicPlot.png :results file graphics output :exports both :session *Python* :python python3
+    import subprocess
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    src = "/home/aletheia/GitHub/admin/fall26/cs2230/src"
+
+    n_values = []
+    sum_values = []
+
+    # Collect
+    for n in range(1000, 12000, 500): # stay below the crash point
+        result = subprocess.run(["java", "HarmonicRecursive", str(n)],
+                                cwd=src, capture_output=True, text=True)
+        if result.returncode == 0:
+            n_values.append(n)
+            sum_values.append(float(result.stdout.strip()))
+            # Fit
+    slope, intercept = np.polyfit(n_values, sum_values, 1) # deg = 1
+
+    # Plot
+    plt.scatter(n_values, sum_values, label="data")
+    plt.plot(n_values, [slope * n + intercept for n in n_values],
+             color="red", label=f"fit: {slope:.2e}*n + {intercept:.2f}")
+    plt.xlabel("Harmonic number index n")
+    plt.ylabel("Harmonic number")
+    plt.legend()
+    plt.savefig("../src/HarmonicPlot.png")
+  #+end_src
+
+  #+RESULTS:
+  [[file:../src/HarmonicPlot.png]]
+
+- That looks suspiciously logarithmic, so perform a semi-logarithmic
+  transformation of the input data (harmonic series index):
+  #+begin_src python :file ../src/HarmonicPlot2.png :results file graphics output :exports both :session *Python* :python python3
+    # Fit
+    log_n = np.log(n_values) # converts to numpy array
+    slope, intercept = np.polyfit(log_n, sum_values, 1)
+
+    # Plot
+    plt.clf()
+    plt.scatter(log_n, sum_values, label="data")
+    plt.plot(log_n, slope * log_n + intercept,
+             color="red", label=f"fit: {slope:.2f}*ln(n) + {intercept:.2f}")
+    plt.xlabel("Log of index ln(n)")
+    plt.ylabel("Harmonic number")
+    plt.legend()
+    plt.savefig("../src/HarmonicPlot2.png")
+  #+end_src
+
+  #+RESULTS:
+  [[file:../src/HarmonicPlot2.png]]
+
+- Code explanation:
+  #+begin_quote
+  1) *Collect:* loop =n= over a range that stays below the crash point
+     (=12600=), so the loop does not die mid-collection. For each =n=,
+     run =java HarmonicRecursive= with =n= as argument. Since
+     =returncode == 0= means the program finished cleanly, parse
+     =result.stdout= into a ~float~ and append both =n= and the value to
+     two parallel lists.
+  2) *Fit:* =np.polyfit(n_values, sum_values, 1)= fits a straight line
+     (degree 1) through the collected points.
+  3) *Plot:* ~scatter~ the raw points, then draw the fitted line on top
+     using the same =n_values=. A list comprehension computes the
+     y-values of the line.
+  #+end_quote
+
+- These two plots only check facts about harmonic numbers. They say
+  nothing about loop versus recursion, or about the crash.
+  1) Plot 1 shows that the growth is not linear.
+  2) Plot 2 shows that H_n grows like ln(n).
+
+- A plot that connects to the exercise should show time against n, or
+  the crash point across repeated fresh-JVM runs.
+
+** Sources
+
+- The starter code comes from: program 1.3.5 ("Harmonic numbers",
+  p. 65) — iterative, and section 2.3 (p. 265).
+
+- The starter code for Stopwatch comes from Program 3.2.2 (p. 391).
+
+- Baeldung. (2024, January 8). What is the maximum depth of the Java
+  call stack? [[https://www.baeldung.com/java-call-stack-max-depth][Link]].
