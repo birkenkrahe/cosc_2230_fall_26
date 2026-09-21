@@ -129,12 +129,17 @@ My plan:
 3) [X] Run as requested for a few small n (manually on command-line)
 4) [X] Merge them with the =Stopwatch= class
 
-Post-mortem: I split the functions and wrote a Python script to run a
-simulation over many values of n to discover the exact break point.
+Post-mortem: I split the functions into separate programs and ran each
+one in a bash loop, with a new JVM for every =n=, to discover the exact
+break point of the recursion and to check that the loop survives much
+larger values of =n=.
 
-Then I wrote another Python script to collect the simulation data and
-plot them in order to verify the assumption that the harmonic numbers
-grow logarithmically with the index =n=.
+Then I wrote a Java program that catches the =StackOverflowError= with
+~try/catch~ and steps =n= up by a factor of 10, so no shell script is
+needed. I repeated the break-point search in Python (again one JVM per
+=n=). Finally, I wrote another Python script to collect the harmonic
+numbers for many values of =n= and plot them, in order to verify the
+assumption that they grow logarithmically with the index =n=.
 
 ** Testing harmonic number programs
 
