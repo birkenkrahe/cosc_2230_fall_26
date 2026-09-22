@@ -1,5 +1,5 @@
-#+TITLE: Agenda - Data Structures and Algorithms 
-#+AUTHOR: Marcus Birkenkrahe 
+#+TITLE: Agenda - Data Structures and Algorithms
+#+AUTHOR: Marcus Birkenkrahe
 #+SUBTITLE: COSC 2230 (CS III) Fall 26 | Augustana U.
 #+STARTUP: overview hideblocks indent entitiespretty
 #+OPTIONS: toc:nil num:nil ^:nil
@@ -9,7 +9,7 @@
 
 * DONE W1S1: Overview of the course
 
-- *Check-in when in class:* 
+- *Check-in when in class:*
 
 |   | Topic                                                           |
 |---+-----------------------------------------------------------------|
@@ -110,7 +110,7 @@ quiz. Sometimes it give additional details last forgotten.
 
 3) What's garbage collection?
    #+begin_quote
-   - A janitor for the *heap* only. 
+   - A janitor for the *heap* only.
    - when an object's life cycle ends, GC sweeps and reclaims memory
    - Automatic in Java/Python but matters for speed
    - Manual in C/C++ ~malloc~
@@ -361,7 +361,7 @@ week (links in Canvas in the 2. Programming module).
 - Check out the video overview (to be posted)
 - Check out the infographic (to be posted)
 - Check out DataCamp's OOP with Java course
-  
+
 ** Review of OOP in Java (part 3)
 
 - [X] Code walkthrough of the =Greeting= class
@@ -375,7 +375,7 @@ week (links in Canvas in the 2. Programming module).
 
 ** Sept 4 Video = Attendance
 
-- You have to have watched at least 80% of the video 
+- You have to have watched at least 80% of the video
 
 - You should upload the "extended =Greeting= ~class~" assignment
 
@@ -384,7 +384,7 @@ week (links in Canvas in the 2. Programming module).
 - I check every submission and give you comments if needed
 
 - Before I do that, I check your submissions against the task:
-  
+
   | Bucket                         | Students |
   |--------------------------------+----------|
   | Did not submit                 |          |
@@ -409,7 +409,7 @@ week (links in Canvas in the 2. Programming module).
   + Personal finance tracker
 
 - Get together with 1-2 other people to brainstorm, with or without AI
-  
+
 - Will open the Sprint 1 assignment ("Project proposal") this week
 
 - Deadline: Friday, 9/25
@@ -597,7 +597,7 @@ week (links in Canvas in the 2. Programming module).
    1. Your data must be *reproducible*. One-offs are useless.
 
       Weather example: focus on features that repeat
-      
+
    2. Your assumptions must be *falsifiable*.
 
       Weather: if you assume that it rains when your nose itches, and
@@ -611,7 +611,7 @@ week (links in Canvas in the 2. Programming module).
    - To *develop* new algorithms -> solve bigger problems
    #+end_quote
 
-* W4S3: Performance - Part 3: Hypothesis - =DoublingHypothesis=
+* DONE W4S3: Performance - Part 3: Running experiments
 
 Four weeks in, here's the tally:
 
@@ -720,20 +720,357 @@ language to you, you need to take the course "discrete structures" -
 or train yourself: here is a [[https://www.freecodecamp.org/news/learn-discrete-mathematics/][fun course at freeCodeCamp with Python]].
 #+end_quote
 
+** Solution to the trace problem for =ThreeSum= (from Wednesday)
+
+#+begin_src java :dir src :tangle ../src/ThreeSumTrace.java :noeval :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar"
+  public class ThreeSumTrace
+  {
+      public static int countTriples(int[] a)
+      {
+          int n = a.length;
+          int count = 0;
+          // print header
+          StdOut.println(" i  j  k   a[i]   a[j]   a[k]");
+          for (int i = 0; i < n; i++)
+              for (int j = i+1; j < n; j++)
+                  for (int k = j+1; k < n; k++)
+                      {
+                          // store boolean if triple sum is zero
+                          boolean hit = (a[i] + a[j] + a[k] == 0);
+                          // print format string
+                          StdOut.printf("%2d %2d %2d %6d %6d %6d%s\n",
+                                        i, j, k, a[i], a[j], a[k],
+                                        // evaluate using ternary operator:
+                                        // `condition ? valueIfTrue : valueIfFalse
+                                        hit ? "   <- sums to 0" : "");
+                          // increase counter for hit
+                          if (hit) count++;
+                      }
+          return count;
+      }
+
+      public static void main(String[] args)
+      {
+          int[] a = StdIn.readAllInts();
+          int n = a.length;
+          int count = countTriples(a);
+          long rows = (long) n * (n - 1) * (n - 2) / 6;
+          StdOut.println();
+          StdOut.printf("rows printed:         %d%n", rows);
+          StdOut.printf("C(%d,3) = %d! / (3! (%d-3)!) = %d%n", n, n, n, rows);
+          StdOut.printf("triples summing to 0: %d%n", count);
+
+      }
+  }
+#+end_src
+
+#+begin_src bash :results output :exports both
+  cd ../src
+  javac -cp .:stdlib.jar ThreeSumTrace.java
+  echo "-4 3 1 5 -2 -3" | java -cp .:stdlib.jar ThreeSumTrace
+#+end_src
+
+#+RESULTS:
+#+begin_example
+ i  j  k   a[i]   a[j]   a[k]
+ 0  1  2     -4      3      1   <- sums to 0
+ 0  1  3     -4      3      5
+ 0  1  4     -4      3     -2
+ 0  1  5     -4      3     -3
+ 0  2  3     -4      1      5
+ 0  2  4     -4      1     -2
+ 0  2  5     -4      1     -3
+ 0  3  4     -4      5     -2
+ 0  3  5     -4      5     -3
+ 0  4  5     -4     -2     -3
+ 1  2  3      3      1      5
+ 1  2  4      3      1     -2
+ 1  2  5      3      1     -3
+ 1  3  4      3      5     -2
+ 1  3  5      3      5     -3
+ 1  4  5      3     -2     -3
+ 2  3  4      1      5     -2
+ 2  3  5      1      5     -3
+ 2  4  5      1     -2     -3
+ 3  4  5      5     -2     -3   <- sums to 0
+
+rows printed:         20
+C(6,3) = 6! / (3! (6-3)!) = 20
+triples summing to 0: 2
+#+end_example
+
 ** Home programming assignments
 
 - There are still a few bonus assignments laying around for you!
 
-- If you needed any AI help to finish =Counter= 
+- If you needed any AI help to finish =Counter= -> do some bonus assignments
 
 - New assignment: =DoublingTest= analysis. Run the provided program
   twice, then explain the ratios you get - *due Monday at 1 pm*.
 
 - There's also a bonus assignment to play around with ~make~
-  
+
 - We will discuss programming assignments in the future
 
 - For the review assignments, I'll just give you my sample solutions
 
 - You should contact me if you have questions or comments
+
+** NEXT Making assumptions and experimenting with time
+
+- [X] Random input generator
+
+- [X] Picking triples from a wider range
+
+- [X] Timing with the built-in ~time(1)~ function
+
+- [ ] Using a ~Makefile~ with ~make~ to build, run, clean files
+
+- [ ] Checking the timing pattern for different N
+
+- [ ] Validating a doubling hypothesis
+
+- Home assignment: analyse running times (by Friday) - ca. 30-45 min
+
+- Will discuss your results in class
+
+* DONE W5S1: Assignment review & Performance - Part 4: Doubling hypothesis
+
+- [X] Added lecture script links (GitHub) to Canvas
+
+- [X] Don't forget the project proposal deadline (Friday)
+
+- [X] Review: Stopwatch assignment (Sept-18)
+
+- [X] Doubling Hypothesis & home assignment
+
+** Review: Stopwatch assignment (Sept-18)
+
+- Sample solution: [[https://tinyurl.com/stopwatch-gist][tinyurl.com/stopwatch-gist]]
+
+- Extensive solution in GitHub: [[https://tinyurl.com/stopwatch-sample-solution][tinyurl.com/stopwatch-sample-solution]]
+
+- Remember that that there is a bonus assignment (=StopwatchDeluxe=)
+
+- Let's discuss what you found and what you learnt!?
+
+*** My observations
+
+- Several people forgot the AI use statement
+
+- Several AI use statements were too general
+
+- Overall good effort - try the bonus assignment next!
+
+- If you did not submit, your grade tanks (high weight)
+
+- I will give you more bonus assignments so you can make up for it
+
+*** Nesting =Stopwatch=: ~static~, ~public~ and ~verbose~
+
+- Why does a nested =Stopwatch= need =static=?
+  #+begin_quote
+  Without ~static~, each =Stopwatch= secretly holds a pointer to a
+  specific =HarmonicTiming= object - like a room that only exists within
+  a particular house (the namespace of =HarmonicTiming=).
+
+  ~main~ is ~static~ so when it runs, there is no =HarmonicTiming= object -
+  there is no house to build the room (=Stopwatch=) in:
+
+  =new Stopwatch= fails with ~non-static variable `this` cannot be
+  referenced from a static context.~
+
+  With ~static~, =Stopwatch= belongs to no object. It's an ordinary class
+  that happens to be inside =HarmonicTiming= for tidiness. =new Stopwatch=
+  works anywhere.
+
+  *Rule: if the nested class does not need the outer object, make it
+  ~static~.*
+  #+end_quote
+
+- Do you also need ~public~ for =Stopwatch=?
+  #+begin_quote
+  No. ~static class Stopwatch~ is enough, because only =HarmonicTiming=
+  uses it. ~private static class Stopwatch~ works too. Only a top-level
+  ~public~ class has to match the file name.
+  #+end_quote
+
+- Could you make it ~private~?
+  #+begin_quote
+  Yes, because it is only used in ~main~, and ~main~ sits inside
+  =HarmonicTiming=.
+  #+end_quote
+
+- Do you have to nest it at all?
+  #+begin_quote
+  No. A second top-level class in the same file works, without ~static~,
+  as long as it is not ~public~: one file can have only one ~public~
+  class, and its name must match the file name.
+  #+end_quote
+
+- What makes a constructor?
+  #+begin_quote
+  The name of the class, and no return type. ~public Stopwatch() {...}~
+  is a constructor and runs on ~new Stopwatch()~. ~public void
+  Stopwatch()~ is an ordinary method that merely has the class's name -
+  ~new~ never calls it but there is also no warning or error message!
+  #+end_quote
+
+- What if the class is missing from your file?
+  #+begin_quote
+  ~new Stopwatch()~ can still compile if another =Stopwatch= is on the
+  class path - and =stdlib.jar= contains one. To see which class you
+  get, compile without the jar (use ~System.out~ instead of ~StdOut~), or
+  ask the compiler: ~javac -cp .:stdlib.jar -verbose HarmonicTiming.java~
+  prints
+  1) =[loading stdlib.jar(/Stopwatch.class)]= if ~stdlib.jar~'s file is
+     loaded
+  2) =[wrote HarmonicTiming$Stopwatch.class]= if the nested class is loaded.
+  #+end_quote
+
+*** Catching the crash: ~try~ and ~catch~ about?
+
+- What's ~try~ and ~catch~ about?
+  #+begin_quote
+  Several of you had this idiom in their code.
+
+  It's called EAFP: "Easier to Ask Forgiveness than Permission".
+
+  It's opposite is LBYL: "Look Before You Leap".
+  #+end_quote
+
+- Well known in Python (they got it from C++):
+  #+begin_src python :results output :exports both :session *Python* :python python3
+    s = "hello"
+
+    # LBYL: check first
+    if s.isdigit():
+        n = int(s)
+    else:
+        print("Not a number!")
+
+    # EAFP: try, then handle the failure
+    try:
+        n = int(s)
+    except ValueError as e:
+        print(f"Not a number: {e}!")
+  #+end_src
+
+  #+RESULTS:
+  : Not a number!
+  : Not a number: invalid literal for int() with base 10: 'hello'!
+
+- What do ~try~ and ~catch~ do?
+  #+begin_quote
+  The code in the ~try~ block runs normally. If it throws an exception
+  of the type named in the ~catch~, Java skips the rest of the ~try~
+  block, runs the ~catch~ block instead, and then the program carries on
+  after it.
+  #+end_quote
+
+- What is the simplest example?
+  #+begin_quote
+  #+begin_src java :results output
+    public class TryCatch {
+        public static void main(String[] args) {
+            try {
+                int n = Integer.parseInt("hello");   // throws NumberFormatException
+                System.out.println("n = " + n);    // skipped
+            } catch (NumberFormatException e) {
+                System.out.println("Not a number!");
+            }
+            System.out.println("Program continues.");
+        }
+    }
+  #+end_src
+
+  #+RESULTS:
+  : Not a number!
+  : Program continues.
+
+  Without the ~try / catch~ the program ends at ~parseInt~ with
+  ~Exception in thread "main" java.lang.NumberFormatException~ and never
+  prints "Program continues."
+  #+end_quote
+
+- Which type does the ~catch~ need for the ~StackOverflowError~?
+  #+begin_quote
+  A ~catch~ matches by type. ~NumberFormatException~ is an ~Exception~.
+  ~StackOverflowError~ is an ~Error~ - a =catch (Exception e)= would not
+  catch it, but =catch (StackOverflowError e)= does.
+  #+end_quote
+
+- What's the difference between an exception and an error?
+  #+begin_quote
+  An *exception* signals a problem the program can be expected to handle
+  (like bad input or a missing file). An *error* means that the JVM
+  itself is in trouble because the stack is full.
+  #+end_quote
+
+- Did the assignment ask for it?
+  #+begin_quote
+  No. The crash was expected. Catching it just lets the program go on
+  to the next =n= instead of ending. There's a chance you never see the
+  recursion failing at all.
+  #+end_quote
+
+** Review: Friday (running experiments)
+
+1. What does =RandomInts= print, and what do its two arguments control?
+   #+begin_quote
+   It prints =N= integers, one per line, uniformly distributed in
+   [-M,M): every value is equally likely, -M is possible, M is not. =M=
+   (first argument) sets the range of the values; =N= (second argument)
+   sets how many are printed.
+   #+end_quote
+
+2. In the =smallR.txt= / =largeR.txt= experiment, why did we keep =N=
+   fixed at 1000 and only change =M=?
+   #+begin_quote
+   Because then the range is the only difference between the two runs:
+   any difference in the result can only be caused by the range, not
+   by the input size. Next we do the opposite - fixed range, varying
+   =N= - to find the timing behavior (the doubling hypothesis).
+   #+end_quote
+
+3. The number of three-sums that =ThreeSum= found differed by a factor
+   of about 1000 between the small and the large range, but the
+   running time was almost the same. Why?
+   #+begin_quote
+   The range changes /how many/ triples happen to sum to zero (the
+   chance of finding one goes down with 1/R). It does not change /how
+   many/ triples =ThreeSum= has to check: that is C(N,3) \approx
+   N^{3}/6 in both runs. Both runs do the same amount of work, so we
+   don't expect a difference in the timing.
+   #+end_quote
+
+4. What is the difference between ~real~, ~user~ and ~sys~ time, and how can
+   ~user~ be larger than ~real~?
+   #+begin_quote
+   - ~real~: wall-clock time, from start to finish.
+   - ~user~: CPU time spent in your program's own code.
+   - ~sys~: CPU time the kernel spent on the program's behalf (system
+     calls, I/O, memory allocation).
+
+   ~user~ adds up CPU time over all threads and cores, so it can exceed
+   ~real~ when the JVM runs several threads at once.
+   #+end_quote
+
+5. What does ~time~ write to, and how can you find out more about it?
+   #+begin_quote
+   ~time~ writes to ~stderr~ (standard error), not to standard output -
+   that is why its output shows up separately from the program's output.
+   To find out more, read its manual page (~man time~ on Linux and MacOS).
+   #+end_quote
+
+** Doubling Hypothesis
+
+- I added a "silent" lecture script: on how to count triples
   
+- Assignment until Wednesday: explore the doubling hypothesis
+
+- No programming assignment this week (except new bonus ones)
+
+- Because you're supposed to work on your project proposal (Fri)
+
+** NEXT Order of growth classification

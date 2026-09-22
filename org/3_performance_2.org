@@ -12,14 +12,16 @@ Topics:
 - Timing with the built-in ~time(1)~ function
 - Using a ~Makefile~ with ~make~ to build, run, clean files
 - Checking the timing pattern for different N
-- 
+- Validating a doubling hypothesis
 
 Programs:
 - =stdlib.jar=
 - =ThreeSum.java=
-- ~time(1)~
 - =Stopwatch.java=
 - =RandomInts.java=
+- =DoublingTest=
+- ~time(1)~
+- ~make(1)~
 
 * Random input generator
 
@@ -31,11 +33,11 @@ Programs:
 
 - For =RandomInts.java=, we take a value M, the range of our integers,
   from the command line, and then we print uniform randomly
-  distributed integers in [-M,M].
+  distributed integers in [-M,M).
 
   #+begin_src java :dir ../src :tangle ../src/RandomInts.java :noeval
     public class RandomInts
-    {   // Generate N integers in [-M,M]
+    {   // Generate N integers in [-M,M)
         public static void main(String[] args)
         {
             int M = Integer.parseInt(args[0]); // range generated
@@ -55,20 +57,20 @@ Programs:
 
   #+RESULTS:
   #+begin_example
-  4
-  1
-  4
+  6
+  -1
+  8
   9
-  2
-  51025
-  -544282
-  618565
-  575093
-  -197945
+  1
+  -277739
+  -579053
+  -271558
+  -301053
+  -929105
   #+end_example
 
 - Can we guess the chances to find a three-sum depending on the range
-  R = [-M,M] of our uniform distribution?
+  R = [-M,M) of our uniform distribution?
   #+begin_quote
   If we assume that the possible sums are uniformly spread out (we
   expect to find them with equal probability anywhere in R), the
@@ -101,8 +103,8 @@ Programs:
   #+end_src
 
   #+RESULTS: RandomInts data
-  : -rw-r--r--@ 1 mbirkenkrahe  staff  7384 Sep 17 15:46 ../data/largeR.txt
-  : -rw-r--r--@ 1 mbirkenkrahe  staff  4404 Sep 17 15:46 ../data/smallR.txt
+  : -rw-r--r--@ 1 mbirkenkrahe  staff  7429 Sep 18 12:46 ../data/largeR.txt
+  : -rw-r--r--@ 1 mbirkenkrahe  staff  4395 Sep 18 12:46 ../data/smallR.txt
   :     1000
   :     1000
 
@@ -118,16 +120,16 @@ Programs:
 
   #+RESULTS: time ThreeSum
   #+begin_example
-  61539
+  60050
 
-  real	0m0.125s
-  user	0m0.142s
-  sys	0m0.012s
-  61
+  real  0m0.141s
+  user  0m0.139s
+  sys   0m0.008s
+  58
 
-  real	0m0.122s
-  user	0m0.143s
-  sys	0m0.009s
+  real  0m0.143s
+  user  0m0.147s
+  sys   0m0.008s
   #+end_example
 
 * Making time for ~time(1~)
@@ -145,17 +147,17 @@ Programs:
 - What does ~time~ writes to? How can you find out more?
   #+begin_quote
   ~time~ writes to ~stderr~, the standard error stream. To find out, look
-  at the ~time(1)~ manual page.
+  at the ~time(1)~ manual page (works on Linux, MacOS):
   #+end_quote
   #+attr_html: :width 600px :float nil:
   [[../img/man_time.png]]
-  
+
 - What's the difference between ~real~, ~user~, and ~sys~ time?
   #+begin_quote
   - ~real~: wall-clock time: how long you actually waited, start to
     finish. Includes time waiting on I/O, other processes, disk etc.
   - ~user~: CPU time spent executing your program's own code (user
-    space, not kernel) 
+    space, not kernel)
   - ~sys~: CPU time the kernel spent on the program's behalf (system
     calls: I/O, memory allocation, etc.)
   #+end_quote
@@ -166,7 +168,7 @@ Programs:
   Because ~user~ sums CPU-seconds across all threads/cores, while ~real~
   is just wall-clock time for the whole run - your time experience.
   #+end_quote
-  
+
 - What does ~System.currentTimeMillis()~ measure?
   #+begin_quote
   The Java function uses ~real~ time, which is noisier. ~user~ is the more
@@ -229,21 +231,15 @@ Programs:
   #+end_src
 
   #+RESULTS:
-  #+begin_example
-  javac -cp .:stdlib.jar ThreeSum.java
-  javac -cp .:stdlib.jar RandomInts.java
-  java -cp .:stdlib.jar RandomInts 1000 1000 > ../data/smallR.txt
-  java -cp .:stdlib.jar RandomInts 1000000 1000 > ../data/largeR.txt
-  time java -cp .:stdlib.jar ThreeSum < ../data/smallR.txt
-  61539
-  time java -cp .:stdlib.jar ThreeSum < ../data/largeR.txt
-  61
-  --- running again, nothing should rebuild ---
-  time java -cp .:stdlib.jar ThreeSum < ../data/smallR.txt
-  61539
-  time java -cp .:stdlib.jar ThreeSum < ../data/largeR.txt
-  61
-  #+end_example
+  : time java -cp .:stdlib.jar ThreeSum < ../data/smallR.txt
+  : 60050
+  : time java -cp .:stdlib.jar ThreeSum < ../data/largeR.txt
+  : 58
+  : --- running again, nothing should rebuild ---
+  : time java -cp .:stdlib.jar ThreeSum < ../data/smallR.txt
+  : 60050
+  : time java -cp .:stdlib.jar ThreeSum < ../data/largeR.txt
+  : 58
 
   (Counts will differ every run -- the input is random, same as
   earlier in this file. The point is the second =make run= jumping
@@ -265,12 +261,11 @@ Programs:
   #+end_src
 
   #+RESULTS:
-  : make: `../data/smallR.txt' is up to date.
   : javac -cp .:stdlib.jar ThreeSum.java
   : time java -cp .:stdlib.jar ThreeSum < ../data/smallR.txt
-  : 62703
+  : 60050
   : time java -cp .:stdlib.jar ThreeSum < ../data/largeR.txt
-  : 51
+  : 58
 
 - =make clean= removes every =.class= file in one line, for when you
   really do want a from-scratch build.
@@ -317,8 +312,8 @@ Programs:
   #+end_src
 
   #+RESULTS:
-  : -rw-rw-r-- 1 aletheia aletheia 507 Sep 17 22:11 RandomInts.class
-  : -rw-rw-r-- 1 aletheia aletheia 600 Sep 17 22:11 ThreeSum.class
+  : -rw-r--r--@ 1 mbirkenkrahe  staff  507 Sep 18 12:46 RandomInts.class
+  : -rw-r--r--@ 1 mbirkenkrahe  staff  600 Sep 18 12:46 ThreeSum.class
 
 - Generate 1,000 and 2,000 random integers, store, and check them:
   #+begin_src bash :results output :exports both
@@ -327,14 +322,14 @@ Programs:
     java -cp .:stdlib.jar RandomInts 1000000 2000 > ../data/2Kints.txt
     ls -l ../data/1Kints.txt ../data/2Kints.txt
     cat 1Kints.txt | wc -l
-    cat 2Kints.txt | wc -l    
+    cat 2Kints.txt | wc -l
   #+end_src
 
   #+RESULTS:
-  : -rw-rw-r-- 1 aletheia aletheia  7389 Sep 17 22:25 ../data/1Kints.txt
-  : -rw-rw-r-- 1 aletheia aletheia 14756 Sep 17 22:25 ../data/2Kints.txt
-  : 1000
-  : 2000
+  : -rw-r--r--@ 1 mbirkenkrahe  staff   7400 Sep 18 12:46 ../data/1Kints.txt
+  : -rw-r--r--@ 1 mbirkenkrahe  staff  14800 Sep 18 12:46 ../data/2Kints.txt
+  :     1000
+  :     2000
 
 - Now run the built-in ~time~ on =ThreeSum= with the random integers as
   input, and return the number of three-sums in each dataset:
@@ -346,25 +341,154 @@ Programs:
 
   #+RESULTS:
   #+begin_example
-  58
+  71
 
-  real	0m0.124s
-  user	0m0.138s
-  sys	0m0.015s
-  483
+  real  0m0.143s
+  user  0m0.145s
+  sys   0m0.008s
+  493
 
-  real	0m0.708s
-  user	0m0.736s
-  sys	0m0.014s
+  real  0m0.889s
+  user  0m0.898s
+  sys   0m0.009s
   #+end_example
 
-- The triple counts will differ for every run -- the input is
+- What did we observe?
+  #+begin_quote
+  The triple counts will differ for every run -- the input is
   random. The timing pattern is the point, not the count: doubling =n=
   to roughly 5-6 times longer here, not 2 times.
+
+  Why not 8 times as predicted? Because each ~time java...~ call spins
+  up a brand-new JVM. You pay a fixed startup cost (classloading, JIT
+  warm-up) before it does any real work. The overhead gets added.
+  #+end_quote
 
 - In another run, I got 0 for the number of three-sums. Couldn't
   figure it out until I realized that I had used M = 1,000,000,000. At
   that range, the expected count drops to 0.06 (so effectively 0).
+
+* Code-along: =DoublingTest=
+
+- The ~time~ function is a blunt instrument - it includes process
+  start-up, JIT warm-up, and whatever else the OS is doing.
+
+- We're going to use our own =Stopwatch= class (not the library copy).
+
+- Do we need to extract the ~class~ definition of =Stopwatch=, or can we
+  use =Stopwatch.java= with the ~main~ test client nested inside?
+  #+begin_quote
+  The class has no ~static~ initializer, so nothing runs on
+  ~load~. Another class could still call ~main~ directly:
+  =Stopwatch.main(new String[]{"1000"})= - since it's ~public static~, and
+  it would run the ~sqrt~ / ~pow~ test.
+  #+end_quote
+
+- The =DoublingTest= ~class~ prints a table of doubling *ratios* for the
+  three-sum problem. The table shows how doubling the problem size
+  affects the running time of the method call =ThreesSum.countTriples()=
+  for problem sizes starting at N=512 and doubling for each row of the
+  table.
+
+- Code:
+  #+begin_src java :dir src :tangle ../src/DoublingTest.java :noeval :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar"
+    // DoublingTest.java prints table of doubling ratios for ThreeSum.java
+    public class DoublingTest
+    {
+        // time ThreeSum
+        public static double timeTrial(int n)
+        {
+            // create static array of n elements
+            int[] a = new int[n];
+            // initialize array with uniformly random integers
+            for (int i = 0; i < n; i++)
+                a[i] = StdRandom.uniformInt(-1000000, 1000000);
+            // create a Stopwatch timer
+            Stopwatch timer = new Stopwatch();
+            // count the number of triples that add up to zero
+            int count = ThreeSum.countTriples(a);
+            // return elapsed time
+            return timer.elapsedTime();
+        }
+        // test client
+        public static void main(String[] args)
+        {
+            // stop after max time trials (input)
+            int max = Integer.parseInt(args[0]);
+            // loop over n time trials starting at 512
+            for (int n = 512; n <= max; n *= 2)
+                {
+                    double previous = timeTrial(n / 2); // time at half size
+                    double current  = timeTrial(n);  // time at full size
+                    double ratio = current / previous;
+                    StdOut.printf("%7d %4.2f\n", n, ratio);
+                }
+        }
+    }
+  #+end_src
+
+- You can compile only =DoublingTest.java= - ~javac~ finds and compiles
+  =ThreeSum.java= and =Stopwatch.java= for you automatically, because
+  =DoublingTest.java= refers to them both:
+  #+begin_src bash :results output :exports both
+    cd ../src
+    javac -cp .:stdlib.jar DoublingTest.java
+    java  -cp .:stdlib.jar DoublingTest 5000
+  #+end_src
+
+  #+RESULTS:
+  :     512 5.33
+  :    1024 7.80
+  :    2048 7.87
+  :    4096 7.79
+
+- Observation:
+  #+begin_quote
+  The ratio wobbles at small n and settles in *near* 8 by n = 1,000-2,000.
+  It is not exactly 8, and it will not match the textbook's table digit
+  for digit either (the book's own values are 6.48, 8.30, 7.75, 8.00,
+  8.05 - a single run on the authors' machine). Why:
+  - Each ratio compares two measurements from ~Stopwatch~, which counts
+    whole milliseconds; wall-clock time also picks up JIT compilation,
+    garbage collection, other processes and CPU speed changes.
+  - Every ~timeTrial~ builds a fresh random array. The work is the same
+    (all triples are checked), but the data differs from run to run.
+  - Warm-up: the first calls run in the slower interpreter before the JIT
+    compiles ~countTriples()~, which distorts the small-n rows most.
+  - The exact ratio C(2N,3)/C(N,3) = 4(2N-1)/(N-2) is itself not 8 (8.01
+    for N=1024); it only approaches 8 as N grows.
+  - The machine matters: cache sizes, clock speed and background load
+    differ from computer to computer.
+  Small deviations from 8 (a few percent) are therefore what measurement
+  noise looks like - the cubic growth is confirmed.
+  #+end_quote
+
+* Home assignment: running =DoublingTest=
+
+*DoublingTest analysis* - no code to write: you run =DoublingTest= from
+class and explain what you see. Full text: =assignments/3_doublingtest.org=.
+
+1) Compile =DoublingTest.java= in the same folder as =ThreeSum.java= and
+   =Stopwatch.java=, and run it *twice*, back to back and unchanged:
+   #+begin_example
+   java -cp .:stdlib.jar DoublingTest 8000
+   #+end_example
+
+2) Answer in a short write-up:
+   1. Why do the rows for the *smallest* =n= change so much from run to
+      run, while the rows for the *largest* =n= stay close to each other?
+   2. Why does the ratio settle near 8 once =n= is large enough?
+   3. Predict the ratio between =n=16000= and =n=32000= with
+      C(2N,3)/C(N,3) = 4(2N-1)/(N-2). Show the numbers you plugged in -
+      don't just answer "8".
+
+3) *Optional stretch:* run =DoublingTest 32000= to check your
+   prediction. The running time is cubic, so every doubling costs about
+   8x the previous one - expect this run to take a long time (~16
+   minutes on the instructor's machine).
+
+*Submit* one plain-text or Markdown file, =DoublingTest_analysis.txt=,
+with both output tables and your three answers. No =.java= file needed.
 
 * Class catalog (list)
 
@@ -435,10 +559,10 @@ Programs:
   #+end_src
 
   #+RESULTS:
-  : -rw-rw-r-- 1 aletheia aletheia 1686 Sep 17 21:31 Stopwatch.java
-  : javac 17.0.20
-  : Math.sqrt(): 6.666667e+11 (0.46 seconds)
-  : Math.pow(): 6.666667e+11 (0.47 seconds)
+  : -rw-r--r--@ 1 mbirkenkrahe  staff  1686 Sep 18 08:49 Stopwatch.java
+  : javac 17.0.20.1
+  : Math.sqrt(): 6.666667e+11 (0.05 seconds)
+  : Math.pow(): 6.666667e+11 (0.06 seconds)
 
 - =ThreeSum.java=
   #+name: ThreeSum.java
