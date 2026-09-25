@@ -1074,3 +1074,137 @@ triples summing to 0: 2
 - Because you're supposed to work on your project proposal (Fri)
 
 ** NEXT Order of growth classification
+
+* DONE W5S2: Plotting with Python and order of growth
+
+** Review (Mon)
+
+1. Why does =DoublingTest= start its loop at =n = 512= instead of at =0= or
+   =1=?
+   #+begin_quote
+   512 is a power of 2, so repeatedly doubling it gives a clean,
+   "computer-sciency" sequence: 512 (2^9), 1024 (2^10), 2048 2^11),
+   etc.  Starting at =0= or =1= wastes rows on inputs far too small to
+   measure anything meaningful.
+   #+end_quote
+
+2. Why use our own =Stopwatch= class instead of the shell's built-in
+   ~time~, which we already know how to use?
+   #+begin_quote
+   ~time~ is blunt: it also measures process start-up, JIT warm-up,
+   garbage collection, and whatever else the OS is doing - not just
+   the code we actually care about. =Stopwatch= times only the one
+   call we place it around.
+   #+end_quote
+
+3. We expect the doubling ratio to settle near *8*. Where does that
+   number come from?
+   #+begin_quote
+   =ThreeSum= checks about =C(n,3) ~ n^3/6= triples - cubic growth.
+   Doubling =n= should multiply the work (2)^3 = 8 -fold.
+   #+end_quote
+
+4. In class, one of the printed ratio showed exactly =8.00=. Why is that
+   a coincidence, not the settled value - and why do our *actual* runs
+   tend to print numbers *below* 8 at small =n= (like =3.75= or =4.67=) rather
+   than above it?
+   #+begin_quote
+   These are two separate effects, easy to mix up:
+
+   - *The exact triple-counting math* says the ratio =C(2N,3)/C(N,3)=
+     is *always slightly above 8* for any finite =N= (it only reaches
+     8 in the limit) - a fact about counting triples, with no timing
+     involved at all.
+
+   - *What we actually measure* is dominated by something much bigger:
+     fixed overhead (JIT warm-up, garbage collection, array
+     allocation) that has nothing to do with =n=. At small =n= that
+     overhead is a large fraction of the (tiny) measured time, which
+     *deflates* the ratio below 8; as =n= grows, the real =n^3= work
+     dominates the overhead and the ratio climbs up toward 8.
+
+   The overhead effect is far larger (easily 2x) than the tiny
+   (+0.3% at =n=512=) combinatorial one, which is why our plots start
+   low and rise, not the other way around. An exact =8.00= is just
+   this noisy climb landing, by chance, exactly on 8 for one run.
+   #+end_quote
+
+-> Bonus assignment: Show that the ratio 8.0 is always approached from
+   above.
+
+** Order of growth
+
+- Three layer structure to the running time problem:
+
+  1) The exact combinatorial count is C(N,3) = N(N-1)(N-2)/6.
+
+  2) Measured wall-clock time wobbles (overhead, caching).
+
+  3) Order of growth throws away everything except the leading term.
+
+* W5S3L: Order of growth shapes and Moores Law
+
+- [ ] =DoublingTest= homework assignment changed
+- [ ] How to use the textbook
+- [ ] Big ideas so far (OOP, performance)
+- [ ] Order of growth shapes
+- [ ] Classify algorithms
+- [ ] Homework assignment
+- [ ] Bonus assignment
+
+** Home work assignment change
+
+- The =DoublingTest= assignment is now an AI literacy assignment.
+- Run tests, take a guess, check with AI, reconcile your guess.
+- Submit a text file documenting the entire process and results.
+
+** How to use the textbook
+
+1) Read the textbook section before the class (skimming is OK)
+2) Attend the class and pay attention (code along if you can)
+3) Read the textbook section again after the class
+4) Bring any questions to class
+
+** Review: Big ideas so far - OOP and performance
+
+- What's the big idea of Object-Oriented Programming?
+
+  #+begin_quote
+  | Idea                                    | Implementation        | Program   |
+  |-----------------------------------------+-----------------------+-----------|
+  | Separate the state of the program (how) | ~private~ data (hidden) | =Counter=   |
+  | from the behavior of the program (what) | ~public~ methods (API)  | =Stopwatch= |
+  |-----------------------------------------+-----------------------+-----------|
+  #+end_quote
+
+  #+begin_quote
+  Separate *what* a data type does (the ~public~ API) from *how* it does it
+  (~private~ data and code). Clients depend only on the API.
+  #+end_quote
+
+- What's the big idea of Performance analysis?  
+  
+  #+begin_quote
+  | Idea                               | Implementation                  | Program      |
+  |------------------------------------+---------------------------------+--------------|
+  | Separate system you're running (a) | Time the program (aN^b)         | =Stopwatch=    |
+  | from algorithm you're using (b)    | Doubling ratio T(2N)/T(N) = 2^b | =DoublingTest= |
+  |------------------------------------+---------------------------------+--------------|
+  #+end_quote
+
+  #+begin_quote
+  - Running time grows like T(N) ~ a N^b.
+  - The *system* (machine, JVM, load) sets the constant a, the *algorithm*
+    sets the exponent b.
+  - Doubling N cancels a and leaves 2^b - so you can compare
+    algorithms without caring about the machine.
+  - Faster hardware (Moore's Law) changes a, never b.
+  #+end_quote
+
+** Homework assignment (choices)
+
+| Assignment             | Purpose                             | Time      |
+|------------------------+-------------------------------------+-----------|
+| =8_orders_of_growth.org= | Read growth off an interactive plot | 45-60 min |
+| =7_string_reversal.org=  | Prove and measure string reversal   | 60-75 min |
+| =6_faster_threesum.org=  | Make =ThreeSum= quadratic             | 1.5 hours |
