@@ -1158,13 +1158,7 @@ triples summing to 0: 2
 - Run tests, take a guess, check with AI, reconcile your guess.
 - Submit a text file documenting the entire process and results.
 
-** How to use the textbook
-
-1) Read the textbook section before the class (skimming is OK)
-2) Attend the class and pay attention (code along if you can)
-3) Read the textbook section again after the class
-4) Bring any questions to class
-
+** Update the project page: name, project title, link (for anyone)
 ** Review: Big ideas so far - OOP and performance
 
 - What's the big idea of Object-Oriented Programming?
@@ -1208,3 +1202,10 @@ triples summing to 0: 2
 | =8_orders_of_growth.org= | Read growth off an interactive plot | 45-60 min |
 | =7_string_reversal.org=  | Prove and measure string reversal   | 60-75 min |
 | =6_faster_threesum.org=  | Make =ThreeSum= quadratic             | 1.5 hours |
+** How to use the textbook
+
+1) Read the textbook section before the class (skimming is OK)
+2) Attend the class and pay attention (code along if you can)
+3) Read the textbook section again after the class
+4) Bring any questions to class
+
