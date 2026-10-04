@@ -1,0 +1,786 @@
+#+TITLE: §4.2 Searching --- A Typical Client: The Whitelist Filter
+#+AUTHOR: Marcus Birkenkrahe
+#+SUBTITLE: COSC 2230 (CS III) Fall 2026 | Augustana U.
+#+STARTUP: overview hideblocks indent entitiespretty
+#+OPTIONS: toc:1 num:1 ^:nil
+#+PROPERTY: header-args:java :dir ../src :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar" :exports both :noeval
+#+PROPERTY: header-args:bash :dir ../src :results output :exports both :noeval
+
+* Objectives
+
+Source: Sedgewick/Wayne lecture CS.11.A "SearchSort.Client".
+Book reference: /Introduction to Programming in Java/ 2e, §4.2.
+
+To understand search, we use a simple whitelist filter. We design the
+algorithm, analyze its total cost, and then run a doubling test to
+check our hypothesis.
+
+By the end of this lesson you can:
+1. explain why ~==~ fails for string comparison and use ~compareTo()~
+   (or ~equals()~)
+2. derive the ~N/2 (hit) and N (miss) compare counts for sequential
+   search
+3. explain why the whole whitelist filter workload is quadratic
+4. run a doubling test and read the exponent from the ratio
+
+* Recap and bridge
+
+- Last time (§4.1): doubling hypothesis. If T(N) ~ a N^b, then
+  T(2N)/T(N) → 2^b, so b = lg(ratio) describes our power law.
+
+- The constant =a= absorbs everything device-dependent (clock speed, JVM
+  overhead, cache behavior).
+
+- Today we apply that method to a real client: a filter that decides
+  which strings to accept. We build the model first, then test it.
+
+** Warm-up question
+
+/How would you check whether a name is on a list of 1 million names?/
+
+*** Answer                                                             :skip:
+
+#+begin_quote
+Scenario (hotel):
+
+- "Go through the list one at a time until you find it or reach the
+  end." → sequential (linear) search --- today's topic. Hotel
+  analogy: a front-desk clipboard of reservations in booking order;
+  find "Smith" by reading down the list one line at a time.
+
+- "Sort the names first, then narrow down." → previews binary search
+  (later in §4.2). Hotel analogy: a guest book sorted alphabetically
+  by last name; open near the middle, then narrow to the half where
+  "Smith" must be.
+
+- "Put them in a hash table / dictionary for instant lookup." →
+  previews hashing (later in the course). Hotel analogy: numbered
+  pigeonholes at the front desk --- room 314's mail sits straight in
+  pigeonhole 314, no scanning.
+#+end_quote
+
+* The problem: whitelist filter
+
+** Blacklists and whitelists
+
+- *Blacklist*: entities to be *rejected* (overdrawn accounts, spammers).
+
+- *Whitelist*: entities to be *accepted* (accounts in good standing,
+  friends and relatives).
+
+- A whitelist must be complete.
+
+- A blacklist only needs to catch bad actors.
+
+** The filter: an email example
+
+- *Filter:* read the whitelist from a file; read strings from ~StdIn~;
+  write to ~StdOut~ only those on the whitelist.
+- The blacklisted emails are rejected.
+- The whitelisted emails are accepted.
+
+*** Question: When would you use a whitelist rather than a blacklist?
+
+**** Answer                                                           :skip:
+
+#+begin_quote
+- *Whitelist* = "default deny": use when the good set is small and known
+  and a false accept is costly. Examples: firewall allowing only
+  certain IPs/ports, corporate application control (only approved
+  programs run), input validation (allowed characters/file types),
+  parental controls, badge readers, approved merchants.
+- *Blacklist* = "default allow": use when the good set is huge or
+  open-ended (spam filters, ad blockers).
+- *Punchline:* a whitelist *fails safe* (unknown → rejected), a blacklist
+  *fails open* (new threat → accepted).
+- Terminology: many style guides (NIST, Google, Linux kernel) now use
+  *allowlist/denylist*. You will see both.
+#+end_quote
+
+* Code-along: client and sequential search
+
+- Building a test client with input data and test data
+- Comparing strings to identify a key in a string array
+- Interned vs. non-interned literals
+
+** The client
+
+- We store the test strings in an array, and then search the array for
+  the presence of a key.
+
+- The client needs only a contract: a method ~search(key, a)~ returns
+  the index of ~key~ in ~a~, or -1 if absent.
+
+- Below, ~search()~'s body is left as a placeholder --- the implementation
+  comes next. This is the client/implementation separation from Ch. 3.
+
+- Code:
+  #+begin_example java
+  // WhiteFilter.java - accept only strings on the whitelist
+  public class WhiteFilter
+  {
+      // method that tells us if the key is in the array a
+      public static int search(String key, String[] a)
+      {
+        // implementation
+      }
+      // test client
+      public static void main(String[] args)
+      {
+          // read text from a named source (whitelist)
+          In in = new In(args[0]);
+          // read all strings from source into an array
+          String[] words = in.readAllStrings();
+          // loop while stdin is not empty
+          while (!StdIn.isEmpty())
+            {
+                // next candidate key from StdIn (test data)
+                String key = StdIn.readString();
+                // search through array to find key
+                if (search(key, words) != -1)
+                    // search did succeed - print key
+                    StdOut.println(key);
+            }
+      }
+  }
+  #+end_example
+
+- Remind yourself of the ~In~ class ([[https://introcs.cs.princeton.edu/java/stdlib/In.java.html][source]]), which reads various types
+  from standard input, files, and URLs.
+
+- The method ~In.readAllStrings~ reads all tokens from an input stream and
+  returns them as an array of ~String~ objects.
+
+- The method ~StdIn.readString~ ([[https://introcs.cs.princeton.edu/java/stdlib/StdIn.java.html][source]]) reads the next token from stdin
+  and returns it as a ~String~.
+
+- Both ~In~ and ~StdIn~ are built on ~java.util.Scanner~.
+
+- What's a token?
+  #+begin_quote
+  A *token* is a run of non-whitespace characters. Spaces, tabs and
+  newlines count as separators, and runs of several whitespace
+  characters count as one separator.
+  #+end_quote
+
+** Test data
+
+- Whitelisted emails:
+  #+begin_src text :tangle ../src/white4.txt
+    alice@home
+    bob@office
+    carl@beach
+    dave@boat
+  #+end_src
+
+- Test emails (could contain whitelisted emails):
+  #+begin_src text :tangle ../src/test.txt
+    bob@office
+    carl@beach
+    marvin@spam
+    bob@office
+    bob@office
+    mallory@spam
+    dave@boat
+    eve@airport
+    alice@home
+  #+end_src
+
+  On the whitelist: lines 1, 2, 4, 5, 7 and 9 (six accepted lines).
+
+- Get the test files from the web as raw .txt and download them to
+  your java working directory:
+  + [[https://tinyurl.com/2230-white4-text][tinyurl.com/2230-white4-text]]
+  + [[https://tinyurl.com/2230-test-txt][tinyurl.com/2230-test-txt]]
+
+- How many tokens does =white4.txt= contain?
+  #+begin_quote
+  The file contains four tokens. Trailing newlines aren't counted.
+  #+end_quote
+
+** First try: the buggy version
+
+Type this version first and run it. Predict the output before you do.
+
+#+begin_src java
+  // WhiteFilter.java - accept only strings on the whitelist
+  public class WhiteFilter
+  {
+      // method that tells us if the key is in the array a
+      public static int search(String key, String[] a)
+      {
+        // loop over the whole array
+          for (int i = 0; i < a.length; i++)
+            // if array element is the key, return index
+              if (a[i] == key) return i;
+        // if key is not found, return -1
+          return -1;
+      }
+      // test client
+      public static void main(String[] args)
+      {
+          // read text from a named source (whitelist)
+          In in = new In(args[0]);
+          // read all strings from source into an array
+          String[] words = in.readAllStrings();
+          // loop while stdin is not empty
+          while (!StdIn.isEmpty())
+            {
+                // next candidate key from StdIn (test data)
+                String key = StdIn.readString();
+                // search through array to find key
+                if (search(key, words) != -1)
+                    // search did succeed - print key
+                    StdOut.println(key);
+            }
+      }
+  }
+#+end_src
+
+How should we run this program?
+
+- =In(args[0])= opens a source of data from the command line
+- =in.readAllStrings()= reads the tokens from the input stream and
+  stores them in an array of strings, =words=
+- =StdIn.readString()= reads one token from stdin and returns a string,
+  =key=
+
+*** Answer                                                             :skip:
+
+#+begin_example sh
+java WhiteFilter white4.txt < test.txt
+                 args[0]      stdin
+#+end_example
+
+Run it in the terminal:
+
+#+begin_src bash
+  cd ../src
+  javac -cp .:stdlib.jar WhiteFilter.java
+  java -cp .:stdlib.jar WhiteFilter white4.txt < test.txt
+#+end_src
+
+Output: nothing. No string is ever "found". What's going on?
+
+** Question: Why doesn't it find anything?
+
+*** Answer                                                             :skip:
+
+- ~==~ on reference types compares *references* (memory addresses),
+  not character sequences. ~words[i]~ and ~key~ are different ~String~
+  objects that happen to hold the same characters.
+
+- Arrays and strings are reference types: they store references
+  (pointers), not values.
+
+- With string *literals*, ~==~ can appear to work, because Java
+  interns literals. The bug shows up here only because both strings are
+  read at runtime from a file and from ~StdIn~.
+
+  #+begin_src java
+    String a = "cat";
+    String b = "cat";
+    System.out.println(a == b); // true  - interned literals, same object
+
+    String c = new String("cat");
+    System.out.println(a == c); // false - same characters, different object
+  #+end_src
+
+** The fix
+
+Re-run: the output matches the six accepted lines above.
+
+#+name: WhiteFilter
+#+begin_src java :tangle ../src/WhiteFilter.java
+  // WhiteFilter.java - accept only strings on the whitelist
+  public class WhiteFilter
+  {
+      // method that tells us if the key is in the array a
+      public static int search(String key, String[] a)
+      {
+        // loop over the whole array
+          for (int i = 0; i < a.length; i++)
+            // if array element is the key, return index
+              if (a[i].equals(key)) return i;
+        // if key is not found, return -1
+          return -1;
+      }
+      // test client
+      public static void main(String[] args)
+      {
+          // read text from a named source (whitelist)
+          In in = new In(args[0]);
+          // read all strings from source into an array
+          String[] words = in.readAllStrings();
+          // loop while stdin is not empty
+          while (!StdIn.isEmpty())
+            {
+                // next candidate key from StdIn (test data)
+                String key = StdIn.readString();
+                // search through array to find key
+                if (search(key, words) != -1)
+                    // search did succeed - print key
+                    StdOut.println(key);
+            }
+      }
+  }
+#+end_src
+
+Testing:
+
+#+begin_src bash
+  cd ../src
+  javac -cp .:stdlib.jar WhiteFilter.java
+  java -cp .:stdlib.jar WhiteFilter white4.txt < test.txt
+#+end_src
+
+#+RESULTS:
+: bob@office
+: carl@beach
+: bob@office
+: bob@office
+: dave@boat
+: alice@home
+
+** From ~==~ to =String.equals(String)= or =.compareTo=
+
+#+begin_example java
+  if (a[i].compareTo(key) == 0) return i;
+  if (a[i].equals(key)) return i;
+#+end_example
+
+- ~a[i].equals(key)~ is the idiomatic equality test and works equally
+  well here.
+
+- Sedgewick uses ~compareTo()~ because binary search (next) needs
+  ordering (less / equal / greater), not only equality. We introduce
+  ~compareTo()~ now so it is familiar.
+
+* Theory: mathematical model
+
+Why mathematical analysis?
+
+#+begin_quote
+Before going into production with a program, we need to estimate the
+total cost. This is followed by an empirical (doubling) test to
+confirm (or deny) our hypothesis.
+#+end_quote
+
+** Model
+
+- Distinguish between *workload* (transactions) and the *cost* per search.
+
+- The total time = (number of searches) x (cost per search)
+
+- N strings on the whitelist.
+
+- Number of searches first: cN transactions for a constant c. This is
+  an *assumption about the workload* (more customers → more traffic),
+  not something derived from ~search()~.
+
+- For example, a business could have N = 1,000 whitelisted email
+  accounts but 5,000 login attempts daily: c = 5
+
+- Assumption: string length not long, L << N, so each ~compareTo()~
+  costs about constant time. That lets us use *number of compares* as
+  the *cost model*.
+
+- What if string length was long?
+  #+begin_quote
+  ~compareTo()~ would no longer cost constant time - it costs time
+  proportional to how many characters it has to check before finding a
+  difference (up to string length L). Our cost model would have to
+  include the factor L.
+  #+end_quote
+
+** Two kinds of search (definitions)
+
+- The search algorithm we implemented is completely deterministic: it
+  always scans each index until it finds something or falls off the end.
+
+- For the purpose of average-case analysis, we need weights: the cost
+  of search depends on the input - 1 compare if the key is first, N
+  compares if the key is last.
+
+- To average those costs you have to say how likely each input is:
+  that's a *probability distribution*, and the average-case cost is an
+  *expected value*: E[compares] = \sum P(key at position i) * i - a
+  weighted sum.
+
+- There are two interesting cases:
+  1. *Random search hit*: the key IS on the whitelist, and each of the N
+     entries is equally likely to be the key (probability 1/N).
+  2. *Random search miss*: the key is NOT on the whitelist (e.g., the
+     spam address, which cannot be found among the allowed addresses).
+
+** Question: How many compares does a random search hit need on average?
+
+| Key at position | Compares |
+|-----------------+----------|
+| 1               | 1        |
+| 2               | 2        |
+| ...             | ...      |
+| N               | N        |
+
+*** Answer                                                             :skip:
+
+- Simple example: N = 4
+  #+begin_example
+  Compare counts at each slot: 1, 2, 3, 4
+  Sum = 1 + 2 + 3 + 4 = 10
+  Average = sum / N = 10 / 4 = 2.5
+
+  The average is the sum of all outcome values / number of outcomes
+  (same as multiplying with the probability for one single outcome)
+  #+end_example
+
+- Each position has probability 1/N, so the expected value (average
+  number of compares, or weighted average of the compare count) is:
+  #+attr_html: :width 400px :float nil:
+  [[../img/expected_value.png]]
+
+  \[ \frac{1}{N}\sum_{i=1}^{N} i = \frac{1}{N}\cdot\frac{N(N+1)}{2} = \frac{N+1}{2} \sim \frac{N}{2} \]
+
+- Common mistakes:
+
+  + Gauss gives the *sum* N(N+1)/2. The *average* is the sum divided by N
+    (multiplied by 1/N, not divided by 1/N).
+
+  + Write ~N/2 (tilde notation keeps the constant), not "O(N/2)".
+    Big-O drops constants, so it would just be O(N). Without the
+    constant, you cannot actually predict the number of compares.
+
+  + The ~N/2 figure depends on the uniform assumption. If searched
+    keys cluster near the front of the list, hits are cheaper; near
+    the back, more expensive.
+
+- The Gauss pairing trick again: write the sum forwards and backwards,
+  then add:
+  #+attr_html: :width 400px :float nil:
+  [[../img/gauss1.png]]
+  #+attr_html: :width 400px :float nil:
+  [[../img/gauss2.png]]
+
+** Question: Why does a search miss check all N strings?
+
+A search miss means that the key is not found. Look at the code:
+
+#+begin_src java
+  for (int i = 0; i < a.length; i++)
+      if (a[i].compareTo(key) == 0) return i;   // only early exit
+  return -1;
+#+end_src
+
+*** Answer                                                             :skip:
+
+- The only early exit fires on a match. On a miss, no compare ever
+  matches, so the loop runs to completion: exactly N compares, then
+  ~return -1~. (It does return, just not early.)
+
+- There is no averaging and no probability involved here.
+
+- Deeper reason: in an *unsorted* array, after N−1 unsuccessful checks
+  the last entry could still be the key. You can't say "not here"
+  until you've looked everywhere.
+
+- Sedgewick says "on average" for the miss, but the miss cost doesn't
+  vary: it is exactly N every time.
+
+- Teaser: in a *sorted* array you could stop early. That's the idea
+  behind binary search.
+
+- Book connection: the book's exception filter in §4.2 prints the keys
+  that are *not* on the whitelist, so every line it prints is a miss
+  that paid the full N.
+
+** Question: Each search is linear. Why is the running time quadratic?
+
+*** Answer                                                             :skip:
+
+N appears twice:
+1. cost per search ~ N/2 (hit) to N (miss): linear in N
+2. number of searches = cN: also linear in N
+
+Total = cN × ~N = ~cN^2.
+
+- With a *fixed* number M of transactions, the total would be ~MN,
+  which is linear in N. The quadratic comes from traffic growing with
+  the whitelist.
+- Doubling N means twice as many searches, each twice as long:
+  2 × 2 = 4. That's the prediction for the doubling test.
+
+** Constant vs. notation distinction
+
+- This lesson uses two unrelated constants, and it's easy to reach
+  for the wrong one.
+
+  1) The constant c in cN transactions is a *workload* assumption: it
+     says the number of incoming searches scales with the whitelist
+     size N, with c just the traffic-to-list ratio (e.g. 5000
+     transactions against a 1000-entry whitelist gives c = 5).
+
+  2) The constant a in the doubling-hypothesis form T(N) ~ aN^b is
+     a *hardware* fact: it absorbs machine speed when converting operation
+     counts into wall-clock seconds, and it cancels out of the
+     doubling ratio T(2N)/T(N).
+
+- Neither has anything to do with why we write ~N/2 instead of
+  "O(N/2)" for the search-hit cost - that's a choice of *notation*, not
+  a constant in a model.
+
+- Big-O only bounds the *order* of growth and discards multiplicative
+  constants, so N/2 and 100N are both O(N); that's fine for
+  classifying an algorithm's growth class, but useless for predicting
+  an actual compare count.
+
+- Tilde notation keeps the leading constant, so ~N/2 lets us say
+  something a plain O(N) can't: a hit costs about half of what a miss
+  costs, and that difference is exactly what the doubling test later
+  confirms empirically.
+
+* Code-along: random input generator
+
+- We build a random input generator.
+- The generator builds one random string by picking characters from an
+  input string, e.g. length 3 from 'abc': aaa, aab, aac...etc.
+- The main program calls the generator N times to produce a whitelist
+  of input size N.
+- We need that for our doubling test for small and large values of N.
+- We reuse this program for binary search, insertion sort and
+  mergesort later on.
+
+** Generator
+
+Start by coding the client program first.
+
+#+begin_src java :tangle ../src/Generator.java
+  // Generator.java - draw random strings from alphabet
+  public class Generator
+  {
+      // random string of length L drawn from alpha
+      public static String randomString(int L, String alpha)
+      {
+          // allocate an array to hold L characters, one per position
+          char[] a = new char[L];
+          // fill array positions 0 through L-1
+          for (int i = 0; i < L; i++)
+            {
+                // pick a random index into alpha
+                int t = StdRandom.uniformInt(alpha.length());
+                // copy the character at that random index into slot i
+                a[i] = alpha.charAt(t);
+            }
+          // build and return a string from the filled char array
+          return new String(a);
+      }
+
+      public static void main(String[] args)
+      {
+          int N = Integer.parseInt(args[0]);      // how many strings
+          int L = Integer.parseInt(args[1]);      // length of each string
+          String alpha = args[2];                 // alphabet to draw from
+          for (int i = 0; i < N; i++) // generate and print N strings
+              StdOut.println(randomString(L, alpha));
+      }
+  }
+#+end_src
+
+Run it: 
+#+begin_src bash
+  cd ../src
+  javac -cp .:stdlib.jar Generator.java
+  java -cp .:stdlib.jar Generator 10 3 abc # 10 strings of length 3 from `abc`
+  echo "---"
+  java -cp .:stdlib.jar Generator 15 8 0123456789 # 15 strings of length 8 from [0-10]
+  echo "---"
+  java -cp .:stdlib.jar Generator 1 60 actg # 1 string of length 60 from ACTG
+#+end_src
+
+#+RESULTS:
+#+begin_example
+aab
+bba
+cab
+cba
+aaa
+cba
+baa
+aac
+cbb
+abb
+---
+07421120
+97965545
+84171183
+76029945
+09014092
+09500057
+85226295
+30155004
+21821988
+04861500
+61061560
+88208240
+05665345
+11987902
+62511009
+---
+tgtaccagtagggactcttatgttccgagggccatttcttggggaggatctagaaactac
+#+end_example
+
+Why write it at all? The JDK has random *numbers* but no random
+string from a given alphabet. We reuse this generator for binary
+search, insertion sort, mergesort, and the genomics example (LRS)
+later in §4.2.
+
+** Duplicates
+
+ Why are duplicates likely in the first run but not the second?
+ 
+- Possible strings = |alphabet|^L:
+
+  + 3 characters, length 3: 3^3 = 27 possible strings. Drawing 10
+    gives about an 85% chance of at least one duplicate:
+    #+attr_html: :width 600px :float nil:
+    [[../img/birthday.png]]
+
+    With 10 draws, the product has 10 factors and the last is 27-9=18.
+
+  + 10 digits, length 8: 10^8 = 100 million. Drawing 15 gives
+    essentially no chance of a duplicate.
+
+- Why it matters: some search/sort algorithms perform differently
+  depending on the duplicate rate. The generator lets us control it.
+
+- This will come back when we talk about hashing and hash tables: hash
+  collisions are exactly the birthday-paradox math. A hash table with
+  M buckets and n keys starts seeing collisions once n approaches
+  \sqrt{M}.
+
+- In our example: M is the number of possible strings, and n is the
+  number of strings drawn.
+
+* Whitelist filter scenario: doubling test
+
+- We build a test client that runs 10 * N searches (c = 10).
+
+- Keys are drawn from the whitelist (every search is a hit) and there
+  is no output except the time.
+
+- This measures the ~N/2 case (we don't have to require keys not in
+  the whitelist).
+
+** Test client
+
+- =TestSS.java= can only produce hits: the 10N searches all pay the
+  N/2 average cost.
+
+- The doubling happens later, when we run the test client!
+
+#+name: TestSS.java
+#+begin_src java :tangle ../src/TestSS.java
+  public class TestSS
+  {
+      // sequential search
+      public static int search(String key, String[] a)
+      {
+          // loop over the whole array
+          for (int i = 0; i < a.length; i++)
+              // if array element matches the key, return its index
+              if (a[i].compareTo(key) == 0) return i;
+          // if key is not found, return -1
+          return -1;
+      }
+
+      public static void main(String[] args)
+      {
+          // read the whitelist from stdin into an array
+          String[] words = StdIn.readAllStrings();
+          // N is the size of the whitelist
+          int N = words.length;
+          // record the start time, in seconds
+          double start = System.currentTimeMillis() / 1000.0;
+          // run 10N searches total - c = 10, so workload scales with N
+          for (int i = 0; i < 10*N; i++)
+            {
+                // pick a key at random from the whitelist itself - always a hit
+                String key = words[StdRandom.uniformInt(N)];
+                // this should never print - every search must find its key
+                if (search(key, words) == -1)
+                    StdOut.println(key);
+            }
+          // record the end time
+          double now = System.currentTimeMillis() / 1000.0;
+          // report total elapsed time for all 10N searches
+          StdOut.printf("%.2f seconds%n", now - start);
+      }
+  }
+#+end_src
+
+** Run it
+
+Each doubling of N should multiply the time by about 4.
+
+#+begin_src bash
+  javac -cp .:stdlib.jar TestSS.java
+  AZ=abcdefghijklmnopqrstuvwxyz
+  for N in 5000 10000 20000 40000; do
+      echo -n "N=$N: "
+      java -cp .:stdlib.jar Generator $N 10 $AZ | java -cp .:stdlib.jar TestSS
+  done
+#+end_src
+
+#+RESULTS:
+: N=5000: 0.22 seconds
+: N=10000: 0.78 seconds
+: N=20000: 2.95 seconds
+: N=40000: 11.87 seconds
+
+** Read the table
+
+Measurements:
+
+| N         | T_N (s) | T_N / T_{N/2} |
+|-----------+---------+------------|
+| 10,000    |       3 |            |
+| 20,000    |       9 |            |
+| 40,000    |      35 |        3.9 |
+| 80,000    |     149 |        4.3 |
+| ...       |         |            |
+| 1.28 mill |  38,500 |          4 |
+
+- Ratio → 4, so b = lg 4 = 2. The quadratic hypothesis is confirmed.
+- Extrapolation: 80,000 → 1.28 million is 4 doublings, so
+  149 × 4^4 ≈ 38,000 s, more than 10.5 hours.
+- *Does not scale.*
+
+** Practice: what would change for all misses?
+
+*** Answer                                                             :skip:
+
+- Every search would cost N instead of ~N/2, so the total is ~10N^2
+  instead of ~5N^2. Times roughly double.
+
+- The ratio would still be ~4: the order of growth is unchanged.
+
+- Try it: feed ~TestSS~ keys from a second, independent ~Generator~ run
+  (requires a small modification to read keys separately from the
+  whitelist).
+
+* Interactive companion
+
+- [[https://birkenkrahe.github.io/demos/sequential-search.html][birkenkrahe.github.io/demos/sequential-search.html]]: trace one
+  search (with the ~==~ toggle), average cost of 1,000 random hits or
+  misses, doubling test counting compares.
+- No setup, no code: just open it and click.
+
+* Summary
+
+- The client stays the same; the ~search()~ implementation determines
+  whether the filter scales.
+
+- Model (~cN^2) + experiment (ratio 4) = confidence in the prediction.
+
+- Sequential search can't stop early because the array is unsorted.
+  Next: *binary search* on a sorted array, ~lg N compares per search,
+  so ~N lg N total. It scales.
