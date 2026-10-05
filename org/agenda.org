@@ -1400,13 +1400,49 @@ Artifacts:
 * W7S1: Sequential Search III: WhiteFilter doubling test / binary search
 
 - [ ] Review: cost of search (5)
-- [ ] WhiteFilter doubling test (30)
+- [ ] WhiteFilter doubling test (25)
 - [ ] Peer practice (10)
 - [ ] Interactive companion (5)
+- [ ] Checkout question (5)
+
+** LEQ feedback
+
+Thank you - 21 of 25 of you responded, and the feedback was
+excellent and useful.
+
+*What you value*
+- Assignments and projects (86% found them beneficial)
+- Code-alongs (15 of 18 found them helpful)
+- Recordings and transcripts, Google Meet screen sharing
+- Real-world relevance and the open use of AI
+
+*What you'd like to see improved - and my response
+
+1. *Lecture focus and pace* - some find lectures drift off track,
+   some find them slow, others find them fast.
+   
+   → I'll keep side topics shorter and mark them as optional.
+
+2. *Purpose of code-alongs* - the goal isn't always clear.
+
+   → Each code-along already starts with what the program does.
+   I'll add what you should *learn* from it.
+
+3. *More hands-on and group work in class*
+
+   → I'll try short pair exercises after some code-alongs.
+
+4. *Clearer assignment prompts*
+
+   → I'm adding sample input/output and make prompts shorter. If a
+   prompt is still unclear, ask me in class or on Google Chat.
+
+[And yes, I know about the computer under the table. Mind your knees!]
 
 ** Review question: Mathematical analysis
 
-Can you explain the individual terms and the meaning of:
+Can you explain the individual terms and the meaning of this formula
+when applied to the whitelist example?
 
 cN * ~N = ~cN^{2}
 
@@ -1424,9 +1460,9 @@ cN * ~N = ~cN^{2}
 
 ** Review question: Counting compares in sequential search
 
-The method below is called once for each of the keys "d", "x", "a",
-"y", in that order, with the array a = {"a", "b", "c", "d"}. How
-many calls to equals() do the four searches make in total?
+The method below is called for the keys "c", "x", "a", in that order,
+with the array a = {"a", "b", "c", "d"}. How many calls to equals() do
+the three searches make in total?
 
 #+begin_src java
   public static int search(String key, String[] a)
@@ -1441,25 +1477,19 @@ many calls to equals() do the four searches make in total?
 
 | Key | Result      | equals() calls |
 |-----+-------------+----------------|
-| "d" | hit at a[3] |              4 |
+| "c" | hit at a[2] |              3 |
 | "x" | miss        |              4 |
 | "a" | hit at a[0] |              1 |
-| "y" | miss        |              4 |
 |-----+-------------+----------------|
-|     | Total       |             13 |
+|     | Total       |              8 |
 
 - A hit stops at the first match: a key at index i costs i + 1
   compares.
 - A miss has no early exit: it checks all N = 4 entries, then
   returns -1.
-- Common wrong answers:
-  + 16: every search counted as a full pass.
-  + 5: misses forgotten (hits only).
-  + 8: N/2 used for every key. N/2 is the average for a random hit
-    only; a miss always costs exactly N.
-- Takeaway: a search's cost depends on whether it hits or misses.  The
-  ~N/2 average applies only to hits that are equally likely to be
-  anywhere in the list.
+- A search's cost depends on whether it hits or misses.  The ~N/2
+  average applies only to hits that are equally likely to be anywhere
+  in the list.
 - This is a totally deterministic process. We only bring in random
   numbers to simulate averages for large values of N.
 
