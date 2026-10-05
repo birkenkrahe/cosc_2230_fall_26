@@ -1066,7 +1066,7 @@ triples summing to 0: 2
 ** Doubling Hypothesis
 
 - I added a "silent" lecture script: on how to count triples
-  
+
 - Assignment until Wednesday: explore the doubling hypothesis
 
 - No programming assignment this week (except new bonus ones)
@@ -1130,7 +1130,7 @@ triples summing to 0: 2
    #+end_quote
 
 -> Bonus assignment: Show that the ratio 8.0 is always approached from
-   above.
+above.
 
 ** Order of growth
 
@@ -1175,8 +1175,8 @@ triples summing to 0: 2
   (~private~ data and code). Clients depend only on the API.
   #+end_quote
 
-- What's the big idea of Performance analysis?  
-  
+- What's the big idea of Performance analysis?
+
   #+begin_quote
   | Idea                               | Implementation                  | Program      |
   |------------------------------------+---------------------------------+--------------|
@@ -1227,19 +1227,19 @@ triples summing to 0: 2
 
 - *Strong motivation*. You're building something you'll actually use,
   for training you do every day. Personal stake gives energy.
-  
+
 - *Good domain for this course*. Workouts, sets, blocks, and cycles map
   naturally onto data structures (arrays, lists, maps, time series).
-  
+
 - *Rethink the AI piece.* You won't be "training" an agent and you may
   not need one for the core: Classifying workouts by energy system and
   comparing them to a periodization plan can be done with explicit
   rules, which you can build and test. AI can come later as an add-on
   (e.g. to expalin the score in plain English, generate visuals etc).
-  
+
 - *Define "how well you're training."* Pin down a concrete metric you
   can compute. That will make everything else sharper.
-  
+
 - *Housekeeping*. Links are not references. Add an AI-use
   statement. Contact coaches about the team's programs.
 
@@ -1259,7 +1259,7 @@ triples summing to 0: 2
   Dijkstra, A* = next course. You'll be learning them yourselves.
 - *Strong risk analysis* (software engineering concerns).
 - *Exemplary AI disclosure and references*. Complete, consistent, and
-  verified. 
+  verified.
 - *Answers:*
   1. Java GUI framework: Swing ships with JDK, consider StdDraw
   2. Java libraries or from scratch: Use libraries freely.
@@ -1275,7 +1275,7 @@ triples summing to 0: 2
   web development. The DS&A core is there though[fn:2]
 - Scope down hard. Drop the web stack, authentication, image uploads,
   and messaging for now. 1: console program in Java, sort listings by
-  price or date, keyword search with Java's HashMap. 
+  price or date, keyword search with Java's HashMap.
 - Check facts. Verify the university's email domains, and complete the
   references, including the AI tools.
 
@@ -1343,7 +1343,7 @@ triples summing to 0: 2
   9. Personalization can quietly bias reconciliation.
   10. Know what you're asking an AI to remember, and why.
   #+end_quote
-  
+
 ** A typical search client: Whitelist filter
 
 1. [X] The problem: whitelist filter
@@ -1364,11 +1364,11 @@ Artifacts:
 - [[https://claude.ai/artifact/XXSrMo9PfWDCv2H9gsFoQf][Slide deck (Claude slides)]]
 - [[https://gist.github.com/birkenkrahe/6a61ee8be48d68cda4331070a8f2fb19][Code-along (gist)]]
 
-* W6S3: Sequential Search II / Binary Search I
+* DONE W6S3: Sequential Search II
 
-- [ ] All quizzes are open -> midterm exam
-- [ ] Review quiz - midterm exam teaser
-- [ ] Sequential search II
+- [X] All quizzes are open -> midterm exam
+- [X] Review quiz - midterm exam teaser
+- [X] Sequential search II - Random String Generation
 
 ** Quizzes reopened -> midterm exams
 
@@ -1397,6 +1397,102 @@ Artifacts:
 
 - Bonus: Compare =WhiteFilter.java= and =TestSS.java= systematically.
 
+* W7S1: Sequential Search III: WhiteFilter doubling test / binary search
+
+- [ ] Review: cost of search (5)
+- [ ] WhiteFilter doubling test (30)
+- [ ] Peer practice (10)
+- [ ] Interactive companion (5)
+
+** Review question: Mathematical analysis
+
+Can you explain the individual terms and the meaning of:
+
+cN * ~N = ~cN^{2}
+
+*** Answer
+
+- N is the *size* of the whitelist: the number of entries each search
+  looks through.
+- c is a *constant*: the number of searches per whitelist entry
+- cN is the number of *searches* (transactions, keys read from ~StdIn~)
+- ~N is the number of *compares* per search: ~N/2 for a random hit,
+  exactly N for a random miss
+- ~cN^{2} is the *total cost* of the whole whitelist filter (all cN
+  searches), counted in compares, between ~cN^{2}/2 (all hits) and cN^{2}
+  (all misses).
+
+** Review question: Counting compares in sequential search
+
+The method below is called once for each of the keys "d", "x", "a",
+"y", in that order, with the array a = {"a", "b", "c", "d"}. How
+many calls to equals() do the four searches make in total?
+
+#+begin_src java
+  public static int search(String key, String[] a)
+  {
+      for (int i = 0; i < a.length; i++)
+          if (a[i].equals(key)) return i;
+      return -1;
+  }
+#+end_src
+
+*** Answer
+
+| Key | Result      | equals() calls |
+|-----+-------------+----------------|
+| "d" | hit at a[3] |              4 |
+| "x" | miss        |              4 |
+| "a" | hit at a[0] |              1 |
+| "y" | miss        |              4 |
+|-----+-------------+----------------|
+|     | Total       |             13 |
+
+- A hit stops at the first match: a key at index i costs i + 1
+  compares.
+- A miss has no early exit: it checks all N = 4 entries, then
+  returns -1.
+- Common wrong answers:
+  + 16: every search counted as a full pass.
+  + 5: misses forgotten (hits only).
+  + 8: N/2 used for every key. N/2 is the average for a random hit
+    only; a miss always costs exactly N.
+- Takeaway: a search's cost depends on whether it hits or misses.  The
+  ~N/2 average applies only to hits that are equally likely to be
+  anywhere in the list.
+- This is a totally deterministic process. We only bring in random
+  numbers to simulate averages for large values of N.
+
+** Checkout question
+
+- Sequential search can't stop early: a miss checks all N entries.
+- Suppose the whitelist was SORTED alphabetically:
+  1) Where would you look first?
+  2) How many compares would a miss need for N = 1,000,000?
+
+*** Answer
+
+1) *In the middle.* Either it's the middle, or it's in the lower or the
+   upper half. Either way, compares drop by a factor 2.
+
+2) *At most 20.* Each compare halves its interval:
+   #+begin_example
+   1,000,000 -> 500,000 -> 250,000 -> ... -> 1 -> empty.
+   #+end_example
+   We're looking for the power to which you raise 2 to get 1 mio. The
+   number of compares is how often you can halve N, plus one for the
+   last entry: =floor(lg N) + 1=:
+   #+begin_src java :dir src
+     int n = 1000000;
+     // Java has no lg so convert using the change-of-base rule:
+     System.out.println((int)(Math.log(n) / Math.log(2)) + 1);
+   #+end_src
+
+   #+RESULTS:
+   : 20
+
+
+* W7S2: Binary search
 * Footnotes
 
 [fn:4] "Interned" means the JVM keeps a single shared copy of a string

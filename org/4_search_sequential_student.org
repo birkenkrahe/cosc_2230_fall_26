@@ -756,16 +756,12 @@ Measurements:
 
 ** Practice: what would change for all misses?
 
-*** Answer                                                             :skip:
+- *Task (10 min):* Copy =TestSS.java= to =TestSSMiss.java= (rename the class
+  too). Change the program so that EVERY search is a miss. You decide
+  how. Then prove it: make the program count the hits and print the
+  count. It must be 0. (Only go to 20,000).
 
-- Every search would cost N instead of ~N/2, so the total is ~10N^2
-  instead of ~5N^2. Times roughly double.
-
-- The ratio would still be ~4: the order of growth is unchanged.
-
-- Try it: feed ~TestSS~ keys from a second, independent ~Generator~ run
-  (requires a small modification to read keys separately from the
-  whitelist).
+- Answer: in the class.
 
 * Interactive companion
 
@@ -774,13 +770,96 @@ Measurements:
   misses, doubling test counting compares.
 - No setup, no code: just open it and click.
 
+* Checkout question
+
+- Sequential search can't stop early: a miss checks all N entries.
+- Suppose the whitelist was SORTED alphabetically:
+  1) Where would you look first?
+  2) How many compares would a miss need for N = 1,000,000?
+
 * Summary
 
-- The client stays the same; the ~search()~ implementation determines
-  whether the filter scales.
+- *Client vs. implementation.* The client (=WhiteFilter=, =TestSS=)
+  stays the same; the ~search()~ implementation decides whether the
+  filter scales.
 
-- Model (~cN^2) + experiment (ratio 4) = confidence in the prediction.
+- *Strings.* ~==~ compares references, not characters. Use ~equals()~,
+  or ~compareTo()~, which also tells you the order (smaller, equal,
+  larger) - binary search will need that.
 
-- Sequential search can't stop early because the array is unsorted.
-  Next: *binary search* on a sorted array, ~lg N compares per search,
-  so ~N lg N total. It scales.
+- *Cost model.* We count compares. A random search hit costs ~N/2
+  compares on average; a search miss costs exactly N, because an
+  unsorted array allows no early exit.
+
+- *Workload.* cN searches x ~N compares each = ~cN^2 in total (between
+  ~cN^2/2 for all hits and cN^2 for all misses): quadratic.
+
+- *Experiment.* The doubling test confirms it: ratio -> 4, so b = lg 4
+  = 2. Sedgewick's extrapolation: 1.28 million entries would take more
+  than 10 hours. Sequential search does not scale.
+
+- *All misses.* The ratio stays ~4 (same order of growth), but the
+  times double (constant 1 instead of 1/2). Tilde notation keeps that
+  constant; big-O would hide it.
+
+- *Benchmark discipline.* A test should check its own premise: the hit
+  counter in =TestSSMiss= must print 0.
+
+- *Next: binary search.* On a sorted array, each compare halves the
+  interval: at most floor(lg N) + 1 compares per search (20 for N =
+  1,000,000), so ~cN lg N in total. It scales.
+
+* Glossary
+
+| Term                 | Definition                                           |
+|----------------------+------------------------------------------------------|
+| allowlist / denylist | newer names for whitelist / blacklist, used by many  |
+|                      | style guides (NIST, Google, Linux kernel).           |
+| benchmark            | a program that measures the running time of other    |
+|                      | code, like =TestSS=.                                   |
+| big-O notation       | an upper bound on the order of growth that drops     |
+|                      | constant factors: N/2 and 100N are both O(N).        |
+| blacklist            | a list of entities to be rejected ("default allow"). |
+| client               | a program that uses a method or data type through    |
+|                      | its contract, without depending on how it is         |
+|                      | implemented.                                         |
+| compare              | one test of a key against an array entry; the unit   |
+|                      | of our cost model.                                   |
+| ~compareTo()~          | ~s.compareTo(t)~ returns a negative int, 0 or a        |
+|                      | positive int if s comes before, equals or comes      |
+|                      | after t.                                             |
+| cost model           | the operation we count instead of measuring time,    |
+|                      | here: compares. Valid if each compare costs about    |
+|                      | constant time.                                       |
+| doubling test        | run a program for N, 2N, 4N, ... and compute the     |
+|                      | ratio T(2N)/T(N); if T(N) ~ aN^b, the ratio          |
+|                      | approaches 2^b.                                      |
+| ~equals()~             | compares two strings character by character; true if |
+|                      | they hold the same characters.                       |
+| filter               | a program that reads input and writes only the items |
+|                      | that pass a test, e.g. the strings on a whitelist.   |
+| floor                | rounding down to a whole number: floor(19.93) = 19.  |
+| interning            | Java stores identical string literals only once, so  |
+|                      | ~==~ can appear to work on literals - but not on       |
+|                      | strings read at runtime.                             |
+| key                  | the value a search looks for.                        |
+| lg N                 | logarithm base 2: the power to which you raise 2 to  |
+|                      | get N, or how often you can halve N until you reach  |
+|                      | 1. lg 8 = 3.                                         |
+| order of growth      | how the running time grows with N, ignoring constant |
+|                      | factors: here quadratic, N^2.                        |
+| reference type       | a type whose variables store references (addresses)  |
+|                      | to objects, e.g. ~String~ and arrays; ~==~ compares      |
+|                      | those references.                                    |
+| search hit           | the key is in the array; random hit: every position  |
+|                      | equally likely.                                      |
+| search miss          | the key is not in the array; sequential search then  |
+|                      | checks all N entries.                                |
+| sequential search    | check the entries one after the other until the key  |
+|                      | is found or the array ends.                          |
+| tilde notation       | f(N) ~ g(N) means f(N)/g(N) -> 1 as N grows; keeps   |
+|                      | the leading constant: ~N/2.                          |
+| token                | a run of non-whitespace characters; what             |
+|                      | ~StdIn.readString()~ returns.                          |
+| whitelist            | a list of entities to be accepted ("default deny").  |
+| workload             | the number of searches the client performs, here cN. |
