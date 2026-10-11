@@ -4,7 +4,7 @@
 #+STARTUP: overview hideblocks indent entitiespretty
 #+OPTIONS: toc:nil num:nil ^:nil
 
-Predict from the loops, then count. About 30 minutes. Your personal
+Predict from the loops, then count. About 45-60 minutes. Your personal
 n is 50 + the last two digits of your Augie ID (ID ending in 37: n = 87).
 
 #+begin_src java :eval never :tangle ../src/CountOps.java
