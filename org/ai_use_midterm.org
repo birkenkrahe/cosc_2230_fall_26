@@ -1,0 +1,74 @@
+#+TITLE: How we used AI so far - midterm summary
+#+AUTHOR: Marcus Birkenkrahe
+#+SUBTITLE: COSC 2230 (CS III) Fall 26 | Augustana U.
+#+STARTUP: overview hideblocks indent entitiespretty
+#+OPTIONS: toc:nil num:nil ^:nil
+
+You have been very forthcoming about how you use AI - thank you for
+that. It is what makes a summary like this possible.
+
+The chart counts the AI-use statements in the programming assignments
+so far - no names, counts only.
+
+#+attr_html: :width 800px
+#+caption: AI-use statements in COSC 2230 programming assignments
+[[../img/ai_use_statements.png]]
+
+* What the chart shows
+
+- About half of you use AI on a given assignment; the other half write
+  "No AI tools used". Both are fine.
+- Missing AI statements: 2, 4, 5 - and then 0 on the Exception Filter.
+  Thank you! (The bonus assignments still had 2.)
+- About half of those who use AI still don't say which tool. "I used
+  AI" is not a statement - name it.
+- Not shown: the DoublingTest analysis, where using AI was part of the
+  task.
+
+* What you used AI for (most common first)
+
+1. Understanding the assignment or a concept (nested loops, binary
+   search, the doubling ratio)
+2. Finding errors that stopped your code from compiling
+3. Checking your answers after you had worked them out yourself
+4. Explaining code line by line, or formatting a write-up
+5. In a few cases: writing or rewriting the program itself
+
+* What worked well
+
+- Predict first, then ask the AI, then compare (the DoublingTest
+  method).
+- Using the AI as a tutor that asks you questions instead of giving
+  you code.
+- Quoting the exact prompt, so I can see what you asked.
+
+* What went wrong
+
+- Explanations that did not match your own code - e.g. an answer about
+  a search tree for a program that uses a hash set. If the AI explains
+  it, check that it explains /your/ program.
+- Accepting a plausible AI claim (cache effects, overflow, garbage
+  collection) that your own numbers contradicted.
+- Code written by AI that replaced the program the assignment asked
+  you to change. If you cannot explain every line, it is not your
+  submission yet.
+
+* From now on
+
+Use this one line at the top of every file:
+
+#+begin_example
+AI: <tool> - <which part> - <what I asked / what it did>
+#+end_example
+
+Example:
+
+#+begin_example
+AI: Claude - Exercise 4 - explained why the inner loop runs i times
+#+end_example
+
+Or:
+
+#+begin_example
+AI: none
+#+end_example
