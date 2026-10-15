@@ -1,0 +1,754 @@
+#+TITLE: Performance --- Part 3: Order-of-Growth Classifications
+#+AUTHOR: Marcus Birkenkrahe
+#+SUBTITLE: COSC 2230 (CS III) Fall 2026 | Augustana U.
+#+STARTUP: overview hideblocks indent entitiespretty
+#+OPTIONS: toc:1 num:1 ^:nil
+
+Part 3 of 5 on Sedgewick & Wayne, /Introduction to Programming in
+Java/, 2nd ed., section 4.1 "Performance" (roughly pp. 501-506 here).
+See =performance.org= for the full five-part index. No code-along of
+its own -- this part is about reading code, not writing it -- but it
+sets up Part 4's code-along directly.
+
+* Recap and bridge
+
+- We've established that =ThreeSum= is n^3, by counting how often its
+  inner ~if~ runs. That count-the-loop method always works, but it's
+  slow going statement by statement.
+
+- Order of growth classification: a short list of shapes that covers
+  almost everything you'll write, so you can read the order of growth
+  straight off the code.
+
+- We've seen 1 + 2, now moving on to Knuth's insight:
+
+  1) The *exact* combinatorial count is C(N,3) = N(N-1)(N-2)/6.
+
+  2) *Measured* wall-clock time wobbles (overhead, caching).
+
+  3) *Order of growth* throws away everything except the leading term.
+
+* Running time = sum over operations of cost x frequency
+
+- Example: the 2-sum problem:
+  #+begin_example java
+  public static int count(int[] a)
+  {
+     int N = a.length;
+     int count = 0;
+     for (int i = 0; i < N; i++)
+        for (int j = i + 1; j < N; j++)
+           if (a[i] + a[j] == 0)
+              count++;
+     return count;
+  }
+  #+end_example
+
+- Line-by-line analysis:
+
+  | Program line            | operation            | cost  | frequency       |
+  |-------------------------+----------------------+-------+-----------------|
+  | int count(int[] a)      | function call        | 20ns  | 1               |
+  | int N = a.length;       | variable decl        | 2ns   | N + 2           |
+  | int count = 0           | assignment           | 1ns   | N + 2           |
+  | for (int i=0;i<N;i++)   | less than comparison | 0.5ns | (N+1)(N+2)/2    |
+  | for (int j=i+1;j<N;j++) |                      |       |                 |
+  | if (a[i]+ a[j] == 0)    | equal comparison     | 0.5ns | N(N-1)/2        |
+  |                         | array access         | 0.5ns | N(N-1)          |
+  | cnt++                   | increment            | 0.5ns | N(N+1)/2 to N^2 |
+
+  For example for the inner loop: runs for each pair i < j. For each
+  i, j takes N-1-i values, or (N-1)+(N-2)+...+0 = N (N-1)/2 =
+  C(N,2) [fn:1] - the increment is N(N+1)/2 at best, or N^{2} at worst.
+
+  This boils down, after some tedious calculation, to the quadratic
+  formula: cN^{2} + bN + a -> cN^{2} as N -> \infty.
+
+* Tilde notation
+
+- The running time satisfies T(n) \tilde c f(n) for a constant c > 0: as n
+  grows, T(n)/f(n) approaches c:
+  #+begin_quote
+  + Use only the fastest-growing term.
+  + Ignore the slower growing terms.
+  #+end_quote
+
+- Why?
+  #+begin_quote
+  + When N is large, ignored terms are negligible.
+  + When N is small, everything is negligible.
+  #+end_quote
+
+- f(N) \tilde g(N) means f(N)/g(N) \rightarrow 1 as N \rightarrow \infty
+
+- Numeric example: formula for 2-sum
+  #+begin_quote
+  5/4 N^{2} + 13/4 N + 53/2 \tilde 5/4 N^2
+  #+end_quote
+  #+begin_src python :results output :exports both :session *Python* :python python3
+    import math
+    N = 1000
+    leading = 5/4 * N**2
+    full    = 5/4 * N**2 + 13/4 * N + 53/2
+    error   = full/leading -1 # relative to exact value
+    pct     = 100 * error
+    d       = max(0, -math.floor(math.log10(pct))) # decimals 1 sign digit
+
+    print(f"N = {N:>7,}:")
+    print(f"exact:  {full:,.1f},\nleading: {leading:,.0f}, ")
+    print(f"error: {pct:.{d+1}f}% (within {pct:.{d}f}%)")
+  #+end_src
+
+  #+RESULTS:
+  : N =   1,000:
+  : exact:  1,253,276.5,
+  : leading: 1,250,000,
+  : error: 0.26% (within 0.3%)
+
+- Let's analyze our empirical data and see if we can come up with a
+  prediction for the constant =c=.
+
+* Analysing the data and coming up with an empirical hypothesis
+
+- We have gathered some empirical data from our experiment.
+
+- We would like to visualize these results by creating a plot.
+
+- We would also like to see if we can use the results to derive the
+  value of =c=, the constant before the leading term N^{3}.
+
+- That would give us the complete equation.
+
+- Since the growth in N is exponential, we could transform both
+  variables with a logarithm, arriving at a log-log plot. Why?
+
+  1) To test the power law hypothesis. It should be a straight line on
+     log-log axes.
+
+  2) Doubling N is evenly spaced on a log_{2} axis: N = 1000,2000,4000
+     etc. becomes lg(N) = 10,11,12, and the time ratios become equal
+     steps of 3 on the y-axis (-1, 2, 5, 8). (since lg(2^{-1}) = -1)
+
+  3) On linear axes, all power law curves look similar, on log-log
+     axes, you can tell them apart easily (by slope): a curve of the
+     form a N^{b} transformed with log_{2} yields lg(a) + b lg(N), where b
+     is the slope (the power), and lg(a) is the y-intercept.
+
+- Here is a table with some sample data and log transformations:
+
+  |    N |  T_{N} | lg N | lg T_{N} |
+  |------+-----+------+-------|
+  | 1000 | 0.5 |   10 |    -1 |
+  | 2000 |   4 |   11 |     2 |
+  | 4000 |  31 |   12 |     5 |
+  | 8000 | 248 |   13 |     8 |
+
+- The log-log curve is linear, the points lie on a straight line with slope 3:
+  #+attr_html: :width 400px :float nil:
+  [[../img/log-log-plot.png]]
+
+  (Creating this plot is a bonus exercise)
+
+- We've got enough data to derive the constant =c= with a little math:
+  #+begin_example
+  lg T_N = lg a + 3 lg N        (read off the plot)
+  T_N = a N^3                   (raise 2 to a power of both sides)
+  248 = a 8000^3
+  #+end_example
+
+  #+begin_src python :results output :exports both :session *Python*
+    print(248/8000**3)
+  #+end_src
+
+  #+RESULTS:
+  : 4.84375e-10
+
+- So for =ThreeSum=, we computed c as 4.84 x 10^{-10} after inferring the
+  cubic power law. Plugging the values back into the equation:
+
+  |    N |  T_{N} | lg N | lg T_{N} | 4.84 x 10^{-10} x N^{3} |
+  |------+-----+------+-------+-------------------|
+  | 1000 | 0.5 |   10 |    -1 |               0.5 |
+  | 2000 |   4 |   11 |     2 |                 4 |
+  | 4000 |  31 |   12 |     5 |                31 |
+  | 8000 | 248 |   13 |     8 |               248 |
+
+* Visualizing and curve fitting DoublingTest
+
+- We'll learn how to quickly visualize data using Python (and Colab)
+
+- I've run =DoublingTest.java= with one more data point, and stored the
+  values in a text file:
+  #+begin_example
+  java -cp .:stdlib.jar DoublingTest 9000 > ../data/9kDoublingTest.txt
+
+  Output:
+      512 4.33
+     1024 8.00
+     2048 8.03
+     4096 7.84
+     8192 8.26
+  #+end_example
+
+- Open colab.research.google.com and create a new notebook
+
+- Code along with me!
+
+  1) Get the data
+     #+begin_src python :results output :exports both :session *Python*
+       import numpy as np
+
+       # np.loadtxt reads straight from a URL - no download step needed
+       n, ratio = np.loadtxt("https://tinyurl.com/9k-doubling-test", unpack=True)
+       print(n)
+       print(ratio)
+     #+end_src
+
+     #+RESULTS:
+     : [ 512. 1024. 2048. 4096. 8192.]
+     : [3.75 7.4  8.05 7.79 8.12]
+
+  2) Plot ratio vsl input size.
+     #+begin_src python :file ../img/DoublingTestPlot.png :results file graphics output :exports both :session *Python*
+       # import NumPy and graphics libraries
+       import numpy as np
+       import matplotlib.pyplot as plt
+
+       # load file (splits each line on any whitespace), unpacks in 1D arrays
+       n, ratio = np.loadtxt("../data/9kDoublingTest.txt", unpack=True)
+
+       # plot ratio values againt input size n
+       plt.plot(n, ratio,
+                marker="o",
+                linestyle="-",
+                label="measured ratio")
+       # plot baseline for ratio = 8
+       plt.axhline(8,
+                   color="red",
+                   linestyle="--",
+                   label="ratio = 8")
+       # print labels and title
+       plt.xlabel("input size n")
+       plt.ylabel("doubling ratio")
+       plt.title("DoublingTest: time(n) / time(n/2)")
+       # print legend
+       plt.legend()
+       # print grid
+       plt.grid()
+       plt.savefig("../img/DoublingTestPlot.png")
+     #+end_src
+
+     #+RESULTS:
+     [[file:../img/DoublingTestPlot.png]]
+
+- The bonus assignment "Doubling Test running time plots (Python)"
+  asks you to plot the running time vs. input size first as a linear,
+  and then as a log-log plot. It explains how that's done!
+
+* The algorithm determines the order of growth
+
+- The key point: *the analysis separates the algorithm from the
+  system*. Now, we can talk about running time independent of the
+  device the algorithm runs on.
+
+- *Note*: In many books, you'll find the term "big-O". Our textbook
+  avoids it on purpose:
+
+  + Big-O gives only an *upper bound* and discards the constant: an
+    algorithm that takes N^{2} steps is also O(N^{3}). That is fine for
+    classifying problems, but useless for predicting running
+    time. Tilde (\tilde) notation keeps the leading constant and is
+    asymptotically exact, so it makes testable predictions.
+
+  + Big-O does *not* mean "worst case". Two choices are independent:
+    1. /Which case/ you analyze: best, worst, or average (random input).
+    2. /Which bound/ you use: O (upper), \Omega (omega - lower), \Theta (theta -
+       tight: upper and lower bound at once), or \sim (tilde - exact).
+
+    Any case can be described with any bound. Example: insertion sort
+    uses \sim N^2/4 compares on average, \sim N^2/2 in the worst case, and
+    N-1 in the best case.
+
+  + The input dependence you saw in the analysis example 2-sum (the
+    increment count lies "between" two values) is exactly this
+    best/worst-case distinction.
+
+* The classifications, by code shape
+
+Java programs are built from a handful of structural primitives --
+statements, conditionals, loops, method calls -- so their running time
+nearly always falls into one of a few familiar buckets:
+
+| Order        | f(n)    | Doubling ratio | Code shape                     |
+|--------------+---------+----------------+--------------------------------|
+| constant     | 1       |              1 | one statement                  |
+| logarithmic  | log n   |              1 | halve the problem each step    |
+| linear       | n       |              2 | one loop over n                |
+| linearithmic | n log n |              2 | divide-and-conquer (mergesort) |
+| quadratic    | n^2     |              4 | one loop nested in another     |
+| cubic        | n^3     |              8 | a loop nested in that          |
+| exponential  | 2^n     |            2^n | try every subset               |
+
+Each row, with a real example:
+
+** Constant (1)
+
+- *Fixed* work (not fast), independent of n -- =Math.abs()=, =HelloWorld=,
+  most of Java's primitive-type operations. Note that "constant" says
+  nothing about the *size* of the constant: =Math.tan()= costs more per
+  call than =Math.abs()=, but neither grows with n.
+
+- A *single* =count++= (increment an integer) also grows *constant with n*,
+  that is, it is independent of n. However, in 2-sum, it executes up
+  to N^{2} times, so its total contribution is quadratic.
+
+- A =HelloWorld= program executes in constant time: the work does not
+  depend on input size =N=. Doubling the input would change nothing: the
+  doubling ratio is 1 and stays 1.
+  #+begin_src java :dir src
+    public static void main(String[] args)
+    {
+        System.out.println("Hello, world!"); // several statements executed once
+    }
+  #+end_src
+
+  #+RESULTS:
+  : Hello, world!
+
+- Example 2: =count++=
+  #+begin_example java
+  count++;   // one increment: the same cost for any N
+  #+end_example
+  This is one read, one addition and one write of an integer, whatever
+  the value of =count= and whatever the size of the input: the doubling
+  ratio is 1. What can grow is how *often* the statement runs. Inside
+  the two nested loops of 2-sum it executes up to N^{2} times, so its
+  total contribution is quadratic - the cost of one execution stays
+  constant, the frequency does not.
+
+** Logarithmic (log N)
+
+- Barely slower than constant. The classic case is looking up a value
+  in a sorted array by repeatedly halving the search range -- *binary
+  search*
+
+- The base of the log doesn't matter for order of growth (all constant
+  bases differ only by a constant factor [fn:2]), so we just write ~log n~.
+
+- Example: Looking up a value in a sorted array.
+
+- Divide in half loop:
+  #+begin_example java
+  while (N > 1) {
+     N = N / 2;
+     // ... constant work
+  }
+  #+end_example
+  After k iterations, the problem has size N/2^{k}. The loop stops when
+  N/2^{k} \leq 1 or k = lg(N): lg(N 2^{-k}) = lg(N) + lg(2^{-k}) = lg(N) - k \le 0 \leftrightarrow
+  k \geq lg(N). It stops at the first k that satisfies this inequality.
+
+- Careful about the logarithm notation (when we worry about the
+  factor): lg(N) denotes the log base 2, ln(N) the log base e.
+
+** Linear (N)
+
+- A single loop that does a constant amount of work per element
+
+- Examples: Computing an average, shuffling an array, applying a
+  filter to every pixel of an image.
+
+- Running time is directly proportional to problem size. Any task that
+  must look at every input item at least once takes at least this
+  long, so linear is the best you can hope for there - and the
+  baseline against which anything slower needs a reason.
+
+- Example: computing the average of an array
+  #+begin_example java
+  double sum = 0.0;              // constant work, executed once = O(1)
+  for (int i = 0; i < N; i++)    // the loop body runs N times
+     sum += a[i];                // constant work per element: one array
+                                 // access and one addition = O(1) * N
+  double avg = sum / N;          // constant work, executed once = O(1)
+  #+end_example
+
+  The running time is c_{1} + c_{2} N \tilde c_{2} N: double N and the time
+  doubles.
+
+- Example: reading all the integers from standard input - linear or not?
+  #+begin_example java
+  int[] a = StdIn.readAllInts();   // one statement, but linear in the number n of integers
+  #+end_example
+  One line of code is not automatically constant. This statement hides
+  two loops: one that reads the integers and one that fills the array.
+  The work per integer is constant and it is done once for each of the
+  n integers, so the running time is linear (exercise 4.1.9 in the
+  book).
+
+- *Loops inside library calls count like loops you write yourself!*
+
+** Linearithmic
+
+- n log n -- a little worse than linear, a lot better than quadratic.
+
+- The prototypical example is *mergesort*, built from a technique called
+  *divide-and-conquer*: split the problem in half, solve each half,
+  combine the results.
+
+- Several problems that look naturally quadratic turn out to have a
+  linearithmic solution once you find the right decomposition -- this
+  is precisely how you get from n^2 to n log n, the win behind both
+  examples from Part 1.
+
+- Example: looking up N keys in a sorted array
+  #+begin_example java
+  // a[] is sorted; look up N keys
+  for (int i = 0; i < N; i++)          // the loop runs N times
+     Arrays.binarySearch(a, key[i]);   // each search halves the range: lg N steps
+  // total: N x lg N
+  #+end_example
+
+  A linear loop around a logarithmic step. Mergesort reaches the same
+  total another way: lg N levels of halving, with N work per level.
+
+  So the total is N times lg N.
+
+  The two entry examples - for the N body problem (Barnes-Hut) and the Fourier
+  transform (Cooley-Tukey) - were both N log N algorithms.
+
+** Quadratic
+
+- A loop nested inside a loop, touching every *pair* of n elements
+
+- It is common, and it is often the "obvious" solution to a problem
+  that has a faster one waiting (Ch. 4.2's insertion sort is
+  quadratic; mergesort solves the same kind of problem in n log n).
+
+- Example: counting the pairs that add up to zero
+  #+begin_example java
+  for (int i = 0; i < N; i++)          // the outer loop runs N times
+     for (int j = i + 1; j < N; j++)   // the inner loop runs up to N times
+        if (a[i] + a[j] == 0)          // constant work, N(N-1)/2 times in all
+           count++;
+  #+end_example
+
+** Cubic
+
+- Three nested loops over triples -- =ThreeSum=, from Parts 1 and 2.
+
+- Example: counting the triples that add up to zero
+  #+begin_example java
+  for (int i = 0; i < N; i++)                // three nested loops
+     for (int j = i + 1; j < N; j++)
+        for (int k = j + 1; k < N; k++)
+           if (a[i] + a[j] + a[k] == 0)      // constant work, ~N^3/6 times in all
+              count++;
+  #+end_example
+
+- Order of growth is always a function of problem size, and it pays to
+  be careful about what that size actually is.
+
+- Example: matrix multiplication of two m-by-m matrices costs m^3,
+  which looks cubic, but the *input size* n is the number of matrix
+  entries, n = m^2 -- so in terms of n it's really n^(3/2), not cubic.
+
+  Input size is n = m^2 \rightarrow m = n^{1/2} -> m^3 = n^{3/2}
+
+  Each of the m^2 entries needs m multiplications and additions:
+  #+begin_example java
+  // multiply two m x m matrices A x B = C is a sum of m products
+  for (int i = 0; i < m; i++)             // m rows of C
+     for (int j = 0; j < m; j++)          // m columns of C
+         for (int k = 0; k < m; k++)      // m terms in each sum
+            C[i][j] += A[i][k] * B[k][j]; // constant work: one multiply, one add
+  #+end_example
+
+** Exponential
+
+- 2^n -- trying every subset of n elements, as in an exhaustive search
+  or the classic Towers of Hanoi recursion.
+
+- Exponential-time algorithms are only ever fast for tiny n; you will
+  never run one on a large problem. They matter because for a large
+  class of real problems, no one has found anything faster.
+
+- Example: a method that calls itself twice (exercise 4.1.13 in the book)
+  #+begin_example java
+  public static int f(int n)
+  {
+     if (n == 0) return 1;
+     return f(n-1) + f(n-1);   // two calls of size n-1: 2^n calls in all
+  }
+  #+end_example
+
+- Call tree:
+  #+begin_example
+  Level 0:                  f(3)                        1 call
+  Level 1:          f(2)            f(2)                2 calls
+  Level 2:      f(1)    f(1)    f(1)    f(1)            4 calls
+  Level 3:    f(0) f(0) f(0) f(0) f(0) f(0) f(0) f(0)   8 calls
+  #+end_example
+  
+- T(n) = 2 T(n-1) + c \rightarrow T(n) = 2^n T(0) + ...
+
+* PRACTICE Classify it
+
+| Order        | f(n)    | Doubling ratio | Code shape                     |
+|--------------+---------+----------------+--------------------------------|
+| constant     | 1       |              1 | one statement                  |
+| logarithmic  | log n   |              1 | halve the problem each step    |
+| linear       | n       |              2 | one loop over n                |
+| linearithmic | n log n |              2 | divide-and-conquer (mergesort) |
+| quadratic    | n^2     |              4 | one loop nested in another     |
+| cubic        | n^3     |              8 | a loop nested in that          |
+| exponential  | 2^n     |            2^n | try every subset               |
+
+In pairs classify this fragment by reasoning about the loop structure
+-- don't run it -- then check against the table:
+
+#+begin_src java :noeval
+  for (int i = 0; i < n; i++)
+      for (int j = 0; j < n; j++)
+          if (i == j) c[i][j] = 1.0;
+          else        c[i][j] = 0.0;
+#+end_src
+
+** Solution                                                          :skip:
+
+#+begin_src java :noeval
+  for (int i = 0; i < n; i++)        // n times
+      for (int j = 0; j < n; j++)    // n times -> body runs n^2 times
+          if (i == j) c[i][j] = 1.0; // constant: comparison + assignment
+          else        c[i][j] = 0.0; //
+#+end_src
+
+*Quadratic*, ~N^{2}~ (this is exercise 4.1.10 in the book).
+
+- The outer loop runs ~n~ times. For each pass, the inner loop runs ~n~
+  times. The body therefore executes ~n * n = n^{2}~ times.
+
+- The body does a constant amount of work: one comparison (~i == j~) and
+  one assignment. Whichever branch of the ~if~ is taken, the cost is the
+  same, so it changes the constant but not the order of growth.
+
+- A loop's *bound*, not what is inside it, sets the order of growth:
+  both loops always run to ~n~, regardless of what the ~if~ decides.
+
+- Check with the table: a loop nested in another loop is quadratic;
+  doubling ~n~ multiplies the running time by 4.
+
+Trace: the fragment with counters for each branch of the ~if~, run for
+~n = 4, 8, 16, 32, 64~. The ratio column compares each total with the
+one before, i.e. the effect of doubling ~n~:
+
+#+begin_src java :results output :exports both
+  public class QuadTrace {
+      public static void main(String[] args) {
+          System.out.printf("%5s %8s %8s %8s %6s%n",
+                            "n", "c=1.0", "c=0.0", "total", "ratio");
+          long prev = 0;
+          for (int n = 4; n <= 64; n *= 2) {
+              double[][] c = new double[n][n];
+              long ones = 0, zeros = 0;
+              for (int i = 0; i < n; i++)
+                  for (int j = 0; j < n; j++)
+                      if (i == j) { c[i][j] = 1.0; ones++; }
+                      else        { c[i][j] = 0.0; zeros++; }
+              long total = ones + zeros;
+              String ratio = prev == 0 ? "-"
+                  : String.format("%.1f", (double) total / prev);
+              System.out.printf("%5d %8d %8d %8d %6s%n",
+                                n, ones, zeros, total, ratio);
+              prev = total;
+          }
+      }
+  }
+#+end_src
+
+#+RESULTS:
+:     n    c=1.0    c=0.0    total  ratio
+:     4        4       12       16      -
+:     8        8       56       64    4.0
+:    16       16      240      256    4.0
+:    32       32      992     1024    4.0
+:    64       64     4032     4096    4.0
+
+Read the table: the ~if~ takes the first branch ~n~ times and the second
+~n^{2} - n~ times, but the total is always ~n^{2}~. Every doubling of ~n~
+multiplies it by 4.
+
+* Reading the shape off a log-log plot
+
+- Plot running time against input size as a log-log plot - what do you
+  see?
+  #+begin_quote
+  Each order of growth becomes a straight line with a different slope:
+  constant is flat, linear has slope 1, quadratic has slope 2, etc.)
+  #+end_quote
+
+- log N and N log N are nearly straight but bend slightly (N log N has
+  a slope a little above 1 that slowly decreases).
+- Exponential 2^{N} is not straight at all: it curves sharply upward.
+
+So a straight line in your measurements suggests a power law, and the
+slope is the exponent. A slight curve may be N log N. A line that bends
+steeply upward suggests something worse than any power law.
+
+Caveats (from the book) - reasons why real measurements may miss the
+straight line:
+
+- *Instruction time isn't constant.* Caching makes access to huge
+  arrays slower when the elements are far apart: after seeming to
+  settle at 8, the =DoublingTest= ratio jumps to a larger value for
+  large arrays.
+
+- *The inner loop may not dominate.* For small n the lower-order terms
+  are still large, so the points bend away from the line (remember the
+  noisy first rows of =DoublingTest=).
+
+- *The system is never idle.* Other programs, the JIT and garbage
+  collection compete for the machine, so no run can be reproduced
+  exactly: repeat runs.
+
+- *Strong dependence on input values.* =ThreeSum= only cares about the
+  size of the input; that's why you want to know best, worst, and
+  average performance. Example: search for a key in an array - if it
+  is at position 0 \rightarrow O(1) if it's not, O(N).
+
+Despite the caveats, knowing the order of growth is valuable: it gives
+approximate estimates for any program.
+
+* PRACTICE Orders of growth interactive
+
+Open [[https://birkenkrahe.github.io/demos/orders-of-growth.html][Orders of Growth: From Formula to Real Time]].
+The dashboard, top to bottom:
+
+1) *Problem size N* (slider, current n on the right): the range depends
+   on the Axes setting. In the Linear and Semilog views n runs from 1
+   to 50; in the Log-log view each step doubles n, from 1 to 1M
+   (2^{0} to 2^{20}).
+
+2) *Axes*: Linear, Semilog or Log-log. Log-log is the figure of the
+   book (p. 504); switching the view changes the slider range.
+
+3) *Assumed speed*: counting by hand (1 operation per second), laptop
+   (1 GHz, 1 ns per operation) or supercomputer (1 PFLOPS, 10^{15}
+   operations per second). It only changes the times, never the plot.
+
+4) *The plot*: one curve per order of growth, operations on the y axis
+   (log scale); the dashed vertical line marks the current n. The
+   exponential curve leaves the chart almost at once.
+
+5) *The table below the plot*: one row per order with its formula, the
+   kind of code that produces it, the operation count at the current n
+   and the estimated time at the assumed speed. Click a row to hide or
+   show its curve.
+
+The times are for intuition, not a benchmark: purely sequential
+operations at the stated rate.
+
+Now set *Axes* to *Log-log* and try:
+
+- *Drag the slider.* Each step doubles n. Watch the operation counts:
+  linear grows 2x, quadratic 4x, cubic 8x -- the doubling ratios from
+  before.
+
+- *Read the slopes.* Power laws are straight lines whose slope is the
+  exponent; log n and n log n bend slightly; 2^{n} leaves the chart
+  almost at once.
+
+- *Switch the assumed speed* between laptop and supercomputer. The plot
+  stays the same; only the time changes. A machine a million times
+  faster moves every curve's constant, never its shape.
+
+- *Click a row* to hide a curve; switch to Linear or Semilog to see why
+  log-log is the right view for reading exponents.
+
+Assignment: =6a_count_operations.org= (problems 1-3 required, 4-7 bonus).
+
+* Moore's Law: faster hardware changes a, not b
+
+If the running time is T(N) ~ a N^{b}, a faster machine changes the
+constant a. It cannot change the exponent b, which belongs to the
+algorithm. How much does that matter? If a machine becomes F times
+faster, the same time budget handles an input F^{1/b} times larger:
+
+Say T(N) = a N^{b} and the time budget is T0. On the old machine, the
+largest input N0 satisfies a N0^{b} = T0. A machine F times faster does
+each operation in 1/F of the time, so a becomes a/F, and the largest
+input N satisfies (a/F) N^{b} = T0. Setting the two equal gives N^{b} = F
+N0^{b}, so N = F^{1/b} N0. The constant a is divided by F, but the exponent
+b, which decides how the work grows with N, is untouched -- taking the
+b-th root is what makes it matter.
+
+Moore's Law says that processor speed doubles every n months. A decade
+is 120 months, so the speed-up is F = 2^{120/n} (exercise 4.1.21 in the
+book). Note ~120.0~, not ~120~: with ~int~ arithmetic ~120 / n~ is truncated.
+
+#+begin_src java :results output :exports both
+  public class MooresLaw {
+      public static void main(String[] args) {
+          int[] months = {15, 24};                    // doubling time in months
+          for (int n : months) {
+              double factor = Math.pow(2, 120.0 / n); // 120 months in a decade
+              System.out.printf("Doubling every %d months: %.0fx faster in a decade%n",
+                                n, factor);
+          }
+          double factor = Math.pow(2, 120.0 / 24);
+          for (int b = 1; b <= 3; b++)                // same time, faster machine
+              System.out.printf("Running time ~ N^%d: largest N grows %.1fx%n",
+                                b, Math.pow(factor, 1.0 / b));
+      }
+  }
+#+end_src
+
+#+RESULTS:
+: Doubling every 15 months: 256x faster in a decade
+: Doubling every 24 months: 32x faster in a decade
+: Running time ~ N^1: largest N grows 32.0x
+: Running time ~ N^2: largest N grows 5.7x
+: Running time ~ N^3: largest N grows 3.2x
+
+- So, for example, if a machine becomes F = 32 times faster and you
+  keep the same time budget, how much larger an input can you process?
+
+  | Growth    | Largest N grows by | For F = 32 |
+  |-----------+--------------------+------------|
+  | Linear    | F                  |         32 |
+  | Quadratic | F^{1/2}               |        5.7 |
+  | Cubic     | F^{1/3}               |        3.2 |
+
+  A decade of hardware progress lets a cubic algorithm like =ThreeSum=
+  handle inputs only about three times larger. The algorithm -- the
+  exponent b -- decides how much of the speed-up you can use.
+
+- Example: If your cubic program handles N=1,000 today, the machine 32
+  times faster handles about N = 3,200. A quadratic program handles
+  about 5,700, and a linear one 32,000.
+
+* Homework Choices
+
+| Assignment             | Purpose                             | Time      |
+|------------------------+-------------------------------------+-----------|
+| Count the Operations        | Predict and count loop operations | 45-60 min |
+| Reversing a String          | Prove and measure string reversal | 60-75 min |
+| Faster ThreeSum (challenge) | Make =ThreeSum= quadratic           | 1.5 hours |
+
+Now that =ThreeSum= has a name for its shape (cubic), the next
+question is: now that we know it's cubic, so what? The Faster ThreeSum
+assignment is one answer.
+
+* Footnotes
+
+[fn:1]This is Gauss' pairing trick: You write the sum S forwards and
+backwards, then add the two lines, then divide by 2:
+#+begin_example
+S  = 0     + 1     + 2     + … + (N−1)
+S  = (N−1) + (N−2) + (N−3) + … + 0
+2S = (N−1) + (N−1) + (N−1) + … + (N−1)
+#+end_example
+
+[fn:2] Change-of-base formula for logarithms: for any constant bases
+a,b > 1: log_a(N) = log_b(N)/ log_b(a). Proof: x=log_a(N) -> a^x =
+N. Take log_b of both sides: log_b(a^x) = log_b(N) -> x log_b(a) =
+log_b(N) [power rule] -> x = log_b(N)/log_b(a) = log_a(N). QED
