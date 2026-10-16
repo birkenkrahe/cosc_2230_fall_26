@@ -1220,7 +1220,7 @@ above.
 - Briefly speak to your project (1 team member)
 - I'll give some groups feedback afterwards
 - You'll get more detailed feedback within 2 weeks
-- Next sprint review (literature review) is on Oct 23rd
+- Next sprint review (literature review) is on Monday, Nov 2
 - No running code requirement but if you can, do it!
 
 *** Periodization Tracker
@@ -1397,12 +1397,12 @@ Artifacts:
 
 - Bonus: Compare =WhiteFilter.java= and =TestSS.java= systematically.
 
-* W7S1: Sequential Search III: WhiteFilter doubling test / binary search
+* DONE W7S1: Sequential Search III: WhiteFilter doubling test
 
-- [ ] Review: cost of search (5)
-- [ ] WhiteFilter doubling test (25)
-- [ ] Peer practice (10)
-- [ ] Interactive companion (5)
+- [X] Review: cost of search (5)
+- [X] WhiteFilter doubling test (25)
+- [X] Peer practice (10)
+- [X] Interactive companion (5)
 - [ ] Checkout question (5)
 
 ** LEQ feedback
@@ -1416,7 +1416,7 @@ excellent and useful.
 - Recordings and transcripts, Google Meet screen sharing
 - Real-world relevance and the open use of AI
 
-*What you'd like to see improved - and my response
+What you'd like to see improved - and my response
 
 1. *Lecture focus and pace* - some find lectures drift off track,
    some find them slow, others find them fast.
@@ -1496,8 +1496,11 @@ the three searches make in total?
 ** Checkout question
 
 - Sequential search can't stop early: a miss checks all N entries.
+
 - Suppose the whitelist was SORTED alphabetically:
+
   1) Where would you look first?
+
   2) How many compares would a miss need for N = 1,000,000?
 
 *** Answer
@@ -1518,11 +1521,198 @@ the three searches make in total?
      System.out.println((int)(Math.log(n) / Math.log(2)) + 1);
    #+end_src
 
-   #+RESULTS:
-   : 20
+* DONE W7S2: Binary search I: mechanics, =search=, test client
+
+- [ ] Midterm exam preparation
+- [ ] Checkout question from last time
+- [ ] Mechanics of binary search: notation and bugs
+- [ ] Building and testing the program
+
+** Midterm exam preparation
+
+I've posted the *complete quizzes 1-5 with answers* to help you prepare
+for the mid-term exam. You can feed these to AI to:
+- ask for similar questions (ask AI to make them a little harder)
+- ask for small coding problems and for questions where you need to
+  find the bug
+- ask AI after, say, 10 questions, to give you a performance
+  assessment ("how did I do?" What should I focus on now?")
+
+*Important:* You cannot blindly trust the AI's answers. You have to
+check back with the course material. This makes AI-assisted drills
+kind of expensive but, in my opinion, still worth it.
+
+Notice that the exam questions will *not be exactly like* the quiz
+questions. There will be different question types, including a few
+coding questions (similar to some of our in-class review quizzes). All
+the material is, however, available on Canvas. Ask me if you have any
+questions! Also: *open (handwritten) notes only, no printouts.*
+
+Also: *Charge your laptops*. Time: *Friday, 9 Oct, 1pm-1:50pm* FSC 372.
+  
+
+* W8S1: Binary search II: recursion to loop, non-recursive version
+
+- [ ] Second sprint: literature review (due Oct 30)
+- [ ] Binary search in pseudocode (warmup)
+- [ ] Turning a recursion into a loop (code-along)
+- [ ] =BinarySearchLoop=: non-recursive version (practice)
+- [ ] =BinarySearchLoop=: the solution, step by step
+- [ ] Tutorial: recursion into loops (weekend reading)
+- [ ] Home assignment 8: =CountChar= (due Fri Oct 23)
+
+** Second sprint: literature review (due Oct 30)
+
+The assignment is on Canvas. Here is what a literature review is,
+and what I expect.
+
+*What is a literature review?*
+#+begin_quote
+- You find out what others have already done on your question
+  before you build anything yourself: which algorithms and data
+  structures exist, how people measure them, what results they got.
+#+end_quote
+#+begin_quote
+- It's not a list of links. For each source you say what it does,
+  how it does it, and what you take from it for your project.
+#+end_quote
+#+begin_quote
+- The synthesis is the part that counts: what is known, which
+  approach you choose and why, and what your project adds.
+#+end_quote
+
+*Why now?*
+#+begin_quote
+- Your research question gets smaller and sharper once you know
+  what's been done. Many first-sprint questions were too broad: aim
+  for a minimum viable product (MVP) first, stretch goals second.
+#+end_quote
+#+begin_quote
+- You learn how to measure your result, for example with a doubling
+  experiment or by counting operations, and what to compare it with.
+#+end_quote
+
+*Lessons from the first sprint*
+#+begin_quote
+- A link is not a reference: complete every entry (author, title,
+  year, source) and stay with one style (APA, MLA, Chicago, or
+  Harvard).
+#+end_quote
+#+begin_quote
+- Disclose your AI use, always - even if it's "none used". Your
+  statement and your references must agree.
+#+end_quote
+#+begin_quote
+- AI-suggested sources that nobody checked: you must have read
+  every source you cite. A source that does not exist costs points.
+#+end_quote
+
+*What counts as a source?*
+#+begin_quote
+- At least five sources, at least two authoritative: a book, a
+  peer-reviewed article, official documentation, or the
+  documentation of your library.
+#+end_quote
+#+begin_quote
+- Blogs and videos are fine, but not as your only sources. AI
+  conversations do not count toward the five.
+#+end_quote
+
+*Where to look*
+#+begin_quote
+- The textbook (Sedgewick and Wayne, /Algorithms/) and its booksite,
+  Google Scholar, arXiv, and the official Java documentation.
+#+end_quote
+#+begin_quote
+- Use AI to find candidates and to summarize, then open and read the
+  source yourself, and verify the citation.
+#+end_quote
+
+*Sprint review*
+#+begin_quote
+- Monday, November 2, in class. Every team member presents at least
+  one of the sources and answers questions about it.
+#+end_quote
+
+Questions? Ask me early, not at the end of the sprint!
+
+** =BinarySearch= in pseudocode (warmup)
+
+- *On paper*, notes closed, no laptop, no AI. Time: 5 minutes.
+
+- Write the method =search()= in *pseudocode* from memory.
+
+- You get the header of the program and a (simple) test client.
+
+- 3 minutes alone, then 2 minutes: compare your pseudocode with your
+  neighbor's. Did you both get the same result? Where do your versions
+  differ?
+
+** Turning a recursion into a loop (code-along)
+
+- Why this matters for the rest of the term: every recursion is a
+  stack in disguise. Next come recursive sorting (mergesort), stacks,
+  and recursive trees - each time you'll ask "how deep does it get?"
+  and "recursion or loop?"
+
+- Code along with me: the sum 1 + 2 + ... + n, recursive, with an
+  accumulator, and as a loop.
+  
+** =BinarySearchLoop=: non-recursive version (practice)
+
+On your own now: apply the four steps to the recursive =search()=.
+
+1. Parameter that change become loop variables.
+2. Base case becomes the loop condition.
+3. Method calls become assignments.
+4. Base case condition outcome is returned.
+
+** =BinarySearchLoop=: the solution, step by step
+
+Presentation walkthrough.
+
+** Tutorial: recursion into loops (weekend reading)
+
+- Everything from today, step by step, with an interactive trace:
+  [[https://birkenkrahe.github.io/go/recursion-loop][birkenkrahe.github.io/go/recursion-loop]]
+
+- Parts 1-4 are today's code-along. Parts 5-7 are new: from a loop
+  back to a recursion, which version to write, and two exercises.
+
+- About 30 minutes.
+
+** Home assignment 8: =CountChar= & bonus assignment =Palindrome=
+
+- Turn a recursive method that counts a character in a string into a
+  loop: first the accumulator version, then the loop - the same two
+  moves as in the tutorial.
+  
+- About 1 hour. Submit =CountChar.java= on Canvas.
+
+- *Bonus assignment:* Palindrome (reads the same from back or front,
+  like =racecar=) from loop to recursive. Deadline December 4.
 
 
-* W7S2: Binary search
+* W9S1: Binary search wrap-up / Insertion Sort
+
+1) [ ] Binary search: mathematical analysis (lecture)
+2) [ ] Doubling test for binary search (codealong)
+3) [ ] Insertion sort
+4) [ ] Home assignment 9: =BinarySearchRank= (due Mon Oct 26)
+
+** TODO Interactive companions: converting to binary, bisection search (demo)
+
+** TODO Binary search: mathematical analysis (lecture)
+** TODO Doubling test for binary search (codealong)
+** TODO Insertion sort
+** TODO Home assignment 9: =BinarySearchRank= (due Mon Oct 26)
+
+- Change =search()= so that it returns the first index of the key
+  among duplicates, and an insertion point on a miss (Exercise 4.2.3).
+- About 1-1.5 hours. Submit =BinarySearchRank.java= on Canvas.
+
+* W9S2: Doubling Test on Insertion Sort
+* W9S3: Mergesort
 * Footnotes
 
 [fn:4] "Interned" means the JVM keeps a single shared copy of a string
