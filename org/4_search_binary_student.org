@@ -1,0 +1,1112 @@
+#+TITLE: §4.2 Searching --- Binary Search
+#+AUTHOR: Marcus Birkenkrahe
+#+SUBTITLE: COSC 2230 (CS III) Fall 2026 | Augustana U.
+#+STARTUP: overview hideblocks indent entitiespretty
+#+OPTIONS: toc:1 num:1 ^:nil
+#+PROPERTY: header-args:java :dir ../src :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar" :exports both :noeval
+#+PROPERTY: header-args:bash :dir ../src :results output :exports both :noeval
+
+* Objectives
+
+Source: Sedgewick/Wayne lecture CS.11.B "SearchSort.BinarySearch".
+Book reference: /Introduction to Programming in Java/ 2e, §4.2:
+Program 4.2.3 =BinarySearch= (p. 539), the recurrence T(n) = T(n/2) + 1
+(p. 535), Q&A (p. 559), Exercises 4.2.2 and 4.2.4 (p. 560).
+
+Slides: [[https://github.com/birkenkrahe/cosc_2230_fall_26/blob/main/pdf/4_search_binary.pdf][pdf/4_search_binary.pdf]], practice step by step:
+[[https://github.com/birkenkrahe/cosc_2230_fall_26/blob/main/pdf/4_search_binary_loop.pdf][pdf/4_search_binary_loop.pdf]].
+
+Sequential search does not scale: the whitelist filter is quadratic,
+and 1.28 million entries would take more than 10 hours. Binary search
+keeps the same client and replaces only ~search()~: on a sorted array,
+each compare halves the interval that can still contain the key. We
+design the algorithm, trace it, prove it correct, analyze it (~lg N
+compares per search), and confirm the hypothesis with a doubling test.
+
+By the end of this lesson you can:
+1. explain why binary search needs a sorted array, and what happens
+   without one
+2. work with the half-open interval ~a[lo, hi)~: count its entries,
+   test it for empty, compute ~mid~ and the two halves
+3. trace the recursive ~search()~ by hand for a hit and a miss
+4. prove that ~search()~ is correct with an invariant and induction
+5. derive ~lg N compares per search from the recurrence and the
+   halving tree
+6. run a doubling test and explain why the ratio is about 2
+7. turn the recursive ~search()~ into a loop
+
+* Recap and bridge
+
+- Last session's verdict: the client (=WhiteFilter=, =TestSS=) was
+  fine; ~search()~ was the problem. 10N searches × ~N compares =
+  ~10N^2: ratio 4 in the doubling test. Sedgewick's extrapolation for
+  1.28 million entries: more than 10.5 hours.
+
+- Today: same client, same =Generator=, same doubling test. Only
+  ~search()~ changes - and the order of growth becomes linearithmic
+  (N lg N).
+
+** Question: On a sorted whitelist, where do you look first, and how many compares does a miss need for N = 1,000,000?
+*** Answer                                                             :skip:
+
+In the middle; at most 20 compares (floor(lg N) + 1).
+
+* The idea: binary search
+
+- Binary search:
+  1. Keep the array in sorted order (how: next topic).
+  2. Examine the middle key.
+  3. If it matches, return its index.
+  4. If it is larger than the key, search the half with lower indices.
+  5. If it is smaller, search the half with upper indices.
+
+- Example: a whitelist of 15 sorted names, key =oscar=.
+  #+begin_example
+  middle is eve (7):      oscar > eve      -> keep the upper half 8..14
+  middle is peggy (11):   oscar < peggy    -> keep the lower half 8..10
+  middle is mallory (9):  oscar > mallory  -> keep the upper half 10..10
+  middle is oscar (10):   match            -> return 10
+  #+end_example
+
+  Four compares instead of eleven with sequential search.
+
+- Book connection (p. 538): nobody looks up a word in a dictionary by
+  reading from page 1. You open the book in the middle and throw away
+  the half that cannot contain the word.
+
+- Watch it animated: [[https://birkenkrahe.github.io/demos/binary-search-arithmetic.html][binary-search-arithmetic.html]] (panel 1).
+
+** Question: What does binary search need that sequential search did not?
+*** Answer                                                             :skip:
+
+A sorted array. Eliminating half of the array is only safe if every
+entry in that half is known to be smaller (or larger) than the key.
+
+* Binary search arithmetic
+
+All the bugs in binary search live in this arithmetic.
+
+** Notation: the half-open interval
+
+- ~a[lo, hi)~ means ~a[lo], a[lo+1], ..., a[hi-1]~: it includes
+  ~a[lo]~ and excludes ~a[hi]~.
+
+- The same convention as ~for (int i = lo; i < hi; i++)~, and as
+  ~s.substring(i, j)~ (characters i through j-1).
+
+*** Question: How many entries does ~a[lo, hi)~ contain? When is it empty?
+**** Answer                                                           :skip:
+
+~hi - lo~ entries. It is empty when ~hi <= lo~ (no index i with
+lo <= i < hi). That is the base case of the recursion: a miss.
+
+*** Question: Which interval is the whole array?
+**** Answer                                                           :skip:
+
+~a[0, a.length)~. That is why the public method calls
+~search(key, a, 0, a.length)~ and not ~a.length - 1~.
+
+** The middle and the two halves
+
+- ~mid = lo + (hi - lo) / 2~: half the size of the interval, added to
+  its start. Integer division rounds down.
+
+- After comparing the key with ~a[mid]~, ~a[mid]~ is done: it is
+  excluded from both halves.
+  + lower half: ~a[lo, mid)~ (stops before mid)
+  + upper half: ~a[mid+1, hi)~ (starts after mid)
+
+*** Question: Why ~mid~ as the upper end of the lower half, but ~mid+1~ as the lower end of the upper half?
+**** Answer                                                           :skip:
+
+Both exclude ~a[mid]~. The upper end of an interval is already
+excluded, so ~[lo, mid)~ stops at mid-1. The lower end is included, so
+the upper half has to start at ~mid+1~.
+
+*** Question: What goes wrong if the upper half were ~a[mid, hi)~?
+**** Answer                                                           :skip:
+
+With one entry left (~hi = lo + 1~), ~mid = lo~, and the "upper half"
+would be the same interval again: infinite recursion
+(=StackOverflowError=) for a key larger than ~a[lo]~. Panel 2 of
+[[https://birkenkrahe.github.io/demos/binary-search-arithmetic.html][binary-search-arithmetic.html]] has a switch that shows this.
+
+** Why not ~(lo + hi) / 2~?
+
+- Book Q&A (p. 559): ~(lo + hi) / 2~ fails when ~lo + hi~ overflows an
+  ~int~ (more than 2,147,483,647).
+
+  #+begin_src java :tangle ../src/Overflow.java
+    public class Overflow
+    {
+        public static void main(String[] args)
+        {
+            int lo = 1_500_000_000, hi = 2_000_000_000;
+            System.out.println((lo + hi) / 2);        // overflow
+            System.out.println(lo + (hi - lo) / 2);   // correct
+        }
+    }
+  #+end_src
+
+  #+RESULTS:
+  : -397483648
+  : 1750000000
+
+- Algebraically, both are the same:
+  #+begin_example
+  lo + (hi - lo)/2
+  = lo + hi/2 - lo/2        distribute the /2 across (hi - lo)
+  = (lo - lo/2) + hi/2      regroup the lo terms
+  = lo/2 + hi/2             lo - lo/2 = lo/2
+  = (lo + hi)/2             combine over the common denominator
+  #+end_example
+
+- Arrays this long are rare, but the bug sat in the JDK's own
+  ~Arrays.binarySearch()~ until 2006 (Joshua Bloch, "Nearly All Binary
+  Searches and Mergesorts are Broken", 2006):
+  [[https://research.google/blog/extra-extra-read-all-about-it-nearly-all-binary-searches-and-mergesorts-are-broken/?m=1][Google research blog article]].
+
+*** Question: Why are we sure that ~lo + (hi - lo)/2~ stays small?
+**** Answer                                                           :skip:
+
+Both formulas compute the same middle point. But the correct formula
+only ever adds a small correction (half the gap) to a number you
+already trust, while the buggy formula creates a number nearly twice
+as large as anything you started with - and ~int~ does not know that
+the division that comes next would fix it.
+
+** Interactive companion: binary search arithmetic
+
+- [[https://birkenkrahe.github.io/demos/binary-search-arithmetic.html][binary-search-arithmetic.html]]: move ~lo~ and ~hi~ over a 15-entry
+  array, see ~hi - lo~, ~mid~ and both halves update live, then take
+  "lower half" / "upper half" steps until the interval is empty. It
+  also has a predict-the-mid quiz and the overflow check.
+
+* Code-along: =BinarySearch=
+
+** The search methods
+
+- Two methods with the same name: the public one gets the whole array,
+  the helper gets the interval. Java tells them apart by their
+  parameter lists (*overloading*).
+
+- The code is the book's Program 4.2.3 (p. 539). The test client in
+  ~main~ tests hits, misses, the empty array and an array with one key.
+
+  #+name: BinarySearch.java
+  #+begin_src java :tangle ../src/BinarySearch.java
+    // BinarySearch.java - search a sorted array with binary search
+    public class BinarySearch
+    {
+        // search the whole array: start with the interval [0, a.length)
+        public static int search(String key, String[] a)
+        {
+            return search(key, a, 0, a.length);
+        }
+
+        // search for key in the sorted subarray a[lo, hi)
+        public static int search(String key, String[] a, int lo, int hi)
+        {
+            // empty interval: the key is not in the array
+            if (hi <= lo) return -1;
+            // index in the middle of the interval
+            int mid = lo + (hi - lo) / 2;
+            // compare the middle entry with the key: only the sign matters
+            int cmp = a[mid].compareTo(key);
+            // a[mid] comes after the key: search the lower half a[lo, mid)
+            if      (cmp > 0) return search(key, a, lo, mid);
+            // a[mid] comes before the key: search the upper half a[mid+1, hi)
+            else if (cmp < 0) return search(key, a, mid+1, hi);
+            // a[mid] equals the key: found it
+            else              return mid;
+        }
+
+        // test client: hits, misses and edge cases
+        public static void main(String[] args)
+        {
+            String[] a = { "alice", "bob", "carlos", "carol", "craig",
+                           "dave", "erin", "eve", "frank", "mallory",
+                           "oscar", "peggy", "trent", "walter", "wendy" };
+
+            // every entry must be found at its own index
+            for (int i = 0; i < a.length; i++)
+                if (search(a[i], a) != i)
+                    StdOut.println("ERROR: " + a[i]);
+            StdOut.println("all " + a.length + " hits found");
+
+            // misses: before the first, in between, after the last
+            StdOut.println("aaron  -> " + search("aaron", a));
+            StdOut.println("marvin -> " + search("marvin", a));
+            StdOut.println("zoe    -> " + search("zoe", a));
+
+            // edge cases: empty array, array with one entry
+            String[] empty = {};
+            String[] one   = { "eve" };
+            StdOut.println("empty, eve -> " + search("eve", empty));
+            StdOut.println("one,   eve -> " + search("eve", one));
+            StdOut.println("one,   bob -> " + search("bob", one));
+        }
+    }
+  #+end_src
+
+- The test client checks three things, in order:
+  1. *Hits:* every one of the fifteen names has to find itself at its
+     own index; any =ERROR:= line means a name could not.
+  2. *Misses:* =aaron= (before the first entry), =marvin= (between two
+     entries) and =zoe= (after the last) are not in the array, so all
+     three must return -1.
+  3. *Edge cases:* the empty array and an array with one entry. This is
+     where an off-by-one in ~hi <= lo~ or ~mid~ shows up first.
+
+- Run the program:
+  #+begin_src bash
+    cd ../src
+    javac -cp .:stdlib.jar BinarySearch.java
+    java -cp .:stdlib.jar BinarySearch
+  #+end_src
+
+  #+RESULTS:
+  : all 15 hits found
+  : aaron  -> -1
+  : marvin -> -1
+  : zoe    -> -1
+  : empty, eve -> -1
+  : one,   eve -> 0
+  : one,   bob -> -1
+
+*** Question: Why does binary search need ~lo~ and ~hi~ as parameters, when sequential search only needed ~search(key, a)~?
+**** Answer                                                           :skip:
+
+Each recursive call works on a smaller interval of the *same* array.
+Passing ~lo~ and ~hi~ avoids copying the half, and the index it
+returns is already an index into the original array.
+
+** The comparison: ~compareTo()~ returns a sign, not -1/0/+1
+
+- ~s.compareTo(t)~ compares the strings character by character. At the
+  first position where they differ, it returns the difference of the
+  two character codes. If one string is a prefix of the other, it
+  returns the difference of the lengths.
+
+  #+begin_src java :tangle ../src/Cmp.java
+    public class Cmp
+    {
+        public static void main(String[] args)
+        {
+            System.out.println("eve".compareTo("oscar"));      // 'e' - 'o'
+            System.out.println("peggy".compareTo("oscar"));    // 'p' - 'o'
+            System.out.println("mallory".compareTo("marvin")); // 'l' - 'r'
+            System.out.println("oscar".compareTo("oscar"));
+            System.out.println("Zebra".compareTo("apple"));    // 'Z' - 'a'
+            System.out.println((int) 'Z' + " " + (int) 'a');
+        }
+    }
+  #+end_src
+
+  #+RESULTS:
+  : -10
+  : 1
+  : -6
+  : 0
+  : -7
+  : 90 97
+
+- Rule: *test the sign, never the value*. ~cmp == -1~ works for
+  =peggy= and =oscar= by accident and fails for =eve= and =oscar=. The
+  book says "typically -1" (p. 545) - typically, not always.
+
+- Uppercase letters (65-90) come before lowercase (97-122): =Zebra=
+  sorts before =apple=. Our whitelists are lowercase only.
+
+- Read the code line in words: ~cmp = a[mid].compareTo(key)~, so
+  ~cmp > 0~ means "the middle entry comes after the key": look left.
+
+- In the book, ~compareTo(String t)~ appears in the String API table
+  in §3.1 (p. 332); §3.3 (p. 451) and §4.2 (pp. 545-546) explain it
+  with the ~Comparable~ interface.
+
+** Recursion: why ~return search(...)~?
+
+- Each branch either answers (~return -1~, ~return mid~) or hands the
+  same problem on a smaller interval to a recursive call.
+
+- The ~return~ in front of the call passes the inner answer straight
+  back to the caller: there is nothing left to do after the call.
+
+- Two base cases end the recursion: empty interval (miss) and
+  ~cmp == 0~ (hit). Each call shrinks the interval, so one of them is
+  always reached.
+
+* Recursion trace
+
+- Trace of =oscar=. Each row is one call:
+
+  | call | lo | hi | mid | a[mid]  | key vs a[mid] | next              |
+  |------+----+----+-----+---------+---------------+-------------------|
+  |    1 |  0 | 15 |   7 | eve     | after         | search(…, 8, 15)  |
+  |    2 |  8 | 15 |  11 | peggy   | before        | search(…, 8, 11)  |
+  |    3 |  8 | 11 |   9 | mallory | after         | search(…, 10, 11) |
+  |    4 | 10 | 11 |  10 | oscar   | equal         | return 10         |
+
+  Call 4 returns 10, and calls 3, 2 and 1 pass the same 10 back up.
+
+- Sign note: "after" and "before" describe the *key* relative to
+  ~a[mid]~ (=oscar= > =eve=). The code's ~cmp~ has the opposite sign:
+  ~"eve".compareTo("oscar")~ is negative, so the ~cmp < 0~ branch
+  searches the upper half.
+
+** Question: Trace the miss =marvin=. How many compares?
+*** Answer                                                             :skip:
+
+(0,15) mid 7 =eve=: after → (8,15) mid 11 =peggy=: before → (8,11)
+mid 9 =mallory=: after (=l= < =r=) → (10,11) mid 10 =oscar=: before →
+(10,10) empty: return -1. Four compares, then the empty interval.
+
+** Question: What about =aaron= (before everything) and =zoe= (after everything)?
+*** Answer                                                             :skip:
+
+=aaron=: always the lower half, (0,15) → (0,7) → (0,3) → (0,1) →
+(0,0). =zoe=: always the upper half, (0,15) → (8,15) → (12,15) →
+(14,15) → (15,15). Four compares each: every miss in this array costs
+exactly 4.
+
+** Interactive companion: recursion trace
+
+- [[https://birkenkrahe.github.io/demos/binary-search-trace.html][binary-search-trace.html]]: pick a key (hit or miss) and step
+  through the calls. The page shows the active interval, the
+  highlighted code line, the real ~compareTo()~ value, and the call
+  stack: calls are pushed on the way down and the result is returned
+  through every frame on the way up.
+- Section 2 runs the search for every name and every gap and counts
+  the compares: hits cost 1 to 4, every miss costs 4.
+- Its "shuffle" switch runs the same code on an unsorted array: most
+  searches for keys that are in the array then miss (Exercise 4.2.4,
+  and the =TestBSUnsorted= experiment below).
+
+* Correctness: invariant plus induction
+
+** Bridge, then the proof
+
+What we do with every real program:
+
+1. We apply the scientific method to the program.
+2. We build a mathematical model and predict the performance.
+3. We measure the performance using the doubling test.
+4. We explain the difference between 2 and 3.
+
+Before the cost, the book asks a first question (§4.2, twenty
+questions): does the method always give the right answer? We
+establish the *correctness* of =search()= (it finds the key if there
+is one) with a combination of *invariant* plus *induction*.
+
+We did not do this for sequential search because there it is
+trivially true: it checks every element of the array. Binary search
+takes a shortcut, so it needs a proof.
+
+An *invariant* is a statement that stays true.
+
+1) Invariant: if =key= is in =a=, then it is in =a[lo, hi)=:
+   - At the start, =a[0, a.length)= is the whole array, so the
+     invariant holds.
+   - Say =a[mid] > key=. Because the array is sorted, every entry from
+     =a[mid]= up to =a[hi-1]= is larger than =key=, too. So if =key= is
+     in =a[lo, hi)= it must be in =a[lo, mid)=, and the invariant holds
+     for that call.
+   - The case =a[mid] < key= works the same way with =a[mid+1, hi)=.
+   - Both base cases answer correctly. =cmp == 0=: =a[mid]= is =key=,
+     so returning =mid= is right. =hi <= lo=: the interval is empty,
+     so by the invariant =key= is not in =a=, and returning -1 is
+     right.
+
+2) Induction on the interval size =hi - lo=:
+   - Every call works on a strictly smaller interval (=mid < hi= and
+     =mid + 1 > lo=), so the recursion always reaches a base case: the
+     method terminates.
+   - Size 0 (empty) and a hit are the base cases above. If the method
+     is correct for all smaller intervals, it is correct for this one:
+     the invariant hands the right question to a smaller call, and
+     =return search(...)= passes its answer back unchanged.
+
+- Sorting is used in exactly one place: the step that keeps the
+  invariant. That is the whole reason binary search needs a sorted
+  array.
+
+- The book proves the same two facts for twenty questions: the
+  interval always contains the secret number, and its size halves
+  with every question. The first fact is correctness, the second is
+  the cost - see the next section.
+
+** Three pieces of a proof
+
+| Piece               | What it guarantees           | In =search()=                       |
+|---------------------+------------------------------+-------------------------------------|
+| invariant           | nothing is lost on the way   | if =key= is in =a=, it is in        |
+|                     |                              | =a[lo, hi)=                         |
+| termination         | an answer is always reached  | the interval shrinks every call     |
+| base cases (exit)   | the answer returned is right | hit: =mid=; empty: -1, by the       |
+|                     |                              | invariant                           |
+
+- The invariant never returns anything: only the base cases do, so
+  they need their own check. The recursive branches only pass the
+  answer through (=return search(...)=).
+
+- The miss case depends on the invariant: an empty interval means
+  "not in =a=" only because the invariant says the key would be in
+  =a[lo, hi)= if it were in =a=.
+
+- "Base case" means two things here: where the recursion stops, and
+  where the induction starts. Here they are the same cases.
+
+- The table comes back:
+  + =BinarySearchLoop=: loop invariant, loop condition, the return
+    after the loop.
+  + Insertion sort: =a[0, i)= is sorted; =i= grows by one; at
+    =i == N= the whole array is sorted.
+  + Mergesort: one entry is sorted; merging two sorted halves gives a
+    sorted whole; the halves get smaller.
+
+*** Question: What goes wrong if a base case is wrong or missing?
+**** Answer                                                           :skip:
+
+Return =lo= instead of -1 on the empty interval: the invariant holds
+and the method terminates, but every miss reports an index. No
+=cmp == 0= case: a hit goes into a half that excludes =a[mid]=, the
+invariant breaks, and a key that is there is reported missing.
+
+** Each bug breaks one piece of the proof
+
+| Bug                                       | What fails                          |
+|-------------------------------------------+-------------------------------------|
+| unsorted array (=TestBSUnsorted= below)     | the invariant: the dropped half may |
+|                                           | hold the key                        |
+| upper half =a[mid, hi)=                     | termination: one entry left, the    |
+|                                           | interval does not shrink            |
+| =(lo + hi) / 2= overflows                   | =mid= lands outside =a[lo, hi)=         |
+| =while (lo <= hi)= in the loop (practice)   | reads =a[hi]=, outside the interval   |
+
+*** Question: If the array is unsorted, how many keys that are in it will be missed?
+**** Answer                                                           :skip:
+
+Almost all of them: about 99% for N = 1,000 - see =TestBSUnsorted=
+below.
+
+* Running time: mathematical analysis
+
+** The recurrence (book, p. 535)
+
+Let T(n) be the number of compares for an interval of size n:
+
+- One compare, then one call on half the interval:
+  #+begin_example
+  T(n) = T(n/2) + 1,   T(1) = 0
+  #+end_example
+- Telescope for n = 2^k - substitute the formula into itself:
+  #+begin_example
+  T(2^k) = T(2^(k−1)) + 1
+         = T(2^(k−2)) + 2
+         = T(2^(k−3)) + 3
+         ...
+         = T(2^0) + k  =  T(1) + k  =  k
+  #+end_example
+- So T(n) = k = lg n.
+- The same for our =search()= with N = 2^k − 1 (the middle entry
+  leaves two halves of size 2^(k−1) − 1):
+  #+begin_example
+  T(2^k − 1) = T(2^(k−1) − 1) + 1 = ... = T(0) + k = k = lg(N+1)
+  #+end_example
+  T(0) = 0 is the empty interval: a miss, no compare.
+
+*** Question: Why stop at T(1) in the book, but at T(0) for our =search()=?
+**** Answer                                                           :skip:
+
+In twenty questions the number is always there: one value left means
+no question is needed. Our search can miss, so it runs on until the
+interval is empty.
+
+** Exact analysis for a miss when N = 2^k − 1
+
+- Take N = 2^k − 1 entries (for example 15 = 2^4 − 1). The middle
+  entry splits the rest into two halves of equal size:
+  #+begin_example
+  (2^k − 1 − 1) / 2  =  2^(k−1) − 1
+  #+end_example
+  So the halves have size 2^(k−1) − 1 again: the same form, one power
+  lower.
+
+- Interval sizes call by call:
+  | call | interval size | for N = 15 |
+  |------+---------------+------------|
+  |    1 | 2^k − 1       |         15 |
+  |    2 | 2^(k−1) − 1   |          7 |
+  |    3 | 2^(k−2) − 1   |          3 |
+  |  ... | ...           |        ... |
+  |    k | 1             |          1 |
+
+- One compare per call, so a miss costs exactly k compares, and
+  k = lg(N+1) ~ lg N.
+
+- *Picture:* write the middle entries of all intervals as a tree.
+  The root is the middle of the whole array, its two children are the
+  middles of the two halves, and so on. Every search miss is a
+  top-to-bottom path in this tree: k levels, k compares.
+
+- Propositions:
+  + Binary search uses ~lg N compares for a search miss.
+  + Binary search uses ~lg N compares for a random search hit (a hit
+    can stop higher in the tree; for N = 15, on average
+    (1·1 + 2·2 + 4·3 + 8·4)/15 = 49/15 ≈ 3.3 compares).
+
+- For N not of the form 2^k − 1, the halves differ by at most one, and
+  the worst case is floor(lg N) + 1 compares (20 for a million). Both
+  agree at N = 2^k − 1: floor(lg 15) + 1 = 3 + 1 = 4.
+
+*** Question: How many compares at most for N = 1 billion?
+**** Answer                                                           :skip:
+
+floor(lg 10^9) + 1 = 29 + 1 = 30. Sequential search: up to a billion.
+
+** Interactive companion: building the tree
+
+- [[https://birkenkrahe.github.io/demos/binary-search-tree.html][binary-search-tree.html]]: choose k (N = 2^k − 1 = 1, 3, 7, 15, 31,
+  63) and build the tree one level at a time; each level shows its
+  interval size. Then pick a key and highlight its top-to-bottom path.
+  A table compares the miss cost (always k), the average hit cost and
+  lg N.
+
+** More than an illustration
+
+The tree is not just a picture of the halving. It does three jobs:
+
+1. *It is the proof of the cost.* "Every search is a path from the
+   root, one compare per level" is the whole cost argument - the
+   recurrence above, counted on the tree instead of on paper. It also
+   gives what the recurrence does not give directly: the average hit
+   cost is the sum of the depths of all nodes divided by N,
+   (1·1 + 2·2 + 4·3 + 8·4)/15 = 49/15 ≈ 3.3 for N = 15.
+
+2. *It shows that binary search is optimal.* Any search that only
+   compares keys can be drawn as a tree of compares (a /decision
+   tree/). A miss can end in N + 1 places: before the first key,
+   between two keys, after the last. Each compare at most halves the
+   possibilities, so some search needs at least ⌈lg(N+1)⌉ compares.
+   The halving tree reaches exactly this bound: no comparison-based
+   method beats binary search in the worst case. Only methods that do
+   more than compare (hashing) can. The same argument gives the lower
+   bound for sorting, about N lg N compares, which mergesort reaches
+   (proved in /Algorithms/ 4e, not in our book).
+
+3. *It becomes a data structure.* It is a perfectly balanced binary
+   search tree: everything left of a node is smaller, everything right
+   of it is larger, and reading the nodes left to right gives the
+   sorted array. Binary search never stores it - ~mid~ computes each
+   node. In §4.4 (symbol tables) the tree is stored with links and
+   built by inserting keys one at a time. Then its shape depends on
+   the insertion order: random order costs about 1.39 lg N compares
+   per search, sorted order gives a chain and N compares. The halving
+   tree is the best case. Mergesort (next in §4.2) has the same
+   halving tree as its recursion tree: lg N levels, N compares per
+   level, N lg N.
+
+** The model for the whitelist filter
+
+- 10N searches × ~lg N compares = ~10 N lg N in total ("linearithmic").
+
+*** Question: What ratio does the doubling test predict?
+**** Answer                                                           :skip:
+
+T(2N)/T(N) = 2N lg(2N) / (N lg N) = 2 (1 + 1/lg N): slightly above 2
+(about 2.1 for N between 100,000 and a million).
+
+* Code-along: =TestBS= and the doubling test
+
+=TestBS= is =TestSS= with two changes: sort the whitelist, call
+~BinarySearch.search()~. =BinarySearch.class= must be in the same
+directory.
+
+** First without sorting
+
+- Copy =TestSS.java=, save it as =TestBSUnsorted.java= (rename the
+  class), delete the sequential ~search()~ method and call
+  ~BinarySearch.search()~ instead. Don't sort yet.
+
+#+name: TestBSUnsorted.java
+#+begin_src java :tangle ../src/TestBSUnsorted.java
+  public class TestBSUnsorted
+  {
+      public static void main(String[] args)
+      {
+          // read the whitelist (from Generator) from stdin into array
+          String[] words = StdIn.readAllStrings();
+          // N is the size of the whitelist
+          int N = words.length;
+          // record the start time, in seconds
+          double start = System.currentTimeMillis() / 1000.0;
+          // run 10N searches total - c = 10
+          for (int i = 0; i < 10*N; i++)
+            {
+                // pick a key at random from the whitelist itself - always a hit
+                String key = words[StdRandom.uniformInt(N)];
+                // binary search for the key - but the array is NOT sorted
+                if (BinarySearch.search(key, words) == -1)
+                    // should never print - every search must find its key
+                    StdOut.println(key);
+            }
+          // record the end time
+          double now = System.currentTimeMillis() / 1000.0;
+          // report total elapsed time for all 10N searches
+          StdOut.printf("%.2f seconds%n", now - start);
+      }
+  }
+#+end_src
+
+*** Question: Every key is taken from the whitelist. How many keys will be printed?
+**** Answer                                                           :skip:
+
+Count the printed lines instead of reading them (one line is the
+time):
+#+begin_src bash
+  cd ../src
+  javac -cp .:stdlib.jar Generator.java BinarySearch.java TestBSUnsorted.java
+  AZ=abcdefghijklmnopqrstuvwxyz
+  for N in 1000 10000; do
+      echo -n "N=$N, 10N searches, lines printed: "
+      java -cp .:stdlib.jar Generator $N 10 $AZ | java -cp .:stdlib.jar TestBSUnsorted | wc -l
+  done
+#+end_src
+
+#+RESULTS:
+: N=1000, 10N searches, lines printed: 9899
+: N=10000, 10N searches, lines printed: 99908
+
+About 99% of the searches "miss" a key that is in the array. The exact
+numbers change from run to run, because the strings are random.
+
+*** Question: Why? (Exercise 4.2.4)
+**** Answer                                                           :skip:
+
+Binary search throws away half of the array after each compare,
+trusting the order. In a random array, the key is just as likely to
+sit in the discarded half. It only finds keys that happen to lie on
+its own search path - about lg N + 1 of the N keys.
+
+*** Question: Why not check that the array is sorted inside ~search()~?
+**** Answer                                                           :skip:
+
+Checking costs N − 1 compares, which destroys the lg N advantage.
+Sort once, then search many times.
+
+- Remember the dead-code ~if~ from =TestSS=: here it is not dead. A
+  benchmark that checks its own premise catches the missing sort.
+
+** Sort first
+
+- Java's library has a sort: ~Arrays.sort()~ in ~java.util~ (book
+  Q&A, p. 559). How sorting works is the next topic; here we just use
+  it.
+
+- Sort *before* the timer: we measure the searches, as in =TestSS=.
+
+#+name: TestBS.java
+#+begin_src java :tangle ../src/TestBS.java
+  import java.util.Arrays;
+
+  public class TestBS
+  {
+      public static void main(String[] args)
+      {
+          // read the whitelist (from Generator) from stdin into array
+          String[] words = StdIn.readAllStrings();
+          // binary search needs a sorted array - sort BEFORE the timer
+          Arrays.sort(words);
+          // N is the size of the whitelist
+          int N = words.length;
+          // record the start time, in seconds
+          double start = System.currentTimeMillis() / 1000.0;
+          // run 10N searches total - c = 10
+          for (int i = 0; i < 10*N; i++)
+            {
+                // pick a key at random from the whitelist itself - always a hit
+                String key = words[StdRandom.uniformInt(N)];
+                // binary search for the key in the sorted array
+                if (BinarySearch.search(key, words) == -1)
+                    // this should never print - every search must find its key
+                    StdOut.println(key);
+            }
+          // record the end time
+          double now = System.currentTimeMillis() / 1000.0;
+          // report total elapsed time for all 10N searches
+          StdOut.printf("%.2f seconds%n", now - start);
+      }
+  }
+#+end_src
+
+** Run the doubling test
+
+- Predict first: a ratio a little above 2.
+
+- N starts at 100,000: ten times the largest =TestSS= run.
+  #+begin_src bash
+    cd ../src
+    javac -cp .:stdlib.jar Generator.java BinarySearch.java TestBS.java
+    AZ=abcdefghijklmnopqrstuvwxyz
+    for N in 100000 200000 400000 800000 1600000; do
+        echo -n "N=$N: "
+        java -cp .:stdlib.jar Generator $N 10 $AZ | java -cp .:stdlib.jar TestBS
+    done
+  #+end_src
+
+  #+RESULTS:
+  : N=100000: 0.17 seconds
+  : N=200000: 0.42 seconds
+  : N=400000: 1.01 seconds
+  : N=800000: 2.73 seconds
+  : N=1600000: 7.39 seconds
+
+** Read the table
+
+- Sedgewick's runs:
+
+  | N          | T_N (s) | T_N / T_{N/2} |
+  |------------+---------+---------------|
+  | 100,000    |       1 |               |
+  | 200,000    |       3 |               |
+  | 400,000    |       6 |             2 |
+  | 800,000    |      14 |          2.35 |
+  | 1,600,000  |      33 |          2.33 |
+  | ...        |         |               |
+  | 12,800,000 |     264 |             2 |
+
+- Ratio about 2 (b ≈ 1): the searches scale. 1.6 million entries in
+  half a minute; sequential search needed more than 10 hours for 1.28
+  million.
+
+- The measured ratios - 2.3 in Sedgewick's table, 2.4 to 2.7 in our
+  run above - are above the model's 2.1. The model counts compares and
+  assumes each costs the same. With larger arrays, the strings no
+  longer fit into the processor's cache, and each compare jumps to a
+  distant place in memory. That is a systematic effect, not noise: it
+  grows with N.
+
+* PRACTICE Nonrecursive binary search (Exercise 4.2.2)
+
+- *Task:* Write =BinarySearchLoop.java= with a method
+  ~search(String key, String[] a)~ that does binary search with a
+  ~while~ loop instead of recursion. Closed book. Then run the tests.
+
+- Book Q&A (p. 559): "In a famous experiment, Jon Bentley once asked
+  several professional programmers to do so, and most of their
+  solutions were not correct."
+
+- *Hint:* Keep ~lo~ and ~hi~ as local variables. Each recursive call
+  becomes an assignment to one of them. What is the loop condition?
+
+- Test client:
+  #+begin_example java
+  public static void main(String[] args)
+  {
+      String[] a = { "alice", "bob", "carlos", "carol", "craig",
+                     "dave", "erin", "eve", "frank", "mallory",
+                     "oscar", "peggy", "trent", "walter", "wendy" };
+      String[] keys = { "alice", "oscar", "wendy", "aaron", "marvin", "zoe" };
+      for (String key : keys)
+          StdOut.printf("%-7s recursive %3d   loop %3d%n", key,
+                        BinarySearch.search(key, a), search(key, a));
+      StdOut.println("empty: " + search("eve", new String[0]));
+      StdOut.println("one:   " + search("eve", new String[] { "eve" })
+                     + " " + search("bob", new String[] { "eve" }));
+  }
+  #+end_example
+
+** Why this exercise
+
+- *It's your first recursion-to-loop rewrite.* You learn to turn any
+  recursion whose call comes last into a loop - binary search is just
+  the example. You will need this again: mergesort has a bottom-up
+  loop version, the call stack behind every recursion is a stack
+  (§4.3), and when a recursion gets too deep, rewriting it as a loop
+  is the fix.
+
+- *It makes the half-open interval concrete.* The loop condition, the
+  new value of ~hi~ or ~lo~ in each branch, and the ~-1~ after the
+  loop are all questions about ~a[lo, hi)~. Get them right and you
+  have understood the interval, not just memorized the code.
+
+- *It's what real code does.* Java's own ~Arrays.binarySearch~ is a
+  loop. And it introduces the idea of a loop invariant - "if ~key~ is
+  in ~a~, it is in ~a[lo, hi)~" - which is how you reason about any
+  loop.
+
+- *Binary search itself doesn't need it.* The recursion is only about
+  lg N levels deep (about 30 for a billion entries), so it never runs
+  out of stack. A recursion that shrinks the problem by one at a time
+  is a different story.
+
+- *Do it by hand, without AI.* Any chatbot writes this in seconds; the
+  point is that you can.
+
+** Step by step: the four steps
+
+The same four steps as for ~sum(n)~ in the recursion-to-loop
+tutorial, applied to =search()=. Binary search is already
+tail-recursive, so there is no move 1.
+
+| # | Step                                     | You write                          |
+|---+------------------------------------------+------------------------------------|
+| 1 | Which parameters change? Where do they   | ~int lo = 0, hi = a.length;~       |
+|   | start?                                   | (~key~, ~a~ stay parameters)       |
+| 2 | Base case -> loop condition              | ~while (hi > lo)~                  |
+| 3 | Calls -> assignments                     | ~hi = mid;~ / ~lo = mid + 1;~      |
+|   | (~return mid;~ is no call: it stays)     | ~else return mid;~ inside the loop |
+| 4 | Base return -> after the loop            | ~return -1;~                       |
+
+- Step 1: the start values come from the one-argument ~search()~ that
+  starts the recursion: ~search(key, a, 0, a.length)~.
+- Step 2: ~!(hi <= lo)~ is correct but clumsy (and ~!hi <= lo~ does not
+  compile: ~!~ binds first). Strict ~>~: ~lo == hi~ is the empty
+  interval.
+- Step 3: put the parameters next to the call's arguments; only one
+  position changes per call:
+
+  |                             | key   | a   | lo      | hi    |
+  |-----------------------------+-------+-----+---------+-------|
+  | current call                | ~key~ | ~a~ | ~lo~    | ~hi~  |
+  | ~search(key, a, lo, mid)~   | ~key~ | ~a~ | ~lo~    | ~mid~ |
+  | ~search(key, a, mid+1, hi)~ | ~key~ | ~a~ | ~mid+1~ | ~hi~  |
+
+- Step 3: why no temporary variable, unlike Euclid's ~gcd~ (~r = p % q;
+  p = q; q = r;~)? Each branch changes only one variable.
+- Step 4: there are only two ways out of the loop: ~return mid;~
+  (found), or the condition turns false (not found) - then the line
+  after the loop runs.
+
+** Solution                                                          :skip:
+
+#+name: BinarySearchLoop.java
+#+begin_src java :tangle ../src/BinarySearchLoop.java
+  // BinarySearchLoop.java - nonrecursive binary search (Exercise 4.2.2)
+  public class BinarySearchLoop
+  {
+      public static int search(String key, String[] a)
+      {
+          // the interval [lo, hi) that could still contain the key
+          int lo = 0, hi = a.length;
+          // loop while the interval is not empty
+          while (lo < hi)
+            {
+                int mid = lo + (hi - lo) / 2;
+                int cmp = a[mid].compareTo(key);
+                if      (cmp > 0) hi = mid;       // keep the lower half a[lo, mid)
+                else if (cmp < 0) lo = mid + 1;   // keep the upper half a[mid+1, hi)
+                else              return mid;     // found it
+            }
+          // empty interval: the key is not in the array
+          return -1;
+      }
+
+      // same tests as BinarySearch, results must agree
+      public static void main(String[] args)
+      {
+          String[] a = { "alice", "bob", "carlos", "carol", "craig",
+                         "dave", "erin", "eve", "frank", "mallory",
+                         "oscar", "peggy", "trent", "walter", "wendy" };
+          String[] keys = { "alice", "oscar", "wendy", "aaron", "marvin", "zoe" };
+          for (String key : keys)
+              StdOut.printf("%-7s recursive %3d   loop %3d%n", key,
+                            BinarySearch.search(key, a), search(key, a));
+          StdOut.println("empty: " + search("eve", new String[0]));
+          StdOut.println("one:   " + search("eve", new String[] { "eve" })
+                         + " " + search("bob", new String[] { "eve" }));
+      }
+  }
+#+end_src
+
+#+begin_src bash
+  cd ../src
+  javac -cp .:stdlib.jar BinarySearch.java BinarySearchLoop.java
+  java -cp .:stdlib.jar BinarySearchLoop
+#+end_src
+
+#+RESULTS:
+: alice   recursive   0   loop   0
+: oscar   recursive  10   loop  10
+: wendy   recursive  14   loop  14
+: aaron   recursive  -1   loop  -1
+: marvin  recursive  -1   loop  -1
+: zoe     recursive  -1   loop  -1
+: empty: -1
+: one:   0 -1
+
+- Typical mistakes:
+  + ~while (lo <= hi)~ with ~hi = a.length~: reads ~a[a.length]~ for a
+    key after the last entry (=ArrayIndexOutOfBoundsException= for
+    =zoe=).
+  + ~lo = mid~ instead of ~lo = mid + 1~: an endless loop once the
+    interval has one entry and the key is larger.
+  + ~cmp == 1~ / ~cmp == -1~ instead of the sign: then ~cmp = -10~
+    falls through to ~else return mid~, a "hit" at the wrong index.
+
+- The loop and the recursion do the same thing: each recursive call
+  ~search(key, a, lo, mid)~ becomes ~hi = mid~. This works because the
+  recursive call is the last thing the method does
+  (~return search(...)~).
+
+** Question: Same authors, two books, two versions - why does the book use recursion?
+*** Answer                                                             :skip:
+
+- *The book teaches.* The recursive code says what the algorithm
+  does: look at the middle, then search the left or the right half.
+  The loop hides this in two assignments.
+- *Analysis and proof follow the code.* The recurrence T(N) = T(N/2) +
+  1 (p. 535) is visible in the recursive version: one compare plus one
+  call on half the interval. Correctness is an induction on the size
+  of the interval.
+- *It fits the chapter.* Section 4.2 builds on recursion (§2.3):
+  twenty questions and bisection search are recursive, and mergesort
+  comes next. Exercise 4.2.2 asks for the loop version, so the book
+  wants you to see both.
+- *The library has to be fast.* Every call costs a stack frame;
+  library code runs billions of times. Java does not turn a call that
+  comes last into a loop by itself, so the library authors write the
+  loop. Stack overflow is not the reason: the depth is only lg N.
+- Sedgewick & Wayne's /Algorithms/ (4th ed.), a book about efficient
+  implementations, writes =BinarySearch= with a ~while~ loop.
+
+* Interactive companions
+
+- [[https://birkenkrahe.github.io/demos/binary-search-arithmetic.html][binary-search-arithmetic.html]]: half-open interval, mid, both
+  halves, overflow.
+- [[https://birkenkrahe.github.io/demos/binary-search-trace.html][binary-search-trace.html]]: step through the recursion with the
+  call stack; shuffle switch for an unsorted array.
+- [[https://birkenkrahe.github.io/demos/binary-search-tree.html][binary-search-tree.html]]: build the tree level by level; every
+  miss is a top-to-bottom path.
+- No setup, no code: just open them and click.
+
+* Checkout question
+
+=TestBS= sorted the whitelist with ~Arrays.sort()~ before starting the
+timer.
+1) Should the sorting time count as part of the whitelist filter's
+   cost?
+2) You have 15 name cards in random order. How would you put them in
+   alphabetical order by hand?
+
+** Answer                                                            :skip:
+
+1) *Yes, once.* Sorting is paid once, the searches are paid 10N times.
+   As long as sorting is not slower than the ~10 N lg N searches, the
+   filter still scales. Whether it is depends on the sort: that is
+   the next question.
+
+2) Most people pick up the cards one at a time and slide each new card
+   into its place among the cards already in their hand. That is
+   *insertion sort*, the next algorithm.
+
+* Summary
+
+- Binary search finds a key in a *sorted* array by comparing with the
+  middle entry and discarding the half that cannot contain the key.
+
+- The interval ~a[lo, hi)~ includes ~lo~ and excludes ~hi~: ~hi − lo~
+  entries, empty when ~hi <= lo~. ~mid = lo + (hi − lo)/2~; halves
+  ~a[lo, mid)~ and ~a[mid+1, hi)~.
+
+- The recursive ~search(key, a, lo, hi)~ passes the interval, not a
+  copy, so the returned index refers to the original array. The public
+  ~search(key, a)~ starts with ~(0, a.length)~.
+
+- ~compareTo()~ gives the order as a sign. Test ~> 0~, ~< 0~, ~== 0~.
+
+- Test the edge cases: empty array, one entry, keys before the first
+  and after the last entry.
+
+- Correctness: the invariant "if ~key~ is in ~a~, it is in
+  ~a[lo, hi)~" holds at the start and after every call, and induction
+  on ~hi − lo~ does the rest. Sorting is used in exactly one place: the
+  step that keeps the invariant.
+
+- A correctness proof has three pieces: the invariant (nothing is
+  lost), termination (an answer is always reached) and the base cases
+  (the answer returned is right). The invariant never returns anything;
+  only the base cases do.
+
+- The loop version =BinarySearchLoop= keeps the same invariant, now as
+  a loop invariant: it holds every time the loop checks ~hi > lo~.
+
+- A search miss costs k = lg(N+1) compares for N = 2^k − 1 (a
+  top-to-bottom path in the tree), at most floor(lg N) + 1 in general.
+  A random hit costs ~lg N too.
+
+- The book's version of the same result: the recurrence
+  T(n) = T(n/2) + 1 with T(1) = 0, telescoped for n = 2^k, gives
+  T(n) = lg n.
+
+- The halving tree is more than a picture: it proves the cost, it
+  shows that no comparison-based search beats binary search in the
+  worst case, and it is a perfectly balanced binary search tree (§4.4).
+
+- The whitelist filter with binary search costs ~10 N lg N: the
+  doubling ratio is about 2 (slightly more, because lg N grows and
+  large arrays leave the cache). It scales.
+
+- Without sorting, binary search fails silently: only the keys that
+  lie on their own search path are found, about lg N + 1 of N (1% for
+  N = 1,000). Sorting is the next topic.
+
+* Glossary
+
+| Term                | Definition                                           |
+|---------------------+------------------------------------------------------|
+| ~Arrays.sort()~     | library method in java.util that sorts an array; for |
+|                     | objects a mergesort variant (Q&A p. 559).            |
+| base case           | the case a recursive method answers without calling  |
+|                     | itself; here: empty interval or cmp == 0.            |
+| binary search       | search a sorted array by comparing with the middle   |
+|                     | entry and discarding the half that cannot contain    |
+|                     | the key.                                             |
+| binary search tree  | a tree where every node is larger than all keys to   |
+|                     | its left and smaller than all keys to its right      |
+|                     | (§4.4).                                              |
+| ~compareTo()~       | ~s.compareTo(t)~ returns a negative int, 0 or a      |
+|                     | positive int if s comes before, equals or comes      |
+|                     | after t. Test the sign only.                         |
+| decision tree       | the compares of any comparison-based search drawn as |
+|                     | a tree; it shows a miss needs at least ⌈lg(N+1)⌉     |
+|                     | compares.                                            |
+| exception filter    | prints the input strings that are NOT on the         |
+|                     | whitelist (the book's BinarySearch client).          |
+| half-open interval  | ~a[lo, hi)~: the entries a[lo] to a[hi-1]; hi - lo   |
+|                     | entries, empty when hi <= lo.                        |
+| halving tree        | the middle entries of all intervals drawn as a tree; |
+|                     | every search miss is a top-to-bottom path.           |
+| integer overflow    | an int result beyond 2,147,483,647 wraps around to a |
+|                     | negative number; why mid = lo + (hi - lo)/2.         |
+| invariant           | a statement that stays true at every step; here: if  |
+|                     | key is in a, it is in a[lo, hi).                     |
+| lg N                | logarithm base 2: the power to which you raise 2 to  |
+|                     | get N, or how often you can halve N until you reach  |
+|                     | 1.                                                   |
+| linearithmic        | order of growth N log N; doubling N slightly more    |
+|                     | than doubles the cost. Scales.                       |
+| loop invariant      | an invariant that holds every time a loop checks its |
+|                     | condition: before the first pass and after each.     |
+| mid                 | the middle index of a[lo, hi): lo + (hi - lo)/2,     |
+|                     | rounded down.                                        |
+| overloading         | two methods with the same name but different         |
+|                     | parameter lists, like search(key, a) and search(key, |
+|                     | a, lo, hi).                                          |
+| proof by induction  | prove a claim for the smallest case, then show it    |
+|                     | holds for size n if it holds for all smaller sizes.  |
+| recurrence relation | an equation that defines a cost in terms of the cost |
+|                     | of smaller inputs, e.g. T(n) = T(n/2) + 1.           |
+| recursion           | a method that calls itself on a smaller version of   |
+|                     | the same problem.                                    |
+| recursion trace     | a listing of the calls a recursive method makes,     |
+|                     | with their arguments and return values.              |
+| sorted array        | an array whose entries are in ascending order; the   |
+|                     | premise of binary search.                            |
+| tail recursion      | the recursive call is the last thing the method does |
+|                     | (return search(...)); easy to turn into a loop.      |
+| telescoping         | substituting a recurrence into itself down to the    |
+|                     | base case: T(2^k) = T(2^(k-1)) + 1 = ... = k.        |
+| termination         | a method or loop always stops; here because every    |
+|                     | call (or pass) shrinks the interval.                 |
