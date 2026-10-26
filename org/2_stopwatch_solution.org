@@ -465,11 +465,6 @@ CLOCK: [2026-08-11 Tue 16:27]--[2026-08-11 Tue 16:52] =>  0:25
   //          a StackOverflowError (the crash point depends on the
   //          machine and its stack size).
   //
-  // AI use: Claude (Anthropic) drafted this program header, and checked
-  //          that the file compiles and runs under JDK 17. The
-  //          Stopwatch nesting, both harmonic methods and main() are my
-  //          own work.
-  //
   // Pledge:  I pledge that this submission is my own work, in
   //          keeping with the Augustana academic-integrity and
   //          course AI-use policies.
