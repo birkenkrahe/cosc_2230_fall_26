@@ -1,0 +1,299 @@
+#+TITLE: §4.2 Sorting --- From String to Comparable - Code
+#+AUTHOR: Marcus Birkenkrahe
+#+SUBTITLE: COSC 2230 (CS III) Fall 2026 | Augustana U.
+#+STARTUP: overview hideblocks indent entitiespretty
+#+OPTIONS: toc:nil num:nil ^:nil
+#+PROPERTY: header-args:java :dir . :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar" :exports both
+#+PROPERTY: header-args:bash :results output :exports both
+
+* Code-along 1: =InsertionComparable=
+
+#+begin_src java :tangle InsertionComparable.java
+  // InsertionComparable.java: Insertion sort for any Comparable
+  // a library (sort) with a test client (main)
+  public class InsertionComparable
+  {
+      // sort a[] into ascending order in place.
+      public static void sort(Comparable[] a)
+      {
+      	// number of entries (input size)
+      	int N = a.length;
+      	// insert a[i] into the sorted part a[0,i)
+      	for (int i = 1; i < N; i++) // first entry already sorted!
+      	    // move a[i] to the left, one place per step
+      	    for (int j = i; j > 0; j--)
+      		// is the left neighbor larger?
+      		if (a[j-1].compareTo(a[j]) > 0)
+      		    // then swap the two elements
+      		    exchange(a, j-1, j);
+      	// else a[j] is in place: stop early
+      		else break;
+      }
+      // private helper: only sort() uses it, not in the API
+      private static void exchange(Comparable[] a, int i, int j)
+      {
+      	// swap a[i] and a[j] via the temporary t
+      	Comparable t = a[i]; a[i] = a[j]; a[j] = t;
+      }
+      // InsertionComparable.java: paste this main() inside the class
+      // test client: the same sort for strings, integers and doubles
+      public static void main(String[] args)
+      {
+  	// eight words: String implements Comparable
+  	String[]  words = { "was", "had", "him", "and", "you", "his", "the", "but" };
+  	// six integers: Integer wraps int and implements Comparable
+  	Integer[] ints  = { 42, 7, 19, 3, 88, 25 };
+  	// six reals: Double wraps double and implements Comparable
+  	Double[]  reals = { 2.71, 3.14, 1.41, 0.58 };
+  	// one sort() on all three different types
+  	sort(words); sort(ints); sort(reals);
+  	// print the sorted output as arrays (without hashcode)
+  	StdOut.println(java.util.Arrays.toString(words));
+  	StdOut.println(java.util.Arrays.toString(ints));
+  	StdOut.println(java.util.Arrays.toString(reals));
+      }
+  }		
+#+end_src
+
+** Run it
+#+begin_src bash :results output :exports both
+  javac -Xlint:unchecked -cp .:stdlib.jar InsertionComparable.java 2>&1
+  java  -cp .:stdlib.jar InsertionComparable
+#+end_src
+
+#+RESULTS:
+: InsertionComparable.java:15: warning: [unchecked] unchecked call to compareTo(T)
+: as a member of the raw type Comparable
+:     		if (a[j-1].compareTo(a[j]) > 0)
+:     		                    ^
+:   where T is a type-variable:
+:     T extends Object declared in interface Comparable
+: 1 warning
+: [and, but, had, him, his, the, was, you]
+: [3, 7, 19, 25, 42, 88]
+: [0.58, 1.41, 2.71, 3.14]
+
+** The warning
+
+* Code-along 2: a comparable =Counter=
+
+#+begin_src java :tangle Counter.java :eval-no :no-expand
+  // Counter.java - the week 1 Counter now comparable by its count
+  public class Counter implements Comparable<Counter>
+  {   // Start of `Counter` class
+      // Declare private state `count` (int)
+      private int count;
+      // Define public constructor `Counter(int)`
+      public Counter(int start) { count = start; }
+      // Define mutator/setter method `increment()`
+      public void increment() { count++; }
+      // Define mutator/setter method `decrement()`
+      public void decrement() { count--; }
+      // Define accessor/getter method `getCount()`
+      public int getCount() { return count; }
+      // compare this counter with b by count: negative, 0, or positive
+      public int compareTo(Counter b)
+      {
+    	if      (count < b.count) return -1;
+    	else if (count > b.count) return 1;
+    	else                      return 0;n
+      }
+      // print a Counter as it count
+      public String toString() { return "" + count; }
+      // test client: counters with random counts, sorted by count
+      public static void main(String[] args)
+      {
+  	int N = Integer.parseInt(args[0]);
+  	Counter[] a = new Counter[N];
+  	for (int i = 0; i < N; i++)
+  	    {
+  		a[i] = new Counter(0);
+  		int votes = StdRandom.uniformInt(100);
+  		for (int k = 0; k < votes; k++) a[i].increment();
+  	    }
+  	StdOut.println(java.util.Arrays.toString(a));
+  	InsertionComparable.sort(a);
+  	StdOut.println(java.util.Arrays.toString(a));
+      }
+  } // End of `Counter` class
+#+end_src
+
+** Run it
+
+#+begin_src bash :results output :exports both
+  javac -cp .:stdlib.jar Counter.java InsertionComparable.java 2>&1
+  java  -cp .:stdlib.jar Counter 10
+#+end_src
+
+#+RESULTS:
+: Note: InsertionComparable.java uses unchecked or unsafe operations.
+: Note: Recompile with -Xlint:unchecked for details.
+: [83, 49, 99, 58, 34, 55, 13, 33, 18, 66]
+: [13, 18, 33, 34, 49, 55, 58, 66, 83, 99]
+
+* Pitfall: compare by subtraction
+
+#+name: CompareOverflow.java
+#+begin_src java :tangle CompareOverflow.java
+  // CompareOverflow.java - why compareTo() should not subtract
+  public class CompareOverflow
+  {
+      public static void main(String[] args)
+      {
+          int a = 2_000_000_000, b = -2_000_000_000;
+          System.out.println("a - b                 = " + (a - b));
+          System.out.println("Integer.compare(a, b) = " + Integer.compare(a, b));
+      }
+  }
+#+end_src
+
+#+begin_src bash
+  javac CompareOverflow.java
+  java CompareOverflow
+#+end_src
+
+#+RESULTS:
+: a - b                 = -294967296
+: Integer.compare(a, b) = 1
+
+* Code-along 3: =InsertionGeneric=
+
+#+begin_src java :tangle InsertionGeneric.java
+  // InsertionGeneric.java: insertion sort with a generic type parameter
+  public class InsertionGeneric
+  {
+      // sort a[] into ascending order in place.
+      // Key can be any type that is comparable with itself
+      public static <Key extends Comparable<Key>> void sort(Key[] a)
+      {
+      	// number of entries (input size)
+      	int N = a.length;
+      	// insert a[i] into the sorted part a[0,i)
+      	for (int i = 1; i < N; i++) // first entry already sorted!
+      	    // move a[i] to the left, one place per step
+      	    for (int j = i; j > 0; j--)
+      		// is the left neighbor larger?
+      		if (a[j-1].compareTo(a[j]) > 0)
+      		    // then swap the two elements
+      		    exchange(a, j-1, j);
+      	// else a[j] is in place: stop early
+      		else break;
+      }
+      // private helper: only sort() uses it, not in the API
+      private static <Key> void exchange(Key[] a, int i, int j)
+      {
+      	// swap a[i] and a[j] via the temporary t
+      	Key t = a[i]; a[i] = a[j]; a[j] = t;
+      }
+      // InsertionComparable.java: paste this main() inside the class
+      // test client: the same sort for strings, integers and doubles
+      public static void main(String[] args)
+      {
+  	Object[] mixed = {"eve", 42, "bob" };
+  	sort(mixed);
+  // 	Integer[] ints = { 42, 7, 19, 3, 88, 25 };
+  // 	StdOut.println(java.util.Arrays.toString(ints));
+  // 	sort(ints);
+  // 	StdOut.println(java.util.Arrays.toString(ints));
+      }
+  }	
+
+#+end_src
+#+begin_src bash :results output :exports both
+  javac -Xlint:unchecked -cp .:stdlib.jar InsertionGeneric.java 2>&1
+  java  -cp .:stdlib.jar InsertionGeneric
+#+end_src
+
+#+RESULTS:
+#+begin_example
+InsertionGeneric.java:32: error: method sort in class InsertionGeneric
+cannot be applied to given types;
+	sort(mixed);
+	^
+  required: Key[]
+  found:    Object[]
+  reason: inference variable Key has incompatible bounds
+    lower bounds: Comparable<Key>
+    lower bounds: Object
+  where Key is a type-variable:
+    Key extends Comparable<Key> declared in method <Key>sort(Key[])
+1 error
+[42, 7, 19, 3, 88, 25]
+[3, 7, 19, 25, 42, 88]
+#+end_example
+
+* PRACTICE: a named =Counter=
+
+Get votes.txt from here: birkenkrahe.github.io/go/Counter-votes
+
+#+begin_src bash :results output :exports both
+  cat > votes.txt << 'EOF'
+  wendy 72
+  alice 85
+  dave 72
+  walter 90
+  carlos 85
+  carol 60
+  EOF
+  cat votes.txt
+#+end_src
+
+#+RESULTS:
+: wendy 72
+: alice 85
+: dave 72
+: walter 90
+: carlos 85
+: carol 60
+
+Modify =Counter.java= (with ~Comparable~) and replace the test client by
+this:
+#+begin_src java :tangle Counter.java :eval-no :no-expand
+  // Counter.java - the week 1 Counter now comparable by its count
+  public class Counter implements Comparable<Counter>
+  {   // Start of `Counter` class
+      private final String name;  
+      private int count;
+      public Counter(String name, int count) { this.name=name; this.count=count; }
+      public void increment() { count++; }
+      public void decrement() { count--; }
+      public int getCount() { return count; }
+      public int compareTo(Counter b)
+      {
+  	// Use Integer.compare on count
+  	if (count != b.count) return Integer.compare(count,b.count);
+  	// Use compareTo on the name
+  	return name.compareTo(b.name);
+      }
+      // TODO print a Counter as name + count
+      public String toString() { return name + " " + count; }
+  } // End of `Counter` class
+  // test client: read name/votes pairs, sort the counters, print them
+  public static void main(String[] args)
+  {
+      // read all words from standard input: name, votes, name, votes, ...
+      String[] in = StdIn.readAllStrings();
+      // one counter per name/votes pair
+      Counter[] a = new Counter[in.length / 2];
+      // for each pair i
+      for (int i = 0; i < a.length; i++)
+          // a counter named in[2*i], starting at the votes in[2*i+1]
+          a[i] = new Counter(in[2*i], Integer.parseInt(in[2*i+1]));
+      // sort by votes, ties by name (uses compareTo())
+      InsertionGeneric.sort(a);
+      // print one counter per line (uses toString())
+      for (Counter c : a) StdOut.println(c);
+  }
+#+end_src
+#+begin_src bash :results output :exports both
+  javac -cp .:stdlib.jar InsertionGeneric.java Counter.java
+  java  -cp .:stdlib.jar Counter < votes.txt
+#+end_src
+
+#+RESULTS:
+: carol 60
+: dave 72
+: wendy 72
+: alice 85
+: carlos 85
+: walter 90
