@@ -6,7 +6,6 @@
 #+attr_html: :width 400px :float nil:
 #+caption: Three Monks at Mealtime, by Eduard v. Grützner (1885)
 [[../img/three_monks.jpg]]
-
 * DONE W1S1: Overview of the course
 
 - *Check-in when in class:*
@@ -1550,21 +1549,22 @@ questions! Also: *open (handwritten) notes only, no printouts.*
 
 Also: *Charge your laptops*. Time: *Friday, 9 Oct, 1pm-1:50pm* FSC 372.
   
+* DONE W8S1: Binary search II: recursion to loop, non-recursive version
 
-* W8S1: Binary search II: recursion to loop, non-recursive version
-
-- [ ] Second sprint: literature review (due Oct 30)
-- [ ] Binary search in pseudocode (warmup)
-- [ ] Turning a recursion into a loop (code-along)
+- [X] Second sprint: literature review (due Oct 30)
+- [X] Binary search in pseudocode (warmup)
+- [X] Turning a recursion into a loop (code-along)
 - [ ] =BinarySearchLoop=: non-recursive version (practice)
 - [ ] =BinarySearchLoop=: the solution, step by step
-- [ ] Tutorial: recursion into loops (weekend reading)
-- [ ] Home assignment 8: =CountChar= (due Fri Oct 23)
+- [X] Tutorial: recursion into loops (weekend reading)
+- [X] Home assignment 8: =CountChar= (due Fri Oct 23)
 
 ** Second sprint: literature review (due Oct 30)
 
 The assignment is on Canvas. Here is what a literature review is,
 and what I expect.
+
+[[https://github.com/birkenkrahe/cosc_2230_fall_26/blob/main/pdf/sprint2_literature_review.pdf][I also put this into a short presentation.]]
 
 *What is a literature review?*
 #+begin_quote
@@ -1620,8 +1620,9 @@ and what I expect.
 
 *Where to look*
 #+begin_quote
-- The textbook (Sedgewick and Wayne, /Algorithms/) and its booksite,
-  Google Scholar, arXiv, and the official Java documentation.
+- The textbook (Sedgewick and Wayne, /Introduction to Programming
+  in Java/) and its booksite, Google Scholar, arXiv, and the official
+  Java documentation.
 #+end_quote
 #+begin_quote
 - Use AI to find candidates and to summarize, then open and read the
@@ -1692,27 +1693,208 @@ Presentation walkthrough.
 - *Bonus assignment:* Palindrome (reads the same from back or front,
   like =racecar=) from loop to recursive. Deadline December 4.
 
+* DONE W9S1: Binary search as loop & doubling test
 
-* W9S1: Binary search wrap-up / Insertion Sort
+- [X] Binary search: mathematical analysis (lecture)
+- [X] Doubling test for binary search (demo)
+- [X] Home assignment 9: =BinarySearchRank= (due Mon Oct 26)
+- [X] Bonus: two more interactive companions for binary search
 
-1) [ ] Binary search: mathematical analysis (lecture)
-2) [ ] Doubling test for binary search (codealong)
-3) [ ] Insertion sort
-4) [ ] Home assignment 9: =BinarySearchRank= (due Mon Oct 26)
+** Review
 
-** TODO Interactive companions: converting to binary, bisection search (demo)
+What did we cover last time?
 
-** TODO Binary search: mathematical analysis (lecture)
-** TODO Doubling test for binary search (codealong)
-** TODO Insertion sort
-** TODO Home assignment 9: =BinarySearchRank= (due Mon Oct 26)
+** =BinarySearchLoop=: non-recursive version (practice)
+
+On your own now: apply the four steps to the recursive =search()=.
+
+1. Parameters that *change* become loop *variables*.
+2. *Base case* becomes the loop *condition*.
+3. Method *calls* become *assignments*.
+4. Base case condition *outcome* is *returned*.
+
+#+caption: Example from the tutorial (birkenkrahe.github.io/go/recursion)
+[[../img/recursion_to_loop.png]]   
+   
+** =BinarySearchLoop=: the solution, step by step
+
+- Let's walk through your solutions
+- [[https://github.com/birkenkrahe/cosc_2230_fall_26/blob/main/pdf/4_search_binary_loop.pdf][My sample solution]] (presentation, GitHub)
+
+** Home assignment 9: =BinarySearchRank= (due Mon Oct 26 at 1 pm)
 
 - Change =search()= so that it returns the first index of the key
   among duplicates, and an insertion point on a miss (Exercise 4.2.3).
 - About 1-1.5 hours. Submit =BinarySearchRank.java= on Canvas.
+- In-class check on Monday, 26 October (3/10 points)
 
-* W9S2: Doubling Test on Insertion Sort
-* W9S3: Mergesort
+** Interactive companions: converting to binary, bisection search (demo)
+
+See for yourself: https://birkenkrahe.github.io/demos/
+
+* DONE W9S2: Insertion Sort I: problem and cost
+
+- [X] Insertion sort I
+
+** Insertion sort I:
+- State the sorting problem and name applications
+- explain insertion sort with its invariant
+- implement =Insertion.sort= with an early =break=
+- derive the cost (sorted/random/reversed) 
+
+* DONE W9S3: Insertion Sort II: trace and interface
+
+- [X] Review insertion sort I
+- [X] Insertion sort II
+- [ ] Insertion with comparables
+  
+** Review
+
+1) How many compares does insertion sort need for an array of N
+   entries that is already sorted, random, or reversed - and why?
+   #+begin_quote
+   - Sorted: one compare per entry, then ~break~: N-1 ~ N (linear).
+   - Reversed: entry i moves all the way left, i compares each:
+     1 + 2 + ... + (N-1) ~ N^2/2.
+   - Random: each entry moves about halfway (on average 1/2 of the
+     entries are larger than it): ~ N^2/4.
+   #+end_quote
+2) Why does the outer loop of =Insertion.sort()= start at =i = 1=?
+   When does the inner loop stop early, and what changes if you
+   delete ~else break~?
+   #+begin_quote
+   One entry on its own is already sorted. The inner loop stops at
+   the first left neighbor that is *not* larger than =a[j]=. Without
+   the ~break~ the result is still correct, but every entry is
+   compared all the way down to =j = 0=: ~ N^2/2 compares even on
+   sorted input.
+   #+end_quote
+3) Binary search needs a sorted array. Name two other
+   jobs/applications that need sorting and explain why one of them
+   does.
+   #+begin_quote
+   - Statistics: the median is the middle entry of the sorted data.
+   - Databases: SQL =ORDER BY= and =GROUP BY= sort the rows first.
+   - Compression: after sorting, count runs of equal entries, or
+     store the (small) gaps between neighbors instead of the values.
+   - Also: bioinformatics, graphics, ranking the likeliest next
+     words in GenAI.
+   #+end_quote
+
+** Insertion sort II:
+
+- Trace insertion sort by hand and count its exchanges
+- confirm quadratic growth with a doubling test
+- explain while quadratic algorithms don't scale
+
+** Insertion with comparables I
+
+- Reacquaint yourself with Java's ~interface~
+
+* DONE W10S1: AI lessons / =BinarySearchRank= check / Sorting other types: =Comparable=
+
+- [X] Please bear with me this week (candidate interviews ongoing)
+- [X] Working with AI: lessons from =CountChar=
+- [X] In-class check: home assignment 9 (=BinarySearchRank=)
+- [X] From =String= to =Comparable=
+- [X] No home assignment this week: literature review due Fri Oct 30
+
+** =BinarySearchRank= check
+
+The big ideas:
+1. Don't stop at a hit. With duplicates, the first =a[mid]= that equals
+   the key can be any copy. To find the first copy, keep searching.
+2. Search for a boundary, not a key. The helper no longer asks "where
+   is the key" but "where does >= key begin?".
+3. The invariant makes it correct: =a[0,lo)= is < key and =a[hi,N)= is >=
+   key. Holds at the start and at the end (lo==hi) is the boundary.
+4. Decide hit or miss once, at the end:
+   #+begin_example java
+   if (i < a.length && a[i].equals(key)) return i;   // hit: first copy
+   return -i;                                        // miss: insertion point
+   #+end_example
+5. Still logarithmic, even for all duplicates: ~lg N compares.
+6. -0 == 0 for an ~int~, so alice and bob both return 0.
+7. Immutable keys: binary search trusts that the array stays sorted. A
+   key that can change after sorting breaks the order silently. A
+   ~String~ can't change, so the order stays valid.
+
+** Working with AI: lessons from =CountChar=
+
+- [[https://drive.google.com/file/d/1RdDb5S3rLcuz6V2W4la8TKNUqj8QHGnE/view?usp=drive_link][Working with AI: lessons from CountChar]] (video, GDrive)
+
+* DONE W10S2: =Comparable= review / Generics: =InsertionGeneric= / A named =Counter= (practice)
+
+- [X] Review: ~Comparable~, ~compareTo()~, autoboxing
+- [X] Pitfall: compare by subtraction -> ~Integer.compare()~
+- [X] Generic methods -> =InsertionGeneric=
+- [X] Practice: a named, comparable =Counter= (=votes.txt=)
+
+** Review
+
+1) What is ~Comparable~, and which classes implement it?
+   #+begin_quote
+   ~Comparable~ is a Java ~interface~ (~java.lang.Comparable~) with one
+   method, ~compareTo()~. A class that implements it promises to
+   provide ~compareTo()~, so its objects can be compared, and any sort
+   written for ~Comparable~ can sort them. ~String~, ~Integer~ and
+   ~Double~ implement it already; your own classes can, too.
+   #+end_quote
+
+2) What must ~compareTo()~ return, and what must it guarantee?
+   #+begin_quote
+   ~a.compareTo(b)~ returns a negative number, 0, or a positive number
+   for a < b, a = b, a > b. It must define a total order (writing
+   a <= b for ~a.compareTo(b) <= 0~): antisymmetric, transitive and
+   total, so any two items can be compared. The compiler does not
+   check this; you have to.
+   #+end_quote
+
+3) What is *autoboxing*, and what is it for?
+   #+begin_quote
+   Autoboxing is the automatic conversion of a primitive value into an
+   object of its wrapper class, e.g. ~int~ to ~Integer~ (unboxing goes
+   back). It lets you use primitive values where Java needs objects:
+   ~Integer[] ints = { 42, 7, 19 }~ can be passed to
+   ~sort(Comparable[] a)~, because an ~int~ is not an object and cannot
+   implement ~Comparable~. It works on single values only: an ~int[]~
+   does not become an ~Integer[]~.
+   #+end_quote
+
+** Practice: a named =Counter=
+
+- The week 1 =Counter= gets a ~final~ =name= and implements
+  =Comparable<Counter>=: =compareTo()= compares the counts with
+  ~Integer.compare()~ and breaks a tie by name; =toString()= prints
+  name and count.
+- The test client reads name/votes pairs from =votes.txt=
+  ([[https://birkenkrahe.github.io/go/Counter-votes][birkenkrahe.github.io/go/Counter-votes]]) and sorts them with
+  =InsertionGeneric=: ties at 72 (=dave=, =wendy=) and 85 (=alice=,
+  =carlos=) come out by name.
+- Mergesort reuses this =Counter= in its last practice
+  (=FrequencyCount=).
+
+* W10S3: Mergesort I: what mergesort does
+
+- [ ] Literature review due today (Fri Oct 30)
+- [ ] Checkout answer: 1,000 exam papers, two friends
+- [ ] Mergesort: the idea (divide, sort each half, merge); aux array
+- [ ] Code-along: =merge()=, trace, =sort()= and test on =names16.txt=
+- [ ] Trace of the recursive calls; correctness proofs
+- [ ] Practice: count the compares of two merges (slides 15-16).
+  The trace practice (slides 17-18) opens W11S2, after the sprint
+  review.
+
+** Mergesort I:
+
+- Explain mergesort: divide, sort each half recursively, merge
+- Implement =merge()= with an aux array; trace it with i, j and k
+- Implement the recursive =sort(a, lo, hi)= and trace its calls
+- Argue correctness (base case, smaller subproblems, merge)
+
+Interactive Companion: [[https://birkenkrahe.github.io/demos/merge-sort.html][birkenkrahe.github.io/demos/merge-sort.html]]
+(cards 1 and 2).  Data: =birkenkrahe.github.io/data/names16.txt=.
+
 * Footnotes
 
 [fn:4] "Interned" means the JVM keeps a single shared copy of a string
