@@ -1,0 +1,146 @@
+#+TITLE: Solution: Binary Search Rank
+#+AUTHOR: Marcus Birkenkrahe
+#+SUBTITLE: COSC 2230 (CS III) Fall 2026 | Augustana U.
+#+STARTUP: overview hideblocks indent entitiespretty
+#+OPTIONS: toc:nil num:nil ^:nil
+#+PROPERTY: header-args:java :dir ../src :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar" :exports both
+#+PROPERTY: header-args:bash :dir ../src :results output :exports both
+
+This is a sample solution for the Binary Search Rank assignment
+(Exercise 4.2.3 in the book).
+
+* Data
+
+#+begin_src text :tangle ../src/sorted8.txt
+bob
+carl
+carl
+carl
+dave
+eve
+eve
+mallory
+#+end_src
+
+#+begin_src text :tangle ../src/keys.txt
+carl
+eve
+bob
+mallory
+dan
+frank
+zoe
+alice
+#+end_src
+
+* Solution
+
+#+name: BinarySearchRank.java
+#+begin_src java :tangle ../src/BinarySearchRank.java :noeval
+  // BinarySearchRank.java - binary search that returns the smallest
+  // index of a key, or -i for a miss, where i is the insertion point
+  //
+  // 1. alice and bob both print 0, but only bob is in the array. For an
+  //    int, -0 is 0, so a miss whose insertion point is 0 looks exactly
+  //    like a hit at index 0. A client cannot tell them apart from the
+  //    return value alone: it has to check a[0].equals(key) itself.
+  //    (That is why Arrays.binarySearch() returns -i - 1 on a miss.)
+  // 2. Binary search trusts that the array is sorted. If a key could be
+  //    changed after sorting (a mutable key), the array might no longer
+  //    be in order, and searches would give wrong answers without any
+  //    error. Immutable keys such as String cannot change, so the order
+  //    stays correct.
+  public class BinarySearchRank
+  {
+      // smallest index i with a[i] equal to key, or -i if key is missing
+      public static int search(String key, String[] a)
+      {
+          // i = number of entries smaller than key (the rank of key)
+          int i = search(key, a, 0, a.length);
+          // hit: a[i] is the first entry that equals key
+          if (i < a.length && a[i].equals(key)) return i;
+          // miss: i is the first entry greater than key (or a.length)
+          return -i;
+      }
+      // invariant: a[0, lo) < key and a[hi, a.length) >= key
+      // returns the first index i with a[i] >= key (a.length if none)
+      public static int search(String key, String[] a, int lo, int hi)
+      {
+          // empty interval: lo is the first entry that is >= key
+          if (hi <= lo) return lo;
+          // compute index in the middle of the interval
+          int mid = lo + (hi - lo) / 2;
+          // compare the middle entry with the key: only the sign matters
+          int cmp = a[mid].compareTo(key);
+          // a[mid] >= key: the first such entry is a[mid] or to its left
+          if (cmp >= 0) return search(key, a, lo, mid);
+          // a[mid] < key: the first entry >= key is to the right of mid
+          else          return search(key, a, mid+1, hi);
+      }
+      // test client: sorted array from a file, keys from standard input
+      public static void main(String[] args)
+      {
+          // read the sorted array from the file named on the command line
+          In in = new In(args[0]);
+          String[] a = in.readAllStrings();
+          // print each key and the value search() returns
+          while (!StdIn.isEmpty())
+          {
+              String key = StdIn.readString();
+              StdOut.println(key + " " + search(key, a));
+          }
+      }
+  }
+#+end_src
+
+#+begin_src bash
+  javac -cp .:stdlib.jar BinarySearchRank.java
+  java -cp .:stdlib.jar BinarySearchRank sorted8.txt < keys.txt
+#+end_src
+
+#+RESULTS:
+: carl 1
+: eve 5
+: bob 0
+: mallory 7
+: dan -4
+: frank -7
+: zoe -8
+: alice 0
+
+* Changes from =BinarySearch=
+
+1. Class name =BinarySearchRank= (file name must match).
+2. A hit no longer stops the search. With duplicates, the first
+   =a[mid]= that matches may be any copy of the key: the version from
+   class returns 2 for =carl= (the second of three) and 6 for =eve=
+   (the second of two). To find the first one, a hit keeps searching
+   the lower half: =cmp >= 0= goes left, together with =cmp > 0=.
+3. The helper no longer returns -1 or =mid=. It always ends with an
+   empty interval and returns =lo=: the first index with
+   =a[lo] >= key=, i.e. the number of entries smaller than the key.
+4. The public =search()= decides hit or miss once, at the end: if
+   =a[lo]= equals the key it is a hit at =lo=, otherwise a miss with
+   insertion point =lo=.
+5. New test client: the sorted array comes from a file, the keys from
+   standard input.
+
+* Why it works
+
+The invariant is the one from class, made exact: everything in
+=a[0, lo)= is smaller than the key, everything in =a[hi, a.length)= is
+greater than or equal to it.
+
+- At the start, =lo = 0= and =hi = a.length=: both parts are empty, so
+  the invariant holds.
+- =a[mid] >= key=: because the array is sorted, everything from
+  =a[mid]= on is >= key, so =hi = mid= keeps the invariant.
+  =a[mid] < key=: everything up to =a[mid]= is smaller, so
+  =lo = mid + 1= keeps it.
+- Every call shrinks the interval, so it ends with =lo == hi=. Then
+  everything before =lo= is smaller than the key and everything from
+  =lo= on is >= key: =lo= is the first index where the key is or would
+  be.
+
+The cost is still about lg N compares, but now for hits as well:
+the search never stops early, so every search goes all the way down.
