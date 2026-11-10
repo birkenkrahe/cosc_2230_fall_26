@@ -1,0 +1,96 @@
+#+TITLE: Stacks: an array stack - code
+#+STARTUP: overview hideblocks indent entitiespretty
+#+PROPERTY: header-args:java :dir . :cmpflag "-cp .:stdlib.jar" :cmdline "-cp .:stdlib.jar" :exports both
+#+PROPERTY: header-args:bash :results output :exports both
+
+This code is available as a [[https://gist.github.com/birkenkrahe/e27c64f8c87a560ba2ac80ff109d039e][public gist]].
+
+* [Slide 14] Get the test data
+
+#+begin_src bash :results output :exports both
+  curl -O https://birkenkrahe.github.io/data/tobe.txt
+  cat tobe.txt
+#+end_src
+
+#+RESULTS:
+: to be or not to - be - - that - - - is
+
+* [Slide 14] Code-along: =ArrayStackOfStrings=
+
+#+name: fields
+#+begin_src java :eval no
+  // the stack: items[0] is the bottom, items[n-1] is the top
+  private String[] items;
+  // number of items on the stack = index of the next free slot
+  private int n = 0;
+  // create an empty stack that can hold up to capacity strings
+  public ArrayStackOfStrings(int capacity)
+  {
+      items = new String[capacity];
+  }
+#+end_src
+
+#+name: methods
+#+begin_src java :eval no
+  // is the stack empty?
+  public boolean isEmpty()
+  {
+      return n == 0;
+  }
+  // number of items on the stack
+  public int size()
+  {
+      return n;
+  }
+  // put an item on top: into the next free slot, then count it
+  public void push(String item)
+  {
+      items[n++] = item;
+  }
+  // remove and return the top item: uncount it, then return it
+  public String pop()
+  {
+      return items[--n];
+  }
+#+end_src
+
+#+name: client
+#+begin_src java :eval no
+  // test client: push words, pop and print on '-'
+  public static void main(String[] args)
+  {
+      // capacity from the command line
+      int cap = Integer.parseInt(args[0]);
+      // create a stack of the given capacity
+      ArrayStackOfStrings stack = new ArrayStackOfStrings(cap);
+      // read words until input empty
+      while (!StdIn.isEmpty())
+  	{
+  	    String item = StdIn.readString();
+  	    if (item.equals("-")) StdOut.print(stack.pop() + " ");
+  	    else                  stack.push(item);
+  	}
+      StdOut.println();
+  }
+#+end_src
+
+#+name: ArrayStackOfStrings.java
+#+begin_src java :noweb yes :tangle ArrayStackOfStrings.java
+   public class ArrayStackOfStrings
+       {
+   	<<fields>>
+   	<<methods>>
+   	<<client>>
+   }
+#+end_src
+
+#+begin_src bash :results output :exports both
+  javac -cp .:stdlib.jar ArrayStackOfStrings.java
+  java  -cp .:stdlib.jar ArrayStackOfStrings 5 < tobe.txt
+#+end_src
+
+#+RESULTS:
+: to be not that or be 
+
+* [Slide 17] Capacity: too small
+
