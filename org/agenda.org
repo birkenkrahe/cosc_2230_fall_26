@@ -1874,12 +1874,12 @@ The big ideas:
 - Mergesort reuses this =Counter= in its last practice
   (=FrequencyCount=).
 
-* W10S3: Mergesort I: what mergesort does
+* DONE W10S3: Mergesort I: what mergesort does
 
-- [ ] Literature review due today (Fri Oct 30)
-- [ ] Checkout answer: 1,000 exam papers, two friends
-- [ ] Mergesort: the idea (divide, sort each half, merge); aux array
-- [ ] Code-along: =merge()=, trace, =sort()= and test on =names16.txt=
+- [X] Literature review due today (Fri Oct 30)
+- [X] Checkout answer: 1,000 exam papers, two friends
+- [X] Mergesort: the idea (divide, sort each half, merge); aux array
+- [X] Code-along: =merge()=, trace, =sort()= and test on =names16.txt=
 - [ ] Trace of the recursive calls; correctness proofs
 - [ ] Practice: count the compares of two merges (slides 15-16).
   The trace practice (slides 17-18) opens W11S2, after the sprint
@@ -1894,6 +1894,96 @@ The big ideas:
 
 Interactive Companion: [[https://birkenkrahe.github.io/demos/merge-sort.html][birkenkrahe.github.io/demos/merge-sort.html]]
 (cards 1 and 2).  Data: =birkenkrahe.github.io/data/names16.txt=.
+
+* DONE W11S1: Project review
+
+- [X] Project review
+- [X] You will get individual feedback (by project)
+
+* DONE W11S2: Mergesort II: =sort()= and the recursive calls
+
+- [X] Warm-up: trace one merge (slides 10-11)
+- [X] Code-along: =sort(a)=, =sort(a, lo, hi)=, run on =names16.txt=
+- [X] Overloading; code-along: "already defined" (slide 14)
+- [X] Questions about the code; tracing recursive calls; correctness
+- [ ] What mergesort costs: data moves, levels, compares
+- [X] In-class assignment:
+      #+begin_quote
+      Friday's in-class assignment takes 30 minutes on paper and
+      covers mergesort as we coded it in class: merge(), sort(a) and
+      sort(a, lo, hin). You may bring your own handwritten notes, but
+      no printed slides, laptop, phone or AI. To prepare, make sure
+      you can trace mergesort by hand on a short array of words: which
+      calls happen in which order, the values of lo, mid and hi in
+      each merge, and what the array looks like after each merge. Make
+      sure you also understand what every line and every variable in
+      the Merge class does, why there are two sort() methods, and how
+      they work together, so you can read the code, explain what it
+      does when it is called in different ways, and change it. Syntax
+      does not count, and an answer in plain words or pseudocode earns
+      partial credit.
+      #+end_quote
+
+** Mergesort II:
+
+- Implement the recursive =sort(a, lo, hi)= and the wrapper =sort(a)=
+- Trace the recursive calls: which merges happen, in which order
+- Explain overloading and why a helper needs its own name
+- Count data moves (2N lg N) and compares (½ N lg N to N lg N)
+
+* DONE W11S3: In-class assignment / Mergesort III: what it costs, what it is good for
+
+- [ ] In-class assignment: sorting part of an array (30 min on paper)
+
+- [ ] Quadratic against linearithmic; memory and recursion depth;
+- [ ] mergesort in Java
+
+Interactive Companion: [[https://birkenkrahe.github.io/demos/merge-sort.html][birkenkrahe.github.io/demos/merge-sort.html]]
+
+New interactive companion to illustrate Zipf's law: in a natural
+language text (like a novel), the k-th most common word occurs with a
+frequency roughly proportional to 1/k (or: rank x count = const).
+
+Link: [[https://birkenkrahe.github.io/demos/zipf.html][birkenkrahe.github.io/demos/zipf.html]]
+
+* DONE W12S1: Stacks I: the stack API and an array stack
+
+- [X] The call stack; data types and data structures
+- [X] Two collections: stack (LIFO) and queue (FIFO); the same input
+      on both
+- [X] The stack API; abstract data type or data structure?
+- [X] Performance specifications
+- [X] Code-along: =ArrayStackOfStrings=, run on =tobe.txt=
+- [X] Trace and invariants; capacity: too small, or too big
+- [ ] Loitering: the popped item stays in the array
+- [ ] In-class assignment 1: an array stack
+
+Interactive Companion: [[https://birkenkrahe.github.io/demos/array-stack.html][birkenkrahe.github.io/demos/array-stack.html]]
+
+** Stacks I:
+
+- Tell a data type from a data structure
+- Describe a stack (LIFO) and a queue (FIFO) and trace both by hand
+- State the stack API and the three performance specifications
+- Implement a stack of strings with an array
+- Explain why the array stack does not meet the specifications
+
+* W12S2: Stacks II: loitering / In-class assignment / Linked lists
+
+- [ ] Review on paper: the array stack (15 min)
+- [ ] Loitering: the popped item stays in the array; fix =pop()= 
+- [ ] Wrap-up and checkout question (slides 21-22)
+- [ ] Linked lists: sequential and linked allocation
+- [ ] =Node= class, build the list =to be or=
+- [ ] Remove the first node; insert a node at the beginning
+
+Interactive Companion: [[https://birkenkrahe.github.io/demos/linked-stack-queue.html][birkenkrahe.github.io/demos/linked-stack-queue.html]]
+
+** Stacks II:
+
+- Explain why a popped item should not stay in the array (loitering)
+- Define a linked list and draw one with boxes and arrows
+- Insert a node at the beginning of a list and remove the first node
 
 * Footnotes
 
