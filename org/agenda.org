@@ -1968,12 +1968,12 @@ Interactive Companion: [[https://birkenkrahe.github.io/demos/array-stack.html][b
 - Implement a stack of strings with an array
 - Explain why the array stack does not meet the specifications
 
-* W12S2: Stacks II: loitering / In-class assignment / Linked lists
+* DONE W12S2: Stacks II: loitering / In-class assignment / Linked lists
 
-- [ ] Review on paper: the array stack (15 min)
-- [ ] Loitering: the popped item stays in the array; fix =pop()= 
-- [ ] Wrap-up and checkout question (slides 21-22)
-- [ ] Linked lists: sequential and linked allocation
+- [X] Review on paper: the array stack (15 min)
+- [X] Loitering: the popped item stays in the array; fix =pop()= 
+- [X] Wrap-up and checkout question (slides 21-22)
+- [X] Linked lists: sequential and linked allocation
 - [ ] =Node= class, build the list =to be or=
 - [ ] Remove the first node; insert a node at the beginning
 
@@ -1984,6 +1984,29 @@ Interactive Companion: [[https://birkenkrahe.github.io/demos/linked-stack-queue.
 - Explain why a popped item should not stay in the array (loitering)
 - Define a linked list and draw one with boxes and arrows
 - Insert a node at the beginning of a list and remove the first node
+
+* W13S1: Stacks III: a linked stack
+
+- [ ] *Grading:* will finish grading of outstanding work before Thanksgiving.
+- [ ] *Presentations:* some of you may have to record your presentation
+- [ ] Review on paper: linked lists (15 min)
+- [ ] Remove the first node; insert a node at the beginning
+- [ ] Question: insert without =oldFirst=
+- [ ] Traverse a list
+- [ ] Code-along: =LinkedStackOfStrings=, run on =tobe.txt=
+- [ ] Trace; the linked stack against the specifications
+- [ ] Practice: three pop quizzes on linked lists (by hand)
+- [ ] Wrap-up and checkout question
+- [ ] *Next*: FIFO queue as a linked list
+
+Interactive Companion: [[https://birkenkrahe.github.io/demos/linked-stack-queue.html][birkenkrahe.github.io/demos/linked-stack-queue.html]]
+
+** Stacks III:
+
+- Insert a node at the beginning of a list and remove the first node
+- Traverse a linked list
+- Implement a stack of strings with a linked list
+- Check the linked stack against the three performance specifications
 
 * Footnotes
 
