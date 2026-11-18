@@ -1985,15 +1985,15 @@ Interactive Companion: [[https://birkenkrahe.github.io/demos/linked-stack-queue.
 - Define a linked list and draw one with boxes and arrows
 - Insert a node at the beginning of a list and remove the first node
 
-* W13S1: Stacks III: a linked stack
+* DONE W13S1: Stacks III: a linked stack
 
-- [ ] *Grading:* will finish grading of outstanding work before Thanksgiving.
-- [ ] *Presentations:* some of you may have to record your presentation
-- [ ] Review on paper: linked lists (15 min)
-- [ ] Remove the first node; insert a node at the beginning
-- [ ] Question: insert without =oldFirst=
-- [ ] Traverse a list
-- [ ] Code-along: =LinkedStackOfStrings=, run on =tobe.txt=
+- [X] *Grading:* will finish grading of outstanding work before Thanksgiving.
+- [X] *Presentations:* some of you may have to record your presentation
+- [X] Review on paper: linked lists (15 min)
+- [X] Remove the first node; insert a node at the beginning
+- [X] Question: insert without =oldFirst=
+- [X] Traverse a list
+- [X] Code-along: =LinkedStackOfStrings=, run on =tobe.txt=
 - [ ] Trace; the linked stack against the specifications
 - [ ] Practice: three pop quizzes on linked lists (by hand)
 - [ ] Wrap-up and checkout question
@@ -2007,6 +2007,59 @@ Interactive Companion: [[https://birkenkrahe.github.io/demos/linked-stack-queue.
 - Traverse a linked list
 - Implement a stack of strings with a linked list
 - Check the linked stack against the three performance specifications
+
+* W13S2: Stacks IV: the rest of the linked stack / A linked queue
+
+- [ ] Trace; linked stack against the specifications; memory of a node
+- [ ] Practice: three pop quizzes on linked lists
+- [ ] Wrap-up
+- [ ] The queue API; two references, =first= and =last=
+- [ ] Add a node at the end; two special cases
+- [ ] Code-along: =QueueOfStrings=, run on =tobe.txt=
+- [ ] Practice: trace a queue by hand; add =size()=
+- [ ] *Next*: one class for every type of item (generics)
+
+Interactive Companion: [[https://birkenkrahe.github.io/demos/linked-stack-queue.html][birkenkrahe.github.io/demos/linked-stack-queue.html]]
+
+** Stacks IV:
+
+- [ ] Say at which end of a linked list a queue adds and removes, and
+  why it needs the reference =last=
+- [ ] Add a node at the end of a linked list
+- [ ] Implement a queue of strings with a linked list
+- [ ] Trace a queue by hand
+
+* W13S3: Generics: one class for every type of item
+
+- [ ] Practice: add =size()= to the queue
+- [ ] One class per type? A stack of =Object=
+- [ ] Generics: a type parameter
+- [ ] Code-along: =Stack.java=; what changed
+- [ ] The compiler checks the type; autoboxing: a stack of integers
+- [ ] Practice: make the queue generic; which lines compile?
+- [ ] Outlook: the first data types of COSC 3210; from a list to a tree
+- [ ] Wrap-up and checkout question
+- [ ] *Next*: practice on paper
+
+** Generics:
+
+- Say why one class per item type is not a solution
+- Turn a class for strings into a generic class with a type parameter
+- Create a stack or a queue for any reference type, and for ~int~
+- Describe a binary search tree as nodes with two links
+
+* W14S1: Practice on paper: stacks and queues
+
+- [ ] Project: the fourth sprint (presentation)
+- [ ] Practice on paper, no new material
+- [ ] *Next*: presentations (Nov 30 - Dec 4)
+
+** Project: third and fourth sprint
+
+- Third sprint (results report): due today, Mon Nov 23, 11:59 pm, in
+  Canvas. There is no review in class for this sprint.
+- Fourth sprint (presentation): comments in class today. The
+  assignment is in Canvas.
 
 * Footnotes
 
