@@ -2008,14 +2008,14 @@ Interactive Companion: [[https://birkenkrahe.github.io/demos/linked-stack-queue.
 - Implement a stack of strings with a linked list
 - Check the linked stack against the three performance specifications
 
-* W13S2: Stacks IV: the rest of the linked stack / A linked queue
+* DONE W13S2: Stacks IV: the rest of the linked stack / A linked queue
 
-- [ ] Trace; linked stack against the specifications; memory of a node
-- [ ] Practice: three pop quizzes on linked lists
-- [ ] Wrap-up
-- [ ] The queue API; two references, =first= and =last=
-- [ ] Add a node at the end; two special cases
-- [ ] Code-along: =QueueOfStrings=, run on =tobe.txt=
+- [X] Trace; linked stack against the specifications; memory of a node
+- [X] Practice: three pop quizzes on linked lists
+- [X] Wrap-up
+- [X] The queue API; two references, =first= and =last=
+- [X] Add a node at the end; two special cases
+- [X] Code-along: =QueueOfStrings=, run on =tobe.txt=
 - [ ] Practice: trace a queue by hand; add =size()=
 - [ ] *Next*: one class for every type of item (generics)
 
@@ -2029,17 +2029,19 @@ Interactive Companion: [[https://birkenkrahe.github.io/demos/linked-stack-queue.
 - [ ] Implement a queue of strings with a linked list
 - [ ] Trace a queue by hand
 
-* W13S3: Generics: one class for every type of item
+* DONE W13S3: The rest of the linked queue / Generics: one class for every type of item
 
-- [ ] Practice: add =size()= to the queue
-- [ ] One class per type? A stack of =Object=
-- [ ] Generics: a type parameter
+- [X] Review on paper: the linked stack and the linked queue (7 min)
+- [X] *Monday*: be prepared to speak to the progress of your project!
+- [X] Practice: trace a queue by hand, add a =size()= function
+- [X] One class per type? A stack of =Object=
+- [ ] Generics: a type parameter; seen before: the generic sort method
 - [ ] Code-along: =Stack.java=; what changed
 - [ ] The compiler checks the type; autoboxing: a stack of integers
 - [ ] Practice: make the queue generic; which lines compile?
 - [ ] Outlook: the first data types of COSC 3210; from a list to a tree
-- [ ] Wrap-up and checkout question
-- [ ] *Next*: practice on paper
+- [ ] Wrap-up and checkout questions
+- [ ] *Next*: the fourth sprint (presentation)
 
 ** Generics:
 
@@ -2048,18 +2050,26 @@ Interactive Companion: [[https://birkenkrahe.github.io/demos/linked-stack-queue.
 - Create a stack or a queue for any reference type, and for ~int~
 - Describe a binary search tree as nodes with two links
 
-* W14S1: Practice on paper: stacks and queues
+* W14S1: No class (Mon Nov 23) - finish your project
 
-- [ ] Project: the fourth sprint (presentation)
-- [ ] Practice on paper, no new material
-- [ ] *Next*: presentations (Nov 30 - Dec 4)
+There is no class meeting today. Use the class hour (1:00-1:50 pm) to
+meet with your team and work on your project and your presentation.
+I am in my office, FSC 386, all day today (from 9 am) and Tuesday:
+drop in with your questions.
 
-** Project: third and fourth sprint
+** Deadlines
 
-- Third sprint (results report): due today, Mon Nov 23, 11:59 pm, in
-  Canvas. There is no review in class for this sprint.
-- Fourth sprint (presentation): comments in class today. The
-  assignment is in Canvas.
+- Today: [[https://augie.instructure.com/courses/15648/pages/book-your-presentation-time-here][book your presentation time]].
+- Today, 11:59 pm: the [[https://augie.instructure.com/courses/15648/assignments/278488][third sprint results report]]. I grade it and
+  give you feedback over the break.
+- Nov 30 - Dec 4: the fourth sprint, [[https://augie.instructure.com/courses/15648/assignments/279949][your presentation]], with slides,
+  on the day you booked.
+
+** Video lecture: generics and an outlook on trees
+
+The last lecture is an online video lecture with the usual
+code-along, plus an AI-generated video overview. I post the link
+when it is ready; watch it whenever it suits you.
 
 * Footnotes
 
